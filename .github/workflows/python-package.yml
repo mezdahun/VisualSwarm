@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8']
+        python-version: ['3.8']
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -28,4 +28,4 @@ jobs:
         python -m pip install --upgrade pip
         pip install tox
     - name: Test with tox
-      run: tox
+      run: python -m tox
