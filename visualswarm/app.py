@@ -1,11 +1,16 @@
+"""
+@author: mezdahun
+@description: Main app of visualswarm
+"""
+
 import logging
-import os
+
+from visualswarm import env
 
 # setup logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-LOG_LEVEL = logging.getLevelName(os.getenv('LOG_LEVEL', 'DEBUG'))
-logger.setLevel(LOG_LEVEL)
+logger.setLevel(env.LOG_LEVEL)
 
 
 def health():
