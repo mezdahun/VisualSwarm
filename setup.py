@@ -23,7 +23,8 @@ setup(
             'isort',
             'pytest',
             'pytest-cov',
-            'safety'
+            'safety',
+            'fake-rpi'
         ]
     },
     entry_points={
