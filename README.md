@@ -2,7 +2,8 @@
 Implementation of a minimal vision algorithm published by Bastien &amp; Romanczuk (2020) on a Raspberry PI for movement control of Thymio II robots.
 
 ## Environment and Test Suite
- * The project is written in python (>=3.7)
+ * The project is written in python (=3.7)
+ * Your environment and SW should be prepared as described on [this wiki page](https://github.com/mezdahun/VisualSwarm/wiki/Software-Setup)
  * structured according to general [packaging guidelines](https://packaging.python.org/)
  * designed to run on a debian based system on a Respberry Pi or in a similar virtual machine
  * general code quality is enforced via quality checks in [tox](https://tox.readthedocs.io/en/latest/) framework
@@ -32,6 +33,8 @@ In any case, do the fixes according to the tox report and command line messages.
 If it is unevitable use the `#temp` flag in the beginning of your commit message.**
 
 ## Application
+To run the application or the test suite it is assumed that the SW is prepared as described on [this wiki page](https://github.com/mezdahun/VisualSwarm/wiki/Software-Setup)
+
 ### Run locally
 To avoid conflicts with your global environment first create a virtualenv from the root project folder as
 ```bash
