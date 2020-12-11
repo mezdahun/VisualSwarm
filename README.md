@@ -49,3 +49,12 @@ visualswarm-health
 ```
 
 This should give you a _"VisualSwarm application OK!"_ message and return.
+
+## Git and GitHub guidelines
+### Branches/Naming
+ * **master**: protected branch only for releases, a merge into this branch requires review from other developers
+ * **develop**: main branch for developing and merging feature branches together
+ * **feture/example-feature**: must be opened from develop and implements a feature
+ * **fix/example-fix**: can be opened from any branch and fixes an issue
+
+Do not directly push anything to develop.
