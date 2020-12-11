@@ -58,3 +58,7 @@ This should give you a _"VisualSwarm application OK!"_ message and return.
  * **fix/example-fix**: can be opened from any branch and fixes an issue
 
 Do not directly push anything to develop.
+
+### Actions and CI/CD
+ * **Tox check**: Currently all feature branches shall pass on the tox check defined in the tox file before merging. If
+tox fails, the feature branch can not be merged. This also shows that develop is indeed only for finalized features.
