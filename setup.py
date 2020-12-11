@@ -13,7 +13,8 @@ setup(
     package_data={'visualswarm': ['data/*']},
     python_requires=">=3.7",
     install_requires=[
-        'opencv-python>=4.4.0.46'
+        'opencv-python>=4.4.0.46',
+        'picamera>=1.13'
     ],
     extras_require={
         'test': [
