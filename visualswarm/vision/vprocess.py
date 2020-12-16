@@ -18,6 +18,5 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
     """
     for j in range(2000):
         img = raw_vision_stream.get()
-        print(type(img))
         cv2.imshow("Frame", img)
         cv2.waitKey(1)
