@@ -1,6 +1,6 @@
 """
 @author: mezdahun
-@description: Acquiring raw imput from camera module
+@description: Acquiring low-level imput from camera module
 """
 
 from picamera import PiCamera
@@ -11,16 +11,6 @@ import cv2
 
 
 def visual_input(process_queue):
-    for i in range(100):
-        process_queue.put(['this', 'is', 'now', i])
-        time.sleep(0.5)
-
-def visual_processor(process_queue):
-    for j in range(30):
-        print(process_queue.get())
-
-def start_vision_stream():
-    """Acquiring single image with picamera package"""
     camera = PiCamera()
     camera.resolution = (640, 480)
     camera.framerate = 32
@@ -36,7 +26,8 @@ def start_vision_stream():
         image = frame.array
 
         # Display the frame using OpenCV
-        cv2.imshow("Frame", image)
+        process_queue.put(image)
+        # cv2.imshow("Frame", image)
 
         # Wait for keyPress for 1 millisecond
         key = cv2.waitKey(1) & 0xFF
@@ -47,3 +38,11 @@ def start_vision_stream():
         # If the `q` key was pressed, break from the loop
         if key == ord("q"):
             break
+
+def visual_processor(process_queue):
+    for j in range(30):
+        cv2.imshow("Frame", process_queue.get())
+
+def start_vision_stream():
+    """Acquiring single image with picamera package"""
+    pass
