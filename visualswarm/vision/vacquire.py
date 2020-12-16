@@ -40,8 +40,9 @@ def visual_input(process_queue):
             break
 
 def visual_processor(process_queue):
-    for j in range(30):
-        cv2.imshow("Frame", process_queue.get())
+    for j in range(3):
+        print(process_queue.get())
+        #cv2.imshow("Frame", process_queue.get())
 
 def start_vision_stream():
     """Acquiring single image with picamera package"""
