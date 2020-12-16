@@ -29,7 +29,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'visualswarm-health=visualswarm.app:health'
+            'vswrm-health=visualswarm.app:health',
+            'vswrm-start-vision=visualswarm.app:start_vision_stream'
         ]
     },
     classifiers=[
