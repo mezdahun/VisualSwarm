@@ -8,7 +8,14 @@ import sys
 
 import fake_rpi
 
+
+class fake_picamera_array(object):
+    """faking picamera.array.PiRGBArray"""
+    PiRGBArray = None
+
+
 sys.modules['picamera'] = fake_rpi.picamera
+sys.modules['picamera.array'] = fake_picamera_array
 
 # indicating flag when HW is faked
 FAKE_STATUS = True
