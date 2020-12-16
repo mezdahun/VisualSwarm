@@ -7,6 +7,7 @@ from visualswarm.vision import vacquire
 
 class VAcquireTest(TestCase):
 
+    @skip
     @mock.patch('picamera.PiCamera.start_preview', create=True)
     @mock.patch('picamera.PiCamera.stop_preview', create=True)
     def test_acq_image(self, mock_PiC_stop, mock_PiC_start):
