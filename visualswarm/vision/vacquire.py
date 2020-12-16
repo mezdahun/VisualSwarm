@@ -9,28 +9,38 @@ from picamera.array import PiRGBArray
 import time
 import cv2
 
+from visualswarm.contrib import camera
 
-def visual_input(process_queue):
-    camera = PiCamera()
-    camera.resolution = (640, 480)
-    camera.framerate = 32
+
+def visual_input(vision_stream):
+    """Process to capture raw input via the camera module and sequentially push it to a vision stream so that other
+    processes can consume this stream
+        Args:
+            vision_stream: multiprocessing.Queue type object to create stream for captured camera data.
+        Returns:
+            -shall not return-"""
+    picam = PiCamera()
+    picam.resolution = camera.RESOLUTION
+    picam.framerate = camera.FRAMERATE
 
     # Generates a 3D RGB array and stores it in rawCapture
-    raw_capture = PiRGBArray(camera, size=(640, 480))
+    raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
     # Wait a certain number of seconds to allow the camera time to warmup
     time.sleep(0.1)
 
-    for frame in camera.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+    for frame in picam.capture_continuous(raw_capture,
+                                          format=camera.CAPTURE_FORMAT,
+                                          use_video_port=camera.USE_VIDEO_PORT):
         # Grab the raw NumPy array representing the image
         image = frame.array
 
-        # Display the frame using OpenCV
-        process_queue.put(image)
-        # cv2.imshow("Frame", image)
+        # pushing the captured image to the vision stream
+        vision_stream.put(image)
 
-        # Clear the stream in preparation for the next frame
+        # Clear the raw capture stream in preparation for the next frame
         raw_capture.truncate(0)
+
 
 def visual_processor(process_queue):
     for j in range(2000):
@@ -38,6 +48,7 @@ def visual_processor(process_queue):
         print(type(img))
         cv2.imshow("Frame", img)
         cv2.waitKey(1)
+
 
 def start_vision_stream():
     """Acquiring single image with picamera package"""
