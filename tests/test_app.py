@@ -1,4 +1,6 @@
-from unittest import TestCase
+from unittest import TestCase, mock
+
+from setup_fake_rpi import FAKE_STATUS
 
 from visualswarm import app
 
