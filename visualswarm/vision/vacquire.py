@@ -7,18 +7,18 @@ from picamera import PiCamera
 from picamera.array import PiRGBArray
 
 import time
-import cv2
 
 from visualswarm.contrib import camera
 
 
-def raw_vision(vision_stream):
+def raw_vision(raw_vision_stream):
     """Process to capture raw input via the camera module and sequentially push it to a vision stream so that other
     processes can consume this stream
         Args:
-            vision_stream: multiprocessing.Queue type object to create stream for captured camera data.
+            raw_vision_stream: multiprocessing.Queue type object to create stream for captured camera data.
         Returns:
-            -shall not return-"""
+            -shall not return-
+    """
     picam = PiCamera()
     picam.resolution = camera.RESOLUTION
     picam.framerate = camera.FRAMERATE
@@ -36,18 +36,10 @@ def raw_vision(vision_stream):
         image = frame.array
 
         # pushing the captured image to the vision stream
-        vision_stream.put(image)
+        raw_vision_stream.put(image)
 
         # Clear the raw capture stream in preparation for the next frame
         raw_capture.truncate(0)
-
-
-def visual_processor(process_queue):
-    for j in range(2000):
-        img = process_queue.get()
-        print(type(img))
-        cv2.imshow("Frame", img)
-        cv2.waitKey(1)
 
 
 def start_vision_stream():
