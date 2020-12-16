@@ -41,7 +41,7 @@ def visual_input(process_queue):
 
 def visual_processor(process_queue):
     for j in range(3):
-        print(process_queue.get())
+        print(type(process_queue.get()))
         #cv2.imshow("Frame", process_queue.get())
 
 def start_vision_stream():
