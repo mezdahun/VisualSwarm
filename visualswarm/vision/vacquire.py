@@ -29,15 +29,8 @@ def visual_input(process_queue):
         process_queue.put(image)
         # cv2.imshow("Frame", image)
 
-        # Wait for keyPress for 1 millisecond
-        key = cv2.waitKey(1) & 0xFF
-
         # Clear the stream in preparation for the next frame
         raw_capture.truncate(0)
-
-        # If the `q` key was pressed, break from the loop
-        if key == ord("q"):
-            break
 
 def visual_processor(process_queue):
     for j in range(3):
