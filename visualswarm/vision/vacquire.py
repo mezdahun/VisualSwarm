@@ -40,8 +40,3 @@ def raw_vision(raw_vision_stream):
 
         # Clear the raw capture stream in preparation for the next frame
         raw_capture.truncate(0)
-
-
-def start_vision_stream():
-    """Acquiring single image with picamera package"""
-    pass

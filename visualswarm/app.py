@@ -6,7 +6,7 @@
 import logging
 from multiprocessing import Process, Queue
 from visualswarm import env
-from visualswarm.vision import vacquire
+from visualswarm.vision import vacquire, vprocess
 
 # setup logging
 logging.basicConfig()
@@ -17,10 +17,15 @@ logger.setLevel(env.LOG_LEVEL)
 def health():
     """Entrypoint to start high level application"""
     logger.info("VisualSwarm application OK!")
-    q = Queue()
-    vinput = Process(target=vacquire.visual_input, args=(q,))
-    vprocess = Process(target=vacquire.visual_processor, args=(q,))
-    vinput.start()
-    vprocess.start()
-    vinput.join()
-    vprocess.join()
+
+
+def start_vision_stream():
+    """Start the visual stream of the Pi"""
+    raw_vision_stream = Queue()
+    high_level_vision_stream = Queue()
+    raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
+    high_level_vision = Process(target=vacquire.high_level_vision, args=(raw_vision_stream, high_level_vision_stream,))
+    raw_vision.start()
+    high_level_vision.start()
+    raw_vision.join()
+    high_level_vision.join()
