@@ -33,7 +33,7 @@ def visual_input(process_queue):
         raw_capture.truncate(0)
 
 def visual_processor(process_queue):
-    for j in range(35):
+    for j in range(2000):
         img = process_queue.get()
         print(type(img))
         cv2.imshow("Frame", img)
