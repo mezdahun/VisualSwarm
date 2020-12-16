@@ -1,4 +1,4 @@
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 
 from setup_fake_rpi import FAKE_STATUS
 
@@ -10,7 +10,7 @@ class VAcquireTest(TestCase):
     @skip
     @mock.patch('picamera.PiCamera.start_preview', create=True)
     @mock.patch('picamera.PiCamera.stop_preview', create=True)
-    def test_acq_image(self, mock_PiC_stop, mock_PiC_start):
+    def raw_vision(self, mock_PiC_stop, mock_PiC_start):
         if FAKE_STATUS:
             # under faking HW
             mock_PiC_start.return_value = None
