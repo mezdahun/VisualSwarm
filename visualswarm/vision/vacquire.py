@@ -37,6 +37,7 @@ def visual_processor(process_queue):
         img = process_queue.get()
         print(type(img))
         cv2.imshow("Frame", img)
+        cv2.waitKey(1)
 
 def start_vision_stream():
     """Acquiring single image with picamera package"""
