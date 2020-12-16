@@ -12,7 +12,7 @@ import cv2
 from visualswarm.contrib import camera
 
 
-def visual_input(vision_stream):
+def raw_vision(vision_stream):
     """Process to capture raw input via the camera module and sequentially push it to a vision stream so that other
     processes can consume this stream
         Args:
