@@ -1,7 +1,5 @@
 from unittest import TestCase, skip
 
-from visualswarm.vision import vprocess
-
 
 class VProcessTest(TestCase):
 
