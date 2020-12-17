@@ -21,25 +21,28 @@ def health():
 
 def start_vision_stream():
     """Start the visual stream of the Pi"""
+    logger.info('Start vision stream')
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
     high_level_vision = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream,))
     try:
+        logger.info('Start raw vision process')
         raw_vision.start()
+        logger.info('Start high level vision process')
         high_level_vision.start()
         # Wait for processes in main process to terminate
         raw_vision.join()
         high_level_vision.join()
     except KeyboardInterrupt:
-        print('KeyboardInterrupt :: Exiting gracefully...')
+        logger.info('KeyboardInterrupt :: Exiting gracefully...')
         high_level_vision.terminate()
         high_level_vision.join()
-        print('High level vision process terminated and joined!')
+        logger.info('High level vision process terminated and joined!')
         raw_vision.terminate()
         raw_vision.join()
-        print('Raw vision process terminated and joined!')
+        logger.info('Raw vision process terminated and joined!')
         raw_vision_stream.close()
         high_level_vision_stream.close()
-        print('Vision streams closed!')
+        logger.info('Vision streams closed!')
 

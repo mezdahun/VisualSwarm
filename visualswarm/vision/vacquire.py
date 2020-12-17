@@ -2,7 +2,7 @@
 @author: mezdahun
 @description: Acquiring low-level imput from camera module
 """
-
+import logging
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 
@@ -10,6 +10,8 @@ import time
 
 from visualswarm.contrib import camera
 
+# using main logger
+logger = logging.getLogger('visualswarm.app')
 
 def raw_vision(raw_vision_stream):
     """Process to capture raw input via the camera module and sequentially push it to a vision stream so that other

@@ -2,9 +2,11 @@
 @author: mezdahun
 @description: Processing low-level input to get High level input
 """
-
+import logging
 import cv2
 
+# using main logger
+logger = logging.getLogger('visualswarm.app')
 
 def high_level_vision(raw_vision_stream, high_level_vision_stream):
     """
