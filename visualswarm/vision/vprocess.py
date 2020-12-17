@@ -32,6 +32,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # Threshold the HSV image to get only blue colors
         mask = cv2.inRange(hsvimg, lower_blue, upper_blue)
 
-        cv2.imshow("Raw", img)
-        cv2.imshow("Processed", mask)
-        cv2.waitKey(1)
+        # cv2.imshow("Raw", img)
+        # cv2.imshow("Processed", mask)
+        # cv2.waitKey(1)
+        high_level_vision_stream.put(mask)
