@@ -22,6 +22,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
     """
     for j in range(2000):
         img = raw_vision_stream.get()
+        logger.info(raw_vision_stream.qsize())
         hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         # define range of blue color in HSV
