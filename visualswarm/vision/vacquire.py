@@ -8,10 +8,12 @@ from picamera.array import PiRGBArray
 
 import time
 
-from visualswarm.contrib import camera
+from visualswarm.contrib import camera, logparams
+
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
+bcolors = logparams.BColors
 
 
 def raw_vision(raw_vision_stream):
@@ -25,6 +27,9 @@ def raw_vision(raw_vision_stream):
     picam = PiCamera()
     picam.resolution = camera.RESOLUTION
     picam.framerate = camera.FRAMERATE
+    logger.debug(f'{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
+                 f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
+                 f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps\n')
 
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
