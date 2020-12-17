@@ -23,7 +23,7 @@ def health():
 
 def start_vision_stream():
     """Start the visual stream of the Pi"""
-    logger.info(f'{bcolors.OKGREEN}Start vision stream{bcolors.ENDC} ')
+    logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
@@ -37,7 +37,7 @@ def start_vision_stream():
         raw_vision.join()
         high_level_vision.join()
     except KeyboardInterrupt:
-        logger.info(f'{bcolors.WARNING}KeyboardInterrupt :: Exiting gracefully{bcolors.ENDC}')
+        logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
         high_level_vision.terminate()
         high_level_vision.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} high level vision process and joined!')
