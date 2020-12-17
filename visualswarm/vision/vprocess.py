@@ -25,8 +25,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         # define range of blue color in HSV
-        lower_blue = np.array([200, 50, 50])
-        upper_blue = np.array([220, 255, 255])
+        lower_blue = np.array([90, 100, 100])
+        upper_blue = np.array([115, 255, 255])
 
         # Threshold the HSV image to get only blue colors
         mask = cv2.inRange(hsvimg, lower_blue, upper_blue)
