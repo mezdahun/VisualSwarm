@@ -28,6 +28,7 @@ def start_vision_stream():
     try:
         raw_vision.start()
         high_level_vision.start()
+        # Wait for processes in main process to terminate
         raw_vision.join()
         high_level_vision.join()
     except KeyboardInterrupt:
@@ -38,3 +39,7 @@ def start_vision_stream():
         raw_vision.terminate()
         raw_vision.join()
         print('Raw vision process terminated and joined!')
+        raw_vision_stream.close()
+        high_level_vision_stream.close()
+        print('Vision streams closed!')
+
