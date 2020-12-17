@@ -11,7 +11,9 @@ The following prerequisites must be installed to use VisualSwarm:
 ## Modules
 The modules are created according to the axis of information flow. A `vision` module includes all vision related methods from establishing 
 the raw visual stream to process this raw stream further until we get a gigh level stream that can be consumed by control processes. All
-behavior related control process is grouped in the `behavior` module.
+behavior related control process is grouped in the `behavior` module. Changing hyperparameters are stored in the `contrib` module.
+
+### Contrib (visualswarm.contrib)
 
 ### Vision (visualswarm.vision)
 
