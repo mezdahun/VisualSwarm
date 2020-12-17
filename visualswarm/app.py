@@ -29,9 +29,9 @@ def start_vision_stream():
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
     high_level_vision = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream,))
     try:
-        logger.info(f'{bcolors.OKBLUE}START{bcolors.ENDC} raw vision process')
+        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
-        logger.info(f'{bcolors.OKBLUE}START{bcolors.ENDC} high level vision process')
+        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision process')
         high_level_vision.start()
         # Wait for subprocesses in main process to terminate
         raw_vision.join()

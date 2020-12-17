@@ -27,9 +27,9 @@ def raw_vision(raw_vision_stream):
     picam = PiCamera()
     picam.resolution = camera.RESOLUTION
     picam.framerate = camera.FRAMERATE
-    logger.debug(f'{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
+    logger.debug(f'\n{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
                  f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
-                 f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps\n')
+                 f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
