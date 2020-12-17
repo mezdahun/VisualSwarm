@@ -38,7 +38,14 @@ To run the application or the test suite it is assumed that the SW is prepared a
 ### Run locally
 To avoid conflicts with your global environment first create a virtualenv from the root project folder as
 ```bash
+sudo pipenv --python 3.7
 sudo pipenv shell
+```
+
+If you would like to use a non-Raspberry machine, some pip packages will fail to build that are specialized on Raspberry HW.
+To still be able to install the package first run
+```bash
+export READTHEDOCS=True
 ```
 
 Once the empty env is created and you are in it (this should be automatically done after `shell`) you should now install the app

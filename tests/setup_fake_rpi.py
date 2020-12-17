@@ -5,10 +5,18 @@ packages. We avoid this by faking the HW during testing.
 """
 
 import sys
+from unittest import mock
 
 import fake_rpi
 
+
+class FakePicameraArray(object):
+    """faking picamera.array.PiRGBArray"""
+    PiRGBArray = mock.MagicMock()
+
+
 sys.modules['picamera'] = fake_rpi.picamera
+sys.modules['picamera.array'] = FakePicameraArray
 
 # indicating flag when HW is faked
 FAKE_STATUS = True
