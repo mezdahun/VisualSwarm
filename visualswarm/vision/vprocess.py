@@ -21,5 +21,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
     """
     for j in range(2000):
         img = raw_vision_stream.get()
-        cv2.imshow("Frame", img)
+        himg = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        cv2.imshow("Raw", img)
+        cv2.imshow("Processed", himg)
         cv2.waitKey(1)
