@@ -8,6 +8,7 @@ import cv2
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
+
 def high_level_vision(raw_vision_stream, high_level_vision_stream):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
