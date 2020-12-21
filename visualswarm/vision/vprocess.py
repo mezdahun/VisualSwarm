@@ -64,9 +64,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
             cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
             cv2.imshow("Segmentation Parameters", color_sample)
 
-        # Cleaning the segmented image
-        maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
-        maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
+        # # Cleaning the segmented image
+        # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
+        # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
 
         high_level_vision_stream.put(mask)
         cv2.waitKey(1)
