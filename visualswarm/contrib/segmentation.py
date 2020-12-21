@@ -6,7 +6,7 @@ from cv2 import cvtColor, COLOR_BGR2HSV
 from numpy import uint8
 
 # Change parameters here
-TARGET_RGB_COLOR = (0, 45, 90)
+TARGET_RGB_COLOR = (25, 50, 85)
 HSV_HUE_RANGE = 10
 SV_MINIMUM = 100
 SV_MAXIMUM = 255
