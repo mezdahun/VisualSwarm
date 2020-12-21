@@ -4,7 +4,7 @@
 """
 import logging
 import cv2
-# import numpy as np
+import numpy as np
 
 from visualswarm.contrib import segmentation
 
@@ -36,9 +36,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         G = cv2.getTrackbarPos("G", "Trackbars")
         R = cv2.getTrackbarPos("R", "Trackbars")
         img = raw_vision_stream.get()
-        TARGET_HSV_COLOR = cvtColor(uint8([[[B, G, R]]]), COLOR_BGR2HSV)
-        HSV_LOW = uint8([TARGET_HSV_COLOR[0][0][0] - HSV_HUE_RANGE, SV_MINIMUM, SV_MINIMUM])
-        HSV_HIGH = uint8([TARGET_HSV_COLOR[0][0][0] + HSV_HUE_RANGE, SV_MAXIMUM, SV_MAXIMUM])
+        TARGET_HSV_COLOR = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
+        HSV_LOW = np.uint8([TARGET_HSV_COLOR[0][0][0] - segmentation.HSV_HUE_RANGE, segmentation.SV_MINIMUM, segmentation.SV_MINIMUM])
+        HSV_HIGH = np.uint8([TARGET_HSV_COLOR[0][0][0] + segmentation.HSV_HUE_RANGE, segmentation.SV_MAXIMUM, segmentation.SV_MAXIMUM])
 
         logger.info(raw_vision_stream.qsize())
         hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
