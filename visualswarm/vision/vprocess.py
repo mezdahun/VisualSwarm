@@ -6,6 +6,8 @@ import logging
 import cv2
 # import numpy as np
 
+from visualswarm.contrib import segmentation
+
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
@@ -22,17 +24,14 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
     """
     for j in range(2000):
         img = raw_vision_stream.get()
-    #     logger.info(raw_vision_stream.qsize())
-    #     hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    #
-    #     # define range of blue color in HSV
-    #     lower_blue = np.array([90, 45, 45])
-    #     upper_blue = np.array([115, 255, 255])
-    #
-    #     # Threshold the HSV image to get only blue colors
-    #     mask = cv2.inRange(hsvimg, lower_blue, upper_blue)
-    #
-        cv2.imshow("Raw", img)
-    #     # cv2.imshow("Processed", mask)
+        logger.info(raw_vision_stream.qsize())
+        hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+        # Threshold the HSV image to get only blue colors
+        mask = cv2.inRange(hsvimg, segmentation.HSV_LOW, segmentation.HSV_HIGH)
+
+        cv2.imshow("Raw", cv2.resize(img, (320, 240)))
+        cv2.imshow("Processed", cv2.resize(mask, (320, 240)))
+        high_level_vision_stream.put(mask)
         cv2.waitKey(1)
-        # high_level_vision_stream.put(mask)
+
