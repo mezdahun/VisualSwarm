@@ -18,8 +18,8 @@ TARGET_HSV_COLOR = cvtColor(uint8([[[B, G, R]]]), COLOR_BGR2HSV)
 HSV_LOW = uint8([TARGET_HSV_COLOR[0][0][0]-HSV_HUE_RANGE, SV_MINIMUM, SV_MINIMUM])
 HSV_HIGH = uint8([TARGET_HSV_COLOR[0][0][0]+HSV_HUE_RANGE, SV_MAXIMUM, SV_MAXIMUM])
 
-lower_blue = np.array([90, 45, 45])
-upper_blue = np.array([115, 255, 255])
+# lower_blue = np.array([90, 45, 45])
+# upper_blue = np.array([115, 255, 255])
 
 print(HSV_LOW)
 print(HSV_HIGH)
