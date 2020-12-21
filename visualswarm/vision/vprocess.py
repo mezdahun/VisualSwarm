@@ -65,7 +65,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
         maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
         maskFinal = maskClose
-        _, conts, h = cv2.findContours(maskFinal.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        conts, h = cv2.findContours(maskFinal.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         for i in range(len(conts)):
             x, y, w, h = cv2.boundingRect(conts[i])
