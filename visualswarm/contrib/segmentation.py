@@ -6,7 +6,10 @@ from cv2 import cvtColor, COLOR_BGR2HSV
 from numpy import uint8
 
 # Interactive color tune
-FIND_COLOR_INTERACTIVE = False
+FIND_COLOR_INTERACTIVE = True
+
+# Visualization on the fly
+SHOW_VISION_STREAMS = False
 
 # Change parameters here
 TARGET_RGB_COLOR = (22, 55, 155)

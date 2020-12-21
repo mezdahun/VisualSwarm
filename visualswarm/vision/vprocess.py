@@ -37,6 +37,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         cv2.createTrackbar("H_range", "Segmentation Parameters", 0, 255, nothing)
         cv2.createTrackbar("SV_min", "Segmentation Parameters", 0, 255, nothing)
         cv2.createTrackbar("SV_max", "Segmentation Parameters", 0, 255, nothing)
+        color_sample = np.zeros((200, 200, 3), np.uint8)
 
     while True:
         img = raw_vision_stream.get()
@@ -44,6 +45,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
             B = cv2.getTrackbarPos("B", "Segmentation Parameters")
             G = cv2.getTrackbarPos("G", "Segmentation Parameters")
             R = cv2.getTrackbarPos("R", "Segmentation Parameters")
+            color_sample[:] = [B, G, R]
             hue_range = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
             sv_min = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
             sv_max = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
@@ -57,8 +59,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # Threshold the HSV image to get only blue colors
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
-        cv2.imshow("Raw", cv2.resize(img, (160, 120)))
-        cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
+        if segmentation.FIND_COLOR_INTERACTIVE or segmentation.SHOW_VISION_STREAMS:
+            cv2.imshow("Raw", cv2.resize(img, (160, 120)))
+            cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
+            cv2.imshow("Segmentation Parameters", color_sample)
+
+        # Cleaning the segmented image
+        maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
+        maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
+
         high_level_vision_stream.put(mask)
         cv2.waitKey(1)
 
