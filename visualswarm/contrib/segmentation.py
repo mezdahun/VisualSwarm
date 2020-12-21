@@ -13,7 +13,11 @@ SV_MAXIMUM = 255
 
 # Calculating secondary parameters (Do not change)
 R, B, G = TARGET_RGB_COLOR
+print(R)
+print(B)
+print(G)
 TARGET_HSV_COLOR = cvtColor(uint8([[[B, G, R]]]), COLOR_BGR2HSV)
+print(TARGET_HSV_COLOR)
 
 HSV_LOW = uint8([TARGET_HSV_COLOR[0][0][0]-HSV_HUE_RANGE, SV_MINIMUM, SV_MINIMUM])
 HSV_HIGH = uint8([TARGET_HSV_COLOR[0][0][0]+HSV_HUE_RANGE, SV_MAXIMUM, SV_MAXIMUM])
