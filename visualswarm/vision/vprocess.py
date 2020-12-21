@@ -25,29 +25,40 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         Returns:
             -shall not return-
     """
-    cv2.namedWindow("Trackbars")
+    target_hsv = segmentation.TARGET_HSV_COLOR
+    hsv_low = segmentation.HSV_LOW
+    hsv_high = segmentation.HSV_HIGH
 
-    cv2.createTrackbar("B", "Trackbars", 0, 255, nothing)
-    cv2.createTrackbar("G", "Trackbars", 0, 255, nothing)
-    cv2.createTrackbar("R", "Trackbars", 0, 255, nothing)
+    if segmentation.FIND_COLOR_INTERACTIVE:
+        cv2.namedWindow("Segmentation Parameters")
+        cv2.createTrackbar("R", "Trackbars", 0, 255, nothing)
+        cv2.createTrackbar("G", "Trackbars", 0, 255, nothing)
+        cv2.createTrackbar("B", "Trackbars", 0, 255, nothing)
+        cv2.createTrackbar("H range", "Trackbars", 0, 255, nothing)
+        cv2.createTrackbar("SV min", "Trackbars", 0, 255, nothing)
+        cv2.createTrackbar("SV max", "Trackbars", 0, 255, nothing)
 
     for j in range(2000):
-        B = cv2.getTrackbarPos("B", "Trackbars")
-        G = cv2.getTrackbarPos("G", "Trackbars")
-        R = cv2.getTrackbarPos("R", "Trackbars")
         img = raw_vision_stream.get()
-        TARGET_HSV_COLOR = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
-        HSV_LOW = np.uint8([TARGET_HSV_COLOR[0][0][0] - segmentation.HSV_HUE_RANGE, segmentation.SV_MINIMUM, segmentation.SV_MINIMUM])
-        HSV_HIGH = np.uint8([TARGET_HSV_COLOR[0][0][0] + segmentation.HSV_HUE_RANGE, segmentation.SV_MAXIMUM, segmentation.SV_MAXIMUM])
+        if segmentation.FIND_COLOR_INTERACTIVE:
+            B = cv2.getTrackbarPos("B", "Segmentation Parameters")
+            G = cv2.getTrackbarPos("G", "Segmentation Parameters")
+            R = cv2.getTrackbarPos("R", "Segmentation Parameters")
+            hue_range = cv2.getTrackbarPos("H range", "Segmentation Parameters")
+            sv_min = cv2.getTrackbarPos("SV min", "Segmentation Parameters")
+            sv_max = cv2.getTrackbarPos("SV max", "Segmentation Parameters")
+            target_hsv = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
+            hsv_low = np.uint8([target_hsv[0][0][0] - hue_range, sv_min, sv_min])
+            hsv_high = np.uint8([target_hsv[0][0][0] + hue_range, sv_max, sv_max])
 
         # logger.info(raw_vision_stream.qsize())
         hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         # Threshold the HSV image to get only blue colors
-        mask = cv2.inRange(hsvimg, HSV_LOW, HSV_HIGH)
+        mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
-        cv2.imshow("Raw", cv2.resize(img, (320, 240)))
-        cv2.imshow("Processed", cv2.resize(mask, (320, 240)))
+        cv2.imshow("Raw", cv2.resize(img, (160, 120)))
+        cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
         high_level_vision_stream.put(mask)
         cv2.waitKey(1)
 
