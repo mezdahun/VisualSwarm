@@ -38,7 +38,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         cv2.createTrackbar("SV_min", "Segmentation Parameters", 0, 255, nothing)
         cv2.createTrackbar("SV_max", "Segmentation Parameters", 0, 255, nothing)
 
-    for j in range(2000):
+    while True:
         img = raw_vision_stream.get()
         if segmentation.FIND_COLOR_INTERACTIVE:
             B = cv2.getTrackbarPos("B", "Segmentation Parameters")
