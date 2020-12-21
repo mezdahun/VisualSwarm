@@ -29,8 +29,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
     hsv_low = segmentation.HSV_LOW
     hsv_high = segmentation.HSV_HIGH
 
-    kernelOpen = np.ones((30, 30))
-    kernelClose = np.ones((80, 80))
+    kernelOpen = np.ones((10, 10))
+    kernelClose = np.ones((50, 50))
 
     if segmentation.FIND_COLOR_INTERACTIVE:
         cv2.namedWindow("Segmentation Parameters")
