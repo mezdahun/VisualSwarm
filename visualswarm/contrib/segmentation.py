@@ -6,16 +6,16 @@ from cv2 import cvtColor, COLOR_BGR2HSV
 from numpy import uint8
 
 # Interactive color tune
-FIND_COLOR_INTERACTIVE = True
+FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
 SHOW_VISION_STREAMS = True
 
 # Change parameters here
 # To interactively tune these set FIND_COLOR_INTERACTIVE to True
-TARGET_RGB_COLOR = (22, 55, 155)
-HSV_HUE_RANGE = 20
-SV_MINIMUM = 55
+TARGET_RGB_COLOR = (21, 136, 0)
+HSV_HUE_RANGE = 28
+SV_MINIMUM = 74
 SV_MAXIMUM = 255
 
 # Calculating secondary parameters (Do not change)
