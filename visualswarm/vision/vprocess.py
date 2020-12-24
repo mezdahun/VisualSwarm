@@ -62,18 +62,22 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # Threshold the HSV image to get only blue colors
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
-        maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
-        maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
-        maskFinal = maskClose
-        conts, h = cv2.findContours(maskFinal.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        # Gaussian blur
+        median = cv2.medianBlur(mask, 5)
+        blurred = cv2.GaussianBlur(mask, (5, 5), 0)
 
-        for i in range(len(conts)):
-            x, y, w, h = cv2.boundingRect(conts[i])
-            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
+        # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
+        # maskFinal = maskClose
+        # conts, h = cv2.findContours(maskFinal.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        # for i in range(len(conts)):
+        #     x, y, w, h = cv2.boundingRect(conts[i])
+        #     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
         if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
-            cv2.imshow("Raw", cv2.resize(img, (160, 120)))
-            cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
+            cv2.imshow("Raw", cv2.resize(median, (160, 120)))
+            cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Segmentation Parameters", color_sample)
 
