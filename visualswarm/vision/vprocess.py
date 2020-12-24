@@ -77,8 +77,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # print(conts)
 
         hull_list = []
-        for i in range(len(contours)):
-            hull = cv.convexHull(contours[i])
+        for i in range(len(conts)):
+            hull = cv2.convexHull(conts[i])
             hull_list.append(hull)
 
         cv2.drawContours(img, conts, -1, (0, 0, 255), 3)
