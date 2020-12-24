@@ -36,7 +36,7 @@ def raw_vision(raw_vision_stream):
 
     # Wait a certain number of seconds to allow the camera time to warmup
     time.sleep(0.1)
-
+    frame_id = 0
     for frame in picam.capture_continuous(raw_capture,
                                           format=camera.CAPTURE_FORMAT,
                                           use_video_port=camera.USE_VIDEO_PORT):
@@ -44,7 +44,8 @@ def raw_vision(raw_vision_stream):
         image = frame.array
 
         # pushing the captured image to the vision stream
-        raw_vision_stream.put(image)
+        raw_vision_stream.put((image, frame_id))
 
         # Clear the raw capture stream in preparation for the next frame
         raw_capture.truncate(0)
+        frame_id += 1

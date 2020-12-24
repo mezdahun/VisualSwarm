@@ -25,25 +25,13 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         Returns:
             -shall not return-
     """
-    target_hsv = segmentation.TARGET_HSV_COLOR
     hsv_low = segmentation.HSV_LOW
     hsv_high = segmentation.HSV_HIGH
 
-    kernelOpen = np.ones((5, 5))
-    kernelClose = np.ones((10, 10))
-
-    if segmentation.FIND_COLOR_INTERACTIVE:
-        cv2.namedWindow("Segmentation Parameters")
-        cv2.createTrackbar("R", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[0], 255, nothing)
-        cv2.createTrackbar("G", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[1], 255, nothing)
-        cv2.createTrackbar("B", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[2], 255, nothing)
-        cv2.createTrackbar("H_range", "Segmentation Parameters", segmentation.HSV_HUE_RANGE, 255, nothing)
-        cv2.createTrackbar("SV_min", "Segmentation Parameters", segmentation.SV_MINIMUM, 255, nothing)
-        cv2.createTrackbar("SV_max", "Segmentation Parameters", segmentation.SV_MAXIMUM, 255, nothing)
-        color_sample = np.zeros((200, 200, 3), np.uint8)
+    color_sample = np.zeros((200, 200, 3), np.uint8)
 
     while True:
-        img = raw_vision_stream.get()
+        (img, frame_id) = raw_vision_stream.get()
         logger.info(raw_vision_stream.qsize())
         if segmentation.FIND_COLOR_INTERACTIVE:
             B = cv2.getTrackbarPos("B", "Segmentation Parameters")
@@ -64,7 +52,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
         # Gaussian blur
-        blurred = cv2.medianBlur(mask, 11)
+        blurred = cv2.medianBlur(mask, 9)
         # blurred = cv2.GaussianBlur(mask, (15, 15), 0)
 
         # sobelX = cv2.Sobel(blurred, cv2.CV_16S, 1, 0)
@@ -93,9 +81,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         #     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
         if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
-            # cv2.imshow("Raw", cv2.resize(img, (160, 120)))
-            # cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
-            pass
+            cv2.imshow("Raw", cv2.resize(img, (160, 120)))
+            cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Segmentation Parameters", color_sample)
 
