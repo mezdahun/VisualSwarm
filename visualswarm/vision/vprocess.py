@@ -15,6 +15,7 @@ logger = logging.getLogger('visualswarm.app')
 def nothing(x):
     pass
 
+
 def high_level_vision(raw_vision_stream, high_level_vision_stream):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
@@ -90,6 +91,11 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
 
-        high_level_vision_stream.put(mask)
+        high_level_vision_stream.put((mask, frame_id))
         cv2.waitKey(1)
 
+
+def visualizer(high_level_vision_stream):
+    while True:
+        (img, frame_id) = high_level_vision_stream.get()
+        print(frame_id)

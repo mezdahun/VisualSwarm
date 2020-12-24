@@ -36,7 +36,11 @@ def start_vision_stream():
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
-    high_level_vision = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream,))
+    high_level_vision_1 = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream,))
+    high_level_vision_2 = Process(target=vprocess.high_level_vision,
+                                  args=(raw_vision_stream, high_level_vision_stream,))
+    visualizer = Process(target=vprocess.visualizer,
+                                  args=(high_level_vision_stream,))
     try:
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
@@ -47,8 +51,12 @@ def start_vision_stream():
         high_level_vision.join()
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
-        high_level_vision.terminate()
-        high_level_vision.join()
+        visualizer.terminate()
+        visualizer.join()
+        high_level_vision_1.terminate()
+        high_level_vision_1.join()
+        high_level_vision_2.terminate()
+        high_level_vision_2.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} high level vision process and joined!')
         raw_vision.terminate()
         raw_vision.join()
