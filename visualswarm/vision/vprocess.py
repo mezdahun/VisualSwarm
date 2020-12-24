@@ -92,7 +92,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
 
         high_level_vision_stream.put((img, blurred, frame_id))
-        cv2.waitKey(1)
+        # cv2.waitKey(1)
 
 
 def visualizer(high_level_vision_stream):
@@ -100,3 +100,4 @@ def visualizer(high_level_vision_stream):
         (img, mask, frame_id) = high_level_vision_stream.get()
         cv2.imshow("Raw", cv2.resize(img, (160, 120)))
         cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
+        cv2.waitKey(1)
