@@ -81,21 +81,22 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         #     x, y, w, h = cv2.boundingRect(conts[i])
         #     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-        if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
-            cv2.imshow("Raw", cv2.resize(img, (160, 120)))
-            cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
-        if segmentation.FIND_COLOR_INTERACTIVE:
-            cv2.imshow("Segmentation Parameters", color_sample)
+        # if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
+        #     cv2.imshow("Raw", cv2.resize(img, (160, 120)))
+        #     cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
+        # if segmentation.FIND_COLOR_INTERACTIVE:
+        #     cv2.imshow("Segmentation Parameters", color_sample)
 
         # # Cleaning the segmented image
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
 
-        high_level_vision_stream.put((mask, frame_id))
+        high_level_vision_stream.put((img, blurred, frame_id))
         cv2.waitKey(1)
 
 
 def visualizer(high_level_vision_stream):
     while True:
-        (img, frame_id) = high_level_vision_stream.get()
-        print(frame_id)
+        (img, mask, frame_id) = high_level_vision_stream.get()
+        cv2.imshow("Raw", cv2.resize(img, (160, 120)))
+        cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))

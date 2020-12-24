@@ -45,9 +45,9 @@ def start_vision_stream():
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision process')
-        # high_level_vision_1.start()
-        # high_level_vision_2.start()
-        # visualizer.start()
+        high_level_vision_1.start()
+        high_level_vision_2.start()
+        visualizer.start()
         # Wait for subprocesses in main process to terminate
         raw_vision.join()
         high_level_vision_1.join()
