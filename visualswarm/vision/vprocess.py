@@ -65,15 +65,26 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # Gaussian blur
         blurred = cv2.GaussianBlur(mask, (15, 15), 0)
 
-        sobelX = cv2.Sobel(blurred, cv2.CV_16S, 1, 0)
-        sobelY = cv2.Sobel(blurred, cv2.CV_16S, 0, 1)
-        sobel = np.hypot(sobelX, sobelY)
-        sobel[sobel > 255] = 255;  # Some values seem to go above 255. However RGB channels has to be within 0-255
+        # sobelX = cv2.Sobel(blurred, cv2.CV_16S, 1, 0)
+        # sobelY = cv2.Sobel(blurred, cv2.CV_16S, 0, 1)
+        # sobel = np.hypot(sobelX, sobelY)
+        # sobel[sobel > 255] = 255;  # Some values seem to go above 255. However RGB channels has to be within 0-255
 
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
         # maskFinal = maskClose
-        # conts, h = cv2.findContours(maskFinal.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        conts, h = cv2.findContours(maskFinal.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        # Find level 1 contours
+        level1Meta = []
+        for contourIndex, tupl in enumerate(h[0]):
+            # Each array is in format (Next, Prev, First child, Parent)
+            # Filter the ones without parent
+            if tupl[3] == -1:
+                tupl = np.insert(tupl.copy(), 0, [contourIndex])
+                level1Meta.append(tupl)
+
+        cv2.drawContours(blurred, [level1Meta], 0, (0, 255, 0), 2, cv2.LINE_AA, maxLevel=1)
 
         # for i in range(len(conts)):
         #     x, y, w, h = cv2.boundingRect(conts[i])
@@ -81,7 +92,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
 
         if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
             # cv2.imshow("Raw", cv2.resize(median, (160, 120)))
-            cv2.imshow("Processed", cv2.resize(sobel, (160, 129)))
+            cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Segmentation Parameters", color_sample)
 
