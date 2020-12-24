@@ -47,7 +47,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, target_config
 
         # Gaussian blur
         blurred = cv2.GaussianBlur(mask, (15, 15), 0)
-        blurred = cv2.medianBlur(blurred, 15)
+        blurred = cv2.medianBlur(blurred, 9)
 
 
         # sobelX = cv2.Sobel(blurred, cv2.CV_16S, 1, 0)
