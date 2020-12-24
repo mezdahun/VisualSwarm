@@ -74,16 +74,16 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
         # maskFinal = maskClose
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
-        print(conts)
+        # print(conts)
 
-        cv2.drawContours(blurred, conts, -1, (0,0,255), 3)
+        cv2.drawContours(img, conts, -1, (0,0,255), 3)
 
         # for i in range(len(conts)):
         #     x, y, w, h = cv2.boundingRect(conts[i])
         #     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
         if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
-            # cv2.imshow("Raw", cv2.resize(median, (160, 120)))
+            cv2.imshow("Raw", cv2.resize(img, (160, 120)))
             cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Segmentation Parameters", color_sample)
