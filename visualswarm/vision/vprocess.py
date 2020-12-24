@@ -106,6 +106,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
 
 def visualizer(high_level_vision_stream):
     while True:
+        segmentation.SV_MINIMUM = 0
         (img, mask, frame_id) = high_level_vision_stream.get()
         cv2.imshow("Raw", cv2.resize(img, (160, 120)))
         cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
