@@ -24,14 +24,6 @@ def health():
 
 def start_vision_stream():
     """Start the visual stream of the Pi"""
-    if segmentation.FIND_COLOR_INTERACTIVE:
-        cv2.namedWindow("Segmentation Parameters")
-        cv2.createTrackbar("R", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[0], 255, vprocess.nothing)
-        cv2.createTrackbar("G", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[1], 255, vprocess.nothing)
-        cv2.createTrackbar("B", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[2], 255, vprocess.nothing)
-        cv2.createTrackbar("H_range", "Segmentation Parameters", segmentation.HSV_HUE_RANGE, 255, vprocess.nothing)
-        cv2.createTrackbar("SV_min", "Segmentation Parameters", segmentation.SV_MINIMUM, 255, vprocess.nothing)
-        cv2.createTrackbar("SV_max", "Segmentation Parameters", segmentation.SV_MAXIMUM, 255, vprocess.nothing)
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()

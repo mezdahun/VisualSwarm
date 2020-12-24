@@ -29,7 +29,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
     hsv_low = segmentation.HSV_LOW
     hsv_high = segmentation.HSV_HIGH
 
-    color_sample = np.zeros((200, 200, 3), np.uint8)
+    if segmentation.FIND_COLOR_INTERACTIVE:
+        cv2.namedWindow("Segmentation Parameters")
+        cv2.createTrackbar("R", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[0], 255, vprocess.nothing)
+        cv2.createTrackbar("G", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[1], 255, vprocess.nothing)
+        cv2.createTrackbar("B", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[2], 255, vprocess.nothing)
+        cv2.createTrackbar("H_range", "Segmentation Parameters", segmentation.HSV_HUE_RANGE, 255, vprocess.nothing)
+        cv2.createTrackbar("SV_min", "Segmentation Parameters", segmentation.SV_MINIMUM, 255, vprocess.nothing)
+        cv2.createTrackbar("SV_max", "Segmentation Parameters", segmentation.SV_MAXIMUM, 255, vprocess.nothing)
+        color_sample = np.zeros((200, 200, 3), np.uint8)
 
     while True:
         (img, frame_id) = raw_vision_stream.get()
