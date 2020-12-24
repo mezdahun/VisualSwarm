@@ -11,6 +11,7 @@ from visualswarm.contrib import segmentation
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
+R = 0
 
 def nothing(x):
     pass
@@ -26,6 +27,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         Returns:
             -shall not return-
     """
+    global R
     hsv_low = segmentation.HSV_LOW
     hsv_high = segmentation.HSV_HIGH
 
