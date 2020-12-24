@@ -77,6 +77,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
         # print(conts)
 
+        threshold_area = 50  # threshold area
+        for cnt in conts:
+            area = cv2.contourArea(cnt)
+            if area < threshold_area:
+                conts.remove(cnt)
+
         hull_list = []
         for i in range(len(conts)):
             hull = cv2.convexHull(conts[i])
