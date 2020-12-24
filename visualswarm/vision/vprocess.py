@@ -82,7 +82,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
             hull_list.append(hull)
 
         cv2.drawContours(img, conts, -1, (0, 0, 255), 3)
-        cv2.drawContours(img, conts, -1, (0, 255, 0), 3)
+        cv2.drawContours(img, hull_list, -1, (0, 255, 0), 3)
 
         # for i in range(len(conts)):
         #     x, y, w, h = cv2.boundingRect(conts[i])
