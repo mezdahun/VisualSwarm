@@ -63,7 +63,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
         # Gaussian blur
-        blurred = cv2.medianBlur(mask, 5)
+        blurred = cv2.medianBlur(mask, 15)
         # blurred = cv2.GaussianBlur(mask, (15, 15), 0)
 
         # sobelX = cv2.Sobel(blurred, cv2.CV_16S, 1, 0)
@@ -75,11 +75,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
         # maskFinal = maskClose
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
-        # print(conts)
 
-        threshold_area = 50  # threshold area
+        threshold_area = 50  # threshold area keep only larger contours
         fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= threshold_area]
-        print(conts==fconts)
 
         hull_list = []
         for i in range(len(fconts)):
@@ -95,7 +93,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
 
         if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Raw", cv2.resize(img, (160, 120)))
-            cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
+            # cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Segmentation Parameters", color_sample)
 
