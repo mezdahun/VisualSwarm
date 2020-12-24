@@ -63,7 +63,6 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
         # Gaussian blur
-        median = cv2.medianBlur(mask, 15)
         blurred = cv2.GaussianBlur(mask, (15, 15), 0)
 
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
@@ -76,7 +75,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         #     cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
         if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
-            cv2.imshow("Raw", cv2.resize(median, (160, 120)))
+            # cv2.imshow("Raw", cv2.resize(median, (160, 120)))
             cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Segmentation Parameters", color_sample)
