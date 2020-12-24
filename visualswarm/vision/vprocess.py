@@ -74,6 +74,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
         # maskFinal = maskClose
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
+        print(conts)
 
         cv2.drawContours(blurred, conts, -1, (0,0,255), 3)
 
