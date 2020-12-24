@@ -33,10 +33,11 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, target_config
         logger.info(raw_vision_stream.qsize())
         if segmentation.FIND_COLOR_INTERACTIVE:
             if target_config_stream is not None:
-                (R, B, G, hue_range, sv_min, sv_max) = target_config_stream.get()
-                target_hsv = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
-                hsv_low = np.uint8([target_hsv[0][0][0] - hue_range, sv_min, sv_min])
-                hsv_high = np.uint8([target_hsv[0][0][0] + hue_range, sv_max, sv_max])
+                if target_config_stream.qsize() > 1:
+                    (R, B, G, hue_range, sv_min, sv_max) = target_config_stream.get()
+                    target_hsv = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
+                    hsv_low = np.uint8([target_hsv[0][0][0] - hue_range, sv_min, sv_min])
+                    hsv_high = np.uint8([target_hsv[0][0][0] + hue_range, sv_max, sv_max])
 
         # logger.info(raw_vision_stream.qsize())
         hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
