@@ -65,6 +65,11 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # Gaussian blur
         blurred = cv2.GaussianBlur(mask, (15, 15), 0)
 
+        sobelX = cv2.Sobel(blurred, cv2.CV_16S, 1, 0)
+        sobelY = cv2.Sobel(blurred, cv2.CV_16S, 0, 1)
+        sobel = np.hypot(sobelX, sobelY)
+        sobel[sobel > 255] = 255;  # Some values seem to go above 255. However RGB channels has to be within 0-255
+
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
         # maskFinal = maskClose
@@ -76,7 +81,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
 
         if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
             # cv2.imshow("Raw", cv2.resize(median, (160, 120)))
-            cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
+            cv2.imshow("Processed", cv2.resize(sobel, (160, 129)))
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.imshow("Segmentation Parameters", color_sample)
 
