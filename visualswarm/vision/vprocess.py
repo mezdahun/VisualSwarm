@@ -63,8 +63,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
         # Gaussian blur
-        median = cv2.medianBlur(mask, 5)
-        blurred = cv2.GaussianBlur(mask, (5, 5), 0)
+        median = cv2.medianBlur(mask, 20)
+        blurred = cv2.GaussianBlur(mask, (20, 20), 0)
 
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
