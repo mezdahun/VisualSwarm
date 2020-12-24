@@ -75,7 +75,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # maskFinal = maskClose
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
 
-        cv2.drawContours(blurred, conts, 0, (0, 255, 0), 2, cv2.LINE_AA, maxLevel=1)
+        cv2.drawContours(blurred, conts, -1, (0,0,255), 3)
 
         # for i in range(len(conts)):
         #     x, y, w, h = cv2.boundingRect(conts[i])
