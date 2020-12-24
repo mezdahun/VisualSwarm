@@ -78,18 +78,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # print(conts)
 
         threshold_area = 50  # threshold area
-        for cnt in conts:
-            area = cv2.contourArea(cnt)
-            print(area)
-            if area < threshold_area:
-                conts.remove(cnt)
+        fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= threshold_area]
+        print(conts==fconts)
 
         hull_list = []
-        for i in range(len(conts)):
-            hull = cv2.convexHull(conts[i])
+        for i in range(len(fconts)):
+            hull = cv2.convexHull(fconts[i])
             hull_list.append(hull)
 
-        cv2.drawContours(img, conts, -1, (0, 0, 255), 3)
+        cv2.drawContours(img, fconts, -1, (0, 0, 255), 3)
         cv2.drawContours(img, hull_list, -1, (0, 255, 0), 3)
 
         # for i in range(len(conts)):
