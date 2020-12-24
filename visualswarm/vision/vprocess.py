@@ -34,12 +34,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
 
     if segmentation.FIND_COLOR_INTERACTIVE:
         cv2.namedWindow("Segmentation Parameters")
-        cv2.createTrackbar("R", "Segmentation Parameters", 0, 255, value=segmentation.TARGET_RGB_COLOR[0], onChange=nothing)
-        cv2.createTrackbar("G", "Segmentation Parameters", 0, 255, onChange=nothing)
-        cv2.createTrackbar("B", "Segmentation Parameters", 0, 255, onChange=nothing)
-        cv2.createTrackbar("H_range", "Segmentation Parameters", 0, 255, onChange=nothing)
-        cv2.createTrackbar("SV_min", "Segmentation Parameters", 0, 255, onChange=nothing)
-        cv2.createTrackbar("SV_max", "Segmentation Parameters", 0, 255, onChange=nothing)
+        cv2.createTrackbar("R", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[0], 255, nothing)
+        cv2.createTrackbar("G", "Segmentation Parameters", 0, 255, nothing)
+        cv2.createTrackbar("B", "Segmentation Parameters", 0, 255, nothing)
+        cv2.createTrackbar("H_range", "Segmentation Parameters", 0, 255, nothing)
+        cv2.createTrackbar("SV_min", "Segmentation Parameters", 0, 255, nothing)
+        cv2.createTrackbar("SV_max", "Segmentation Parameters", 0, 255, nothing)
         color_sample = np.zeros((200, 200, 3), np.uint8)
 
     while True:
