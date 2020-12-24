@@ -26,6 +26,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         Returns:
             -shall not return-
     """
+    global segmentation.R
     hsv_low = segmentation.HSV_LOW
     hsv_high = segmentation.HSV_HIGH
 
