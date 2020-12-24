@@ -73,19 +73,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
         # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
         # maskFinal = maskClose
-        conts, h = cv2.findContours(blurred.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-        if h is not None:
-            # Find level 1 contours
-            level1Meta = []
-            for contourIndex, tupl in enumerate(h[0]):
-                # Each array is in format (Next, Prev, First child, Parent)
-                # Filter the ones without parent
-                if tupl[3] == -1:
-                    tupl = np.insert(tupl.copy(), 0, [contourIndex])
-                    level1Meta.append(tupl)
-
-            cv2.drawContours(blurred, [level1Meta], 0, (0, 255, 0), 2, cv2.LINE_AA, maxLevel=1)
+        cv2.drawContours(blurred, [conts], 0, (0, 255, 0), 2, cv2.LINE_AA, maxLevel=1)
 
         # for i in range(len(conts)):
         #     x, y, w, h = cv2.boundingRect(conts[i])
