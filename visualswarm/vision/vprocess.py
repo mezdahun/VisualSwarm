@@ -6,8 +6,8 @@ import logging
 import cv2
 import numpy as np
 
+from visualswarm.contrib.segmentation import R, G, B, HSV_LOW, HSV_HIGH,HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM
 from visualswarm.contrib import segmentation
-
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
@@ -26,7 +26,6 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         Returns:
             -shall not return-
     """
-    global segmentation.R
     hsv_low = segmentation.HSV_LOW
     hsv_high = segmentation.HSV_HIGH
 
@@ -34,7 +33,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         (img, frame_id) = raw_vision_stream.get()
         logger.info(raw_vision_stream.qsize())
         if segmentation.FIND_COLOR_INTERACTIVE:
-            print(segmentation.R)
+            print(R)
         #     B = cv2.getTrackbarPos("B", "Segmentation Parameters")
         #     G = cv2.getTrackbarPos("G", "Segmentation Parameters")
         #     R = cv2.getTrackbarPos("R", "Segmentation Parameters")
@@ -95,6 +94,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
 
 
 def visualizer(high_level_vision_stream):
+    global R
 
     if segmentation.FIND_COLOR_INTERACTIVE:
         cv2.namedWindow("Segmentation Parameters")
@@ -111,7 +111,7 @@ def visualizer(high_level_vision_stream):
         if segmentation.FIND_COLOR_INTERACTIVE:
             segmentation.B = cv2.getTrackbarPos("B", "Segmentation Parameters")
             segmentation.G = cv2.getTrackbarPos("G", "Segmentation Parameters")
-            segmentation.R = cv2.getTrackbarPos("R", "Segmentation Parameters")
+            R = cv2.getTrackbarPos("R", "Segmentation Parameters")
             color_sample[:] = [segmentation.B, segmentation.G, segmentation.R]
             segmentation.HSV_HUE_RANGE = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
             segmentation.SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
