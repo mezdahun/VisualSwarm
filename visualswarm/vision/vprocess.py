@@ -84,8 +84,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream):
         # if segmentation.SHOW_VISION_STREAMS or segmentation.FIND_COLOR_INTERACTIVE:
         #     cv2.imshow("Raw", cv2.resize(img, (160, 120)))
         #     cv2.imshow("Processed", cv2.resize(blurred, (160, 129)))
-        # if segmentation.FIND_COLOR_INTERACTIVE:
-        #     cv2.imshow("Segmentation Parameters", color_sample)
+        if segmentation.FIND_COLOR_INTERACTIVE:
+            cv2.imshow("Segmentation Parameters", color_sample)
+            cv2.waitKey(1)
 
         # # Cleaning the segmented image
         # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
