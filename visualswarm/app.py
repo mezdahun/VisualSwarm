@@ -27,12 +27,16 @@ def start_vision_stream():
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
+    if segmentation.FIND_COLOR_INTERACTIVE:
+        target_config_stream = Queue()
+    else:
+        target_config_stream = None
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
-    high_level_vision_1 = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream,))
+    high_level_vision_1 = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
     high_level_vision_2 = Process(target=vprocess.high_level_vision,
-                                  args=(raw_vision_stream, high_level_vision_stream,))
+                                  args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
     visualizer = Process(target=vprocess.visualizer,
-                                  args=(high_level_vision_stream,))
+                                  args=(high_level_vision_stream, target_config_stream,))
     try:
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
