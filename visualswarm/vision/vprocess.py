@@ -30,7 +30,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, target_config
 
     while True:
         (img, frame_id) = raw_vision_stream.get()
-        logger.info(raw_vision_stream.qsize())
+        # logger.info(raw_vision_stream.qsize())
         if segmentation.FIND_COLOR_INTERACTIVE:
             if target_config_stream is not None:
                 if target_config_stream.qsize() > 1:
@@ -79,7 +79,8 @@ def visualizer(high_level_vision_stream,target_config_stream = None):
         color_sample = np.zeros((200, 200, 3), np.uint8)
 
     while True:
-        (img, mask, frame_id) = high_level_vision_stream.get()
+        (img, mask, frame_id) = high_level_vision_stream.queue[0]
+        logger.info(high_level_vision_stream.qsize())
         if segmentation.FIND_COLOR_INTERACTIVE:
             if target_config_stream is not None:
                 B = cv2.getTrackbarPos("B", "Segmentation Parameters")

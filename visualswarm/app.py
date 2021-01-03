@@ -40,6 +40,7 @@ def start_vision_stream():
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(high_level_vision_stream, target_config_stream,))
     try:
+        # Start subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
