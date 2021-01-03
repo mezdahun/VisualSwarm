@@ -110,6 +110,6 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
     while True:
         logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
-        cropped_image = mask[projection.top:projection.w_limit, projection.right:projection.h_limit]
+        cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         cv2.imshow("Projection", cropped_image)
         cv2.waitKey(1)

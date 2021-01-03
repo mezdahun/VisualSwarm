@@ -12,7 +12,7 @@ NUM_SEGMENTATION_PROCS = 2
 FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = True
+SHOW_VISION_STREAMS = False
 
 # Change parameters here
 # To interactively tune these set FIND_COLOR_INTERACTIVE to True
