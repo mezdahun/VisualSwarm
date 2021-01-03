@@ -4,8 +4,7 @@
 """
 
 import logging
-from multiprocessing import Process #, Queue
-from Queue import PriorityQueue
+from multiprocessing import Process, Queue
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation
@@ -27,10 +26,16 @@ def start_vision_stream():
     """Start the visual stream of the Pi"""
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
     # Creating Queues
-    raw_vision_stream = PriorityQueue()
-    high_level_vision_stream = PriorityQueue()
+    raw_vision_stream = Queue()
+    high_level_vision_stream = Queue()
+    if segmentation.SHOW_VISION_STREAMS:
+        visualization_stream = Queue()
+    else:
+        visualization_stream = None
     if segmentation.FIND_COLOR_INTERACTIVE:
-        target_config_stream = PriorityQueue()
+        target_config_stream = Queue()
+        # overriding visualization otherwise interactive parameter tuning makes no sense
+        visualization_stream = Queue()
     else:
         target_config_stream = None
     # Creating main processes
@@ -38,8 +43,9 @@ def start_vision_stream():
     high_level_vision_pool = [Process(target=vprocess.high_level_vision,
                                       args=(raw_vision_stream,
                                             high_level_vision_stream,
+                                            visualization_stream,
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
-    visualizer = Process(target=vprocess.visualizer, args=(high_level_vision_stream, target_config_stream,))
+    visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     try:
         # Start subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')

@@ -15,13 +15,14 @@ def nothing(x):
     pass
 
 
-def high_level_vision(raw_vision_stream, high_level_vision_stream, target_config_stream = None):
+def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream = None, target_config_stream = None):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
     processes can consume this stream
         Args:
             raw_vision_stream: multiprocessing.Queue type object to read raw visual input.
             high_level_vision_stream: multiprocessing.Queue type object to push high-level visual data.
+            visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
         Returns:
             -shall not return-
     """
@@ -63,36 +64,40 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, target_config
         cv2.drawContours(img, hull_list, -1, (0, 255, 0), 3)
 
         high_level_vision_stream.put((img, blurred, frame_id))
+        if visualization_stream is not None:
+            visualization_stream.put((img, blurred, frame_id))
 
 
-def visualizer(high_level_vision_stream,target_config_stream = None):
-    global R
+def visualizer(visualization_stream, target_config_stream = None):
 
-    if segmentation.FIND_COLOR_INTERACTIVE:
-        cv2.namedWindow("Segmentation Parameters")
-        cv2.createTrackbar("R", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[0], 255, nothing)
-        cv2.createTrackbar("G", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[1], 255, nothing)
-        cv2.createTrackbar("B", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[2], 255, nothing)
-        cv2.createTrackbar("H_range", "Segmentation Parameters", segmentation.HSV_HUE_RANGE, 255, nothing)
-        cv2.createTrackbar("SV_min", "Segmentation Parameters", segmentation.SV_MINIMUM, 255, nothing)
-        cv2.createTrackbar("SV_max", "Segmentation Parameters", segmentation.SV_MAXIMUM, 255, nothing)
-        color_sample = np.zeros((200, 200, 3), np.uint8)
-
-    while True:
-        (img, mask, frame_id) = high_level_vision_stream.queue[0]
-        logger.info(high_level_vision_stream.qsize())
+    if visualization_stream is not None:
         if segmentation.FIND_COLOR_INTERACTIVE:
-            if target_config_stream is not None:
-                B = cv2.getTrackbarPos("B", "Segmentation Parameters")
-                G = cv2.getTrackbarPos("G", "Segmentation Parameters")
-                R = cv2.getTrackbarPos("R", "Segmentation Parameters")
-                color_sample[:] = [B, G, R]
-                HSV_HUE_RANGE = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
-                SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
-                SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
-                target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
-        cv2.imshow("Raw", cv2.resize(img, (160, 120)))
-        cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
-        if segmentation.FIND_COLOR_INTERACTIVE:
-            cv2.imshow("Segmentation Parameters", color_sample)
-        cv2.waitKey(1)
+            cv2.namedWindow("Segmentation Parameters")
+            cv2.createTrackbar("R", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[0], 255, nothing)
+            cv2.createTrackbar("G", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[1], 255, nothing)
+            cv2.createTrackbar("B", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[2], 255, nothing)
+            cv2.createTrackbar("H_range", "Segmentation Parameters", segmentation.HSV_HUE_RANGE, 255, nothing)
+            cv2.createTrackbar("SV_min", "Segmentation Parameters", segmentation.SV_MINIMUM, 255, nothing)
+            cv2.createTrackbar("SV_max", "Segmentation Parameters", segmentation.SV_MAXIMUM, 255, nothing)
+            color_sample = np.zeros((200, 200, 3), np.uint8)
+
+        while True:
+            (img, mask, frame_id) = visualization_stream.queue[0]
+            logger.info(visualization_stream.qsize())
+            if segmentation.FIND_COLOR_INTERACTIVE:
+                if target_config_stream is not None:
+                    B = cv2.getTrackbarPos("B", "Segmentation Parameters")
+                    G = cv2.getTrackbarPos("G", "Segmentation Parameters")
+                    R = cv2.getTrackbarPos("R", "Segmentation Parameters")
+                    color_sample[:] = [B, G, R]
+                    HSV_HUE_RANGE = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
+                    SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
+                    SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
+                    target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
+            cv2.imshow("Raw", cv2.resize(img, (160, 120)))
+            cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
+            if segmentation.FIND_COLOR_INTERACTIVE:
+                cv2.imshow("Segmentation Parameters", color_sample)
+            cv2.waitKey(1)
+    else:
+        logger.info('Visualization stream None, visualization stream returns!')
