@@ -32,38 +32,26 @@ def start_vision_stream():
     else:
         target_config_stream = None
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
-    num_procs = 2
-    h_l_vision_list = [Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,)) for i in range(num_procs)]
-    # high_level_vision_1 = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
-    # high_level_vision_2 = Process(target=vprocess.high_level_vision,
-    #                               args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
-    visualizer = Process(target=vprocess.visualizer,
-                                  args=(high_level_vision_stream, target_config_stream,))
+
+    high_level_vision_pool = [Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
+    visualizer = Process(target=vprocess.visualizer, args=(high_level_vision_stream, target_config_stream,))
     try:
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
-        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision process')
-        for proc in h_l_vision_list:
+        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
+        for proc in high_level_vision_pool:
             proc.start()
-        # high_level_vision_1.start()
-        # high_level_vision_2.start()
         visualizer.start()
         # Wait for subprocesses in main process to terminate
-        raw_vision.join()
-        # high_level_vision_1.join()
-        # high_level_vision_2.join()
-        for proc in h_l_vision_list:
-            proc.join()
         visualizer.join()
+        for proc in high_level_vision_pool:
+            proc.join()
+        raw_vision.join()
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
         visualizer.terminate()
         visualizer.join()
-        # high_level_vision_1.terminate()
-        # high_level_vision_1.join()
-        # high_level_vision_2.terminate()
-        # high_level_vision_2.join()
-        for proc in h_l_vision_list:
+        for proc in high_level_vision_pool:
             proc.terminate()
             proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} high level vision process and joined!')

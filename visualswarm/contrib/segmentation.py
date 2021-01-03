@@ -5,6 +5,9 @@
 from cv2 import cvtColor, COLOR_BGR2HSV
 from numpy import uint8
 
+# Number of segmentation processes
+NUM_SEGMENTATION_PROCS = 2
+
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
 
