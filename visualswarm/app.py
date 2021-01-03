@@ -52,7 +52,7 @@ def start_vision_stream():
         raw_vision.join()
         # high_level_vision_1.join()
         # high_level_vision_2.join()
-        pool.join()
+        # pool.join()
         visualizer.join()
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
