@@ -4,7 +4,8 @@
 """
 
 import logging
-from multiprocessing import Process, Queue
+from multiprocessing import Process #, Queue
+from Queue import PriorityQueue
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation
@@ -26,10 +27,10 @@ def start_vision_stream():
     """Start the visual stream of the Pi"""
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
     # Creating Queues
-    raw_vision_stream = Queue()
-    high_level_vision_stream = Queue()
+    raw_vision_stream = PriorityQueue()
+    high_level_vision_stream = PriorityQueue()
     if segmentation.FIND_COLOR_INTERACTIVE:
-        target_config_stream = Queue()
+        target_config_stream = PriorityQueue()
     else:
         target_config_stream = None
     # Creating main processes
