@@ -118,4 +118,3 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         plt.plot(projection_field)
         # cv2.imshow("Projection", cropped_image)
         # cv2.waitKey(1)
-        plt.show()
