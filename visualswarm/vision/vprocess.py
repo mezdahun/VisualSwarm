@@ -6,7 +6,7 @@ import logging
 import cv2
 import numpy as np
 import matplotlib
-matplotlib.use('GTK3Agg')
+matplotlib.use('nbAgg')
 import matplotlib.pyplot as plt
 
 from visualswarm.contrib import segmentation, projection
