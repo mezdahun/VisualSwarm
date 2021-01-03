@@ -5,8 +5,7 @@
 import logging
 import cv2
 import numpy as np
-import pyqtgraph as pg
-from pyqtgraph.Qt import QtGui, QtCore
+from matplotlib import pyplot as plt
 
 from visualswarm.contrib import segmentation, projection
 
@@ -109,23 +108,30 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
-    win = pg.GraphicsWindow()
-    win.resize(800, 800)
-
-    p = win.addPlot()
-    axis_drawn = False
+    fig, ax = plt.subplots()
+    (ln,) = ax.plot(np.zeros(1200), animated=True)
+    plt.show(block=False)
+    # get copy of entire figure (everything inside fig.bbox) sans animated artist
+    bg = fig.canvas.copy_from_bbox(fig.bbox)
+    # draw the animated artist, this uses a cached renderer
+    ax.draw_artist(ln)
+    # show the result to the screen, this pushes the updated RGBA buffer from the
+    # renderer to the GUI framework so you can see it
+    fig.canvas.blit(fig.bbox)
     while True:
         logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
         print(projection_field.shape)
-        if not axis_drawn:
-            projection_figure = p.plot(range(len(projection_field)), projection_field, pen="y")
-            p.enableAutoRange("xy", False)
-            axis_drawn = True
-        else:
-            projection_figure.setData(range(len(projection_field)), projection_field,)
-        pg.QtGui.QApplication.processEvents()
+        fig.canvas.restore_region(bg)
+        # update the artist, neither the canvas state nor the screen have changed
+        ln.set_ydata(projection_field)
+        # re-render the artist, updating the canvas state, but not the screen
+        ax.draw_artist(ln)
+        # copy the image to the GUI state, but screen might not changed yet
+        fig.canvas.blit(fig.bbox)
+        # flush any pending GUI events, re-painting the screen if needed
+        fig.canvas.flush_events()
         # cv2.imshow("Projection", projection_field)
         # cv2.waitKey(1)
