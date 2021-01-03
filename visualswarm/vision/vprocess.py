@@ -82,6 +82,7 @@ def visualizer(visualization_stream, target_config_stream = None):
             color_sample = np.zeros((200, 200, 3), np.uint8)
 
         while True:
+            # visualization
             (img, mask, frame_id) = visualization_stream.get()
             logger.info(visualization_stream.qsize())
             if segmentation.FIND_COLOR_INTERACTIVE:
