@@ -5,8 +5,6 @@
 import logging
 import cv2
 import numpy as np
-import matplotlib
-matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 from visualswarm.contrib import segmentation, projection
@@ -118,10 +116,14 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
         print(projection_field.shape)
-        if frame_id % 16 == 0:
-            ax.clear()
-            ax.plot(projection_field)
-            fig.canvas.draw()
-            fig.show()
+        axis_drawn = False
+        if frame_id % 8 == 0:
+            if not axis_drawn:
+                line1, = ax.plot(projection_field)
+                fig.canvas.draw()
+                fig.show()
+                axis_drawn = True
+            else:
+                line1.set_ydata(projection_field)
         # cv2.imshow("Projection", cropped_image)
         # cv2.waitKey(1)
