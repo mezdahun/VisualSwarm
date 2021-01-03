@@ -117,13 +117,13 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         projection_field = np.max(cropped_image, axis=0)
         print(projection_field.shape)
         axis_drawn = False
-        if frame_id % 8 == 0:
-            if not axis_drawn:
-                line1, = ax.plot(projection_field)
-                fig.canvas.draw()
-                fig.show()
-                axis_drawn = True
-            else:
-                line1.set_ydata(projection_field)
-        # cv2.imshow("Projection", cropped_image)
-        # cv2.waitKey(1)
+        # if frame_id % 8 == 0:
+        #     if not axis_drawn:
+        #         line1, = ax.plot(projection_field)
+        #         fig.canvas.draw()
+        #         fig.show()
+        #         axis_drawn = True
+        #     else:
+        #         line1.set_ydata(projection_field)
+        cv2.imshow("Projection", projection_field)
+        cv2.waitKey(1)
