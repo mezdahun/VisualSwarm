@@ -109,7 +109,7 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     fig, ax = plt.subplots()
-    (ln,) = ax.plot(np.zeros(1200), animated=True)
+    (ln,) = ax.plot(np.zeros(1006,), animated=True)
     plt.show(block=False)
     # get copy of entire figure (everything inside fig.bbox) sans animated artist
     bg = fig.canvas.copy_from_bbox(fig.bbox)
