@@ -46,6 +46,7 @@ def start_vision_stream():
         # high_level_vision_2.start()
         with Pool(processes=4) as pool:
             pool.apply_async(vprocess.high_level_vision, (raw_vision_stream, high_level_vision_stream, target_config_stream,))
+        logger.info('Pool started')
         visualizer.start()
         # Wait for subprocesses in main process to terminate
         raw_vision.join()
