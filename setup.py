@@ -16,7 +16,7 @@ setup(
         'opencv-python>=4.4.0.46',
         'picamera>=1.13',
         'pyqtgraph',
-        'PyQt5>=5.15.2'
+        'PyQt5'
     ],
     extras_require={
         'test': [
