@@ -15,7 +15,7 @@ setup(
     install_requires=[
         'opencv-python>=4.4.0.46',
         'picamera>=1.13',
-        'vispy'
+        'pyqtgraph'
     ],
     extras_require={
         'test': [
