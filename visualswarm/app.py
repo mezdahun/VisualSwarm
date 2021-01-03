@@ -38,6 +38,7 @@ def start_vision_stream():
         visualization_stream = Queue()
     else:
         target_config_stream = None
+    fov_stream = Queue()
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
     high_level_vision_pool = [Process(target=vprocess.high_level_vision,
@@ -46,6 +47,7 @@ def start_vision_stream():
                                             visualization_stream,
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
+    FOV_extractor = Process(target=vprocess.FOV_extraction, args=(high_level_vision_stream, fov_stream,))
     try:
         # Start subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
@@ -54,13 +56,17 @@ def start_vision_stream():
         for proc in high_level_vision_pool:
             proc.start()
         visualizer.start()
+        FOV_extractor.start()
         # Wait for subprocesses in main process to terminate
         visualizer.join()
         for proc in high_level_vision_pool:
             proc.join()
         raw_vision.join()
+        FOV_extractor.join()
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
+        FOV_extractor.terminate()
+        FOV_extractor.join()
         visualizer.terminate()
         visualizer.join()
         for proc in high_level_vision_pool:
@@ -72,5 +78,10 @@ def start_vision_stream():
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} Raw vision process and joined!')
         raw_vision_stream.close()
         high_level_vision_stream.close()
+        if visualization_stream is not None:
+            visualization_stream.close()
+        if target_config_stream is not None:
+            target_config_stream.close()
+        fov_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} vision streams!')
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
