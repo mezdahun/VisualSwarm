@@ -5,6 +5,7 @@
 import logging
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 from visualswarm.contrib import segmentation, projection
 
@@ -108,8 +109,12 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     while True:
+        plt.clf()
         logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
-        cv2.imshow("Projection", cropped_image)
-        cv2.waitKey(1)
+        projection_field = np.max(cropped_image, axis=0)
+        plt.plot(projection_field)
+        # cv2.imshow("Projection", cropped_image)
+        # cv2.waitKey(1)
+        plt.show()
