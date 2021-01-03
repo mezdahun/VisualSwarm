@@ -35,7 +35,7 @@ def start_vision_stream():
     # high_level_vision_1 = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
     # high_level_vision_2 = Process(target=vprocess.high_level_vision,
     #                               args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
-    pool = Pool(processes=2)
+    # pool = Pool(processes=2)
     visualizer = Process(target=vprocess.visualizer,
                                   args=(high_level_vision_stream, target_config_stream,))
     try:
@@ -44,7 +44,8 @@ def start_vision_stream():
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision process')
         # high_level_vision_1.start()
         # high_level_vision_2.start()
-        pool.apply_async(vprocess.high_level_vision, (raw_vision_stream, high_level_vision_stream, target_config_stream,))
+        with Pool(processes=4) as pool:
+            pool.apply_async(vprocess.high_level_vision, (raw_vision_stream, high_level_vision_stream, target_config_stream,))
         visualizer.start()
         # Wait for subprocesses in main process to terminate
         raw_vision.join()
