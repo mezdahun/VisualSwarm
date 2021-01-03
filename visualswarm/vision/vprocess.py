@@ -6,7 +6,7 @@ import logging
 import cv2
 import numpy as np
 
-from visualswarm.contrib import segmentation
+from visualswarm.contrib import segmentation, projection
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -64,6 +64,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
         cv2.drawContours(img, fconts, -1, (0, 0, 255), 3)
         cv2.drawContours(img, hull_list, -1, (0, 255, 0), 3)
+        cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
         high_level_vision_stream.put((img, blurred, frame_id))
         if visualization_stream is not None:
@@ -108,4 +109,7 @@ def visualizer(visualization_stream, target_config_stream=None):
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     while True:
         logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
-        high_level_vision_stream.get()
+        (img, mask, frame_id) = high_level_vision_stream.get()
+        cropped_image = mask[projection.top:projection.w_limit, projection.right:projection.h_limit]
+        cv2.imshow("Projection", cropped_image)
+        cv2.waitKey(1)
