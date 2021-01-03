@@ -5,6 +5,8 @@
 import logging
 import cv2
 import numpy as np
+import matplotlib
+matplotlib.use('GTKAgg')
 import matplotlib.pyplot as plt
 
 from visualswarm.contrib import segmentation, projection
@@ -121,5 +123,5 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
             ax.plot(projection_field)
             fig.canvas.draw()
             fig.show()
-        cv2.imshow("Projection", cropped_image)
-        cv2.waitKey(1)
+        # cv2.imshow("Projection", cropped_image)
+        # cv2.waitKey(1)
