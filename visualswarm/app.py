@@ -4,13 +4,11 @@
 """
 
 import logging
-from multiprocessing import Process, Queue, Pool, set_start_method, get_context
+from multiprocessing import Process, Queue
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation
 import cv2
-
-set_start_method("spawn")
 
 # setup logging
 logging.basicConfig()
@@ -34,28 +32,28 @@ def start_vision_stream():
     else:
         target_config_stream = None
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
+    num_procs = 2
+    h_l_vision_list = [Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,)) for i in range(num_procs)]
     # high_level_vision_1 = Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
     # high_level_vision_2 = Process(target=vprocess.high_level_vision,
     #                               args=(raw_vision_stream, high_level_vision_stream, target_config_stream,))
-    # pool = Pool(processes=2)
     visualizer = Process(target=vprocess.visualizer,
                                   args=(high_level_vision_stream, target_config_stream,))
     try:
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision process')
+        for proc in h_l_vision_list:
+            proc.start()
         # high_level_vision_1.start()
         # high_level_vision_2.start()
-        with get_context("spawn").Pool(processes=2) as pool:
-            pool.apply_async(vprocess.high_level_vision, (raw_vision_stream, high_level_vision_stream, target_config_stream,))
-        logger.info('Pool started')
         visualizer.start()
         # Wait for subprocesses in main process to terminate
         raw_vision.join()
         # high_level_vision_1.join()
         # high_level_vision_2.join()
-        pool.join()
-        logger.info('I joined...')
+        for proc in h_l_vision_list:
+            proc.join()
         visualizer.join()
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
@@ -65,8 +63,9 @@ def start_vision_stream():
         # high_level_vision_1.join()
         # high_level_vision_2.terminate()
         # high_level_vision_2.join()
-        pool.terminate()
-        pool.join()
+        for proc in h_l_vision_list:
+            proc.terminate()
+            proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} high level vision process and joined!')
         raw_vision.terminate()
         raw_vision.join()
