@@ -4,11 +4,13 @@
 """
 
 import logging
-from multiprocessing import Process, Queue, Pool
+from multiprocessing import Process, Queue, Pool, set_start_method, get_context
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation
 import cv2
+
+set_start_method("spawn")
 
 # setup logging
 logging.basicConfig()
@@ -44,7 +46,7 @@ def start_vision_stream():
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision process')
         # high_level_vision_1.start()
         # high_level_vision_2.start()
-        with Pool(processes=4) as pool:
+        with get_context("spawn").Pool(processes=2) as pool:
             pool.apply_async(vprocess.high_level_vision, (raw_vision_stream, high_level_vision_stream, target_config_stream,))
         logger.info('Pool started')
         visualizer.start()
