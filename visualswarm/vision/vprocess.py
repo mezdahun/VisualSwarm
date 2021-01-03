@@ -114,7 +114,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
     # get copy of entire figure (everything inside fig.bbox) sans animated artist
     bg = fig.canvas.copy_from_bbox(fig.bbox)
     # draw the animated artist, this uses a cached renderer
-    ax.draw_artist(ln)
+    # ax.draw_artist(ln)
     plt.pause(0.1)
     # show the result to the screen, this pushes the updated RGBA buffer from the
     # renderer to the GUI framework so you can see it
@@ -129,7 +129,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         # update the artist, neither the canvas state nor the screen have changed
         ln.set_ydata(projection_field)
         # re-render the artist, updating the canvas state, but not the screen
-        # ax.draw_artist(ln)
+        ax.draw_artist(ln)
         # copy the image to the GUI state, but screen might not changed yet
         fig.canvas.blit(fig.bbox)
         # flush any pending GUI events, re-painting the screen if needed
