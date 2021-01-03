@@ -49,15 +49,6 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, target_config
         blurred = cv2.GaussianBlur(mask, (15, 15), 0)
         blurred = cv2.medianBlur(blurred, 9)
 
-
-        # sobelX = cv2.Sobel(blurred, cv2.CV_16S, 1, 0)
-        # sobelY = cv2.Sobel(blurred, cv2.CV_16S, 0, 1)
-        # sobel = np.hypot(sobelX, sobelY)
-        # sobel[sobel > 255] = 255;  # Some values seem to go above 255. However RGB channels has to be within 0-255
-
-        # maskOpen = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernelOpen)
-        # maskClose = cv2.morphologyEx(maskOpen, cv2.MORPH_CLOSE, kernelClose)
-        # maskFinal = maskClose
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
 
         threshold_area = 50  # threshold area keep only larger contours
@@ -72,7 +63,6 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, target_config
         cv2.drawContours(img, hull_list, -1, (0, 255, 0), 3)
 
         high_level_vision_stream.put((img, blurred, frame_id))
-        # cv2.waitKey(1)
 
 
 def visualizer(high_level_vision_stream,target_config_stream = None):
