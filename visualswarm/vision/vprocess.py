@@ -117,5 +117,5 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         projection_field = np.max(cropped_image, axis=0)
         print(projection_field.shape)
         ax.plot(projection_field)
-        cv2.imshow("Projection", projection_field)
-        cv2.waitKey(1)
+        # cv2.imshow("Projection", projection_field)
+        # cv2.waitKey(1)
