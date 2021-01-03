@@ -25,15 +25,19 @@ def health():
 def start_vision_stream():
     """Start the visual stream of the Pi"""
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
+    # Creating Queues
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
     if segmentation.FIND_COLOR_INTERACTIVE:
         target_config_stream = Queue()
     else:
         target_config_stream = None
+    # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
-
-    high_level_vision_pool = [Process(target=vprocess.high_level_vision, args=(raw_vision_stream, high_level_vision_stream, target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
+    high_level_vision_pool = [Process(target=vprocess.high_level_vision,
+                                      args=(raw_vision_stream,
+                                            high_level_vision_stream,
+                                            target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(high_level_vision_stream, target_config_stream,))
     try:
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
