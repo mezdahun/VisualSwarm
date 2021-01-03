@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 
 from visualswarm.contrib import segmentation
+
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
@@ -15,7 +16,8 @@ def nothing(x):
     pass
 
 
-def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream = None, target_config_stream = None):
+def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
+                      target_config_stream=None):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
     processes can consume this stream
@@ -68,8 +70,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             visualization_stream.put((img, blurred, frame_id))
 
 
-def visualizer(visualization_stream, target_config_stream = None):
-
+def visualizer(visualization_stream, target_config_stream=None):
     if visualization_stream is not None:
         if segmentation.FIND_COLOR_INTERACTIVE:
             cv2.namedWindow("Segmentation Parameters")
@@ -103,6 +104,8 @@ def visualizer(visualization_stream, target_config_stream = None):
     else:
         logger.info('Visualization stream None, visualization stream returns!')
 
+
 def FOV_extraction(high_level_vision_stream, FOV_stream):
-    logger.info('HIGH LEVEL: ', high_level_vision_stream.qsize())
-    high_level_vision_stream.get()
+    while True:
+        logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
+        high_level_vision_stream.get()
