@@ -108,6 +108,8 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
     while True:
         logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
@@ -115,7 +117,8 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         projection_field = np.max(cropped_image, axis=0)
         print(projection_field.shape)
         if frame_id % 10 == 0:
-            plt.plot(projection_field)
-            plt.show()
+            ax.plot(projection_field)
+            fig.canvas.draw()
+            fig.show()
         # cv2.imshow("Projection", cropped_image)
         # cv2.waitKey(1)
