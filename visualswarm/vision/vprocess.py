@@ -102,3 +102,7 @@ def visualizer(visualization_stream, target_config_stream = None):
             cv2.waitKey(1)
     else:
         logger.info('Visualization stream None, visualization stream returns!')
+
+def FOV_extraction(high_level_vision_stream, FOV_stream):
+    logger.info('HIGH LEVEL: ', high_level_vision_stream.qsize())
+    high_level_vision_stream.get()
