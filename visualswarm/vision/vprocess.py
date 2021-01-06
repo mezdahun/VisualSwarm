@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-from visualswarm.contrib import segmentation, projection
+from visualswarm.contrib import segmentation, projection, camera
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -98,8 +98,8 @@ def visualizer(visualization_stream, target_config_stream=None):
                     SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
                     SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
                     target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
-            cv2.imshow("Raw", cv2.resize(img, (160, 120)))
-            cv2.imshow("Processed", cv2.resize(mask, (160, 129)))
+            cv2.imshow("Raw", cv2.resize(img, (camera.RESOLUTION[0]/4, camera.RESOLUTION[1]/4)))
+            cv2.imshow("Processed", cv2.resize(mask, (camera.RESOLUTION[0]/4, camera.RESOLUTION[1]/4)))
             if segmentation.FIND_COLOR_INTERACTIVE:
                 cv2.imshow("Segmentation Parameters", color_sample)
             cv2.waitKey(1)
