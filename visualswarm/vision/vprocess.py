@@ -101,8 +101,8 @@ def visualizer(visualization_stream, target_config_stream=None):
                     target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
             vis_width = floor(camera.RESOLUTION[0]/visual.VIS_DOWNSAMPLE_FACTOR)
             vis_height = floor(camera.RESOLUTION[1]/visual.VIS_DOWNSAMPLE_FACTOR)
-            cv2.imshow("Raw", cv2.resize(img, (vis_width, vis_height)))
-            cv2.imshow("Processed", cv2.resize(mask, (vis_width, vis_height)))
+            cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
+            cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
             if visual.FIND_COLOR_INTERACTIVE:
                 cv2.imshow("Segmentation Parameters", color_sample)
             cv2.waitKey(1)
@@ -118,5 +118,5 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         projection_field = np.max(cropped_image, axis=0)
         for i in range(cropped_image.shape[0]):
             cropped_image[i, :] = projection_field
-        cv2.imshow("Projection", cropped_image)
+        cv2.imshow("Visual Projection Field", cropped_image)
         cv2.waitKey(1)
