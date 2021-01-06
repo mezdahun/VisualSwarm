@@ -7,7 +7,7 @@ import logging
 from multiprocessing import Process, Queue
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, segmentation
+from visualswarm.contrib import logparams, segmentation, visual
 import cv2
 
 # setup logging
@@ -28,11 +28,11 @@ def start_vision_stream():
     # Creating Queues
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
-    if segmentation.SHOW_VISION_STREAMS:
+    if visual.SHOW_VISION_STREAMS:
         visualization_stream = Queue()
     else:
         visualization_stream = None
-    if segmentation.FIND_COLOR_INTERACTIVE:
+    if visual.FIND_COLOR_INTERACTIVE:
         target_config_stream = Queue()
         # overriding visualization otherwise interactive parameter tuning makes no sense
         visualization_stream = Queue()

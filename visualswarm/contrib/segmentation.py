@@ -8,13 +8,6 @@ from numpy import uint8
 # Number of segmentation processes
 NUM_SEGMENTATION_PROCS = 2
 
-# Interactive color tune
-FIND_COLOR_INTERACTIVE = True
-
-# Visualization on the fly
-SHOW_VISION_STREAMS = True
-VIS_DOWNSAMPLE_FACTOR = 4
-
 # Change parameters here
 # To interactively tune these set FIND_COLOR_INTERACTIVE to True
 TARGET_RGB_COLOR = (21, 136, 0)
