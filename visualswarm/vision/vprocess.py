@@ -102,7 +102,7 @@ def visualizer(visualization_stream, target_config_stream=None):
             vis_width = floor(camera.RESOLUTION[0]/visual.VIS_DOWNSAMPLE_FACTOR)
             vis_height = floor(camera.RESOLUTION[1]/visual.VIS_DOWNSAMPLE_FACTOR)
             cv2.imshow("Raw", cv2.resize(img, (vis_width, vis_height)))
-            cv2.imshow("Processed", cv2.resize(mask, (vis_width, vis_height)))
+            # cv2.imshow("Processed", cv2.resize(mask, (vis_width, vis_height)))
             if visual.FIND_COLOR_INTERACTIVE:
                 cv2.imshow("Segmentation Parameters", color_sample)
             cv2.waitKey(1)
