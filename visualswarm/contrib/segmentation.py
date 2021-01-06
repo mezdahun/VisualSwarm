@@ -13,6 +13,7 @@ FIND_COLOR_INTERACTIVE = True
 
 # Visualization on the fly
 SHOW_VISION_STREAMS = True
+VIS_DOWNSAMPLE_FACTOR = 4
 
 # Change parameters here
 # To interactively tune these set FIND_COLOR_INTERACTIVE to True

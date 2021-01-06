@@ -99,8 +99,8 @@ def visualizer(visualization_stream, target_config_stream=None):
                     SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
                     SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
                     target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
-            vis_width = floor(camera.RESOLUTION[0]/4)
-            vis_height = floor(camera.RESOLUTION[1]/4)
+            vis_width = floor(camera.RESOLUTION[0]/camera.VIS_DOWNSAMPLE_FACTOR)
+            vis_height = floor(camera.RESOLUTION[1]/camera.VIS_DOWNSAMPLE_FACTOR)
             cv2.imshow("Raw", cv2.resize(img, (vis_width, vis_height)))
             cv2.imshow("Processed", cv2.resize(mask, (vis_width, vis_height)))
             if segmentation.FIND_COLOR_INTERACTIVE:
