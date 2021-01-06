@@ -88,7 +88,7 @@ def visualizer(visualization_stream, target_config_stream=None):
         while True:
             # visualization
             (img, mask, frame_id) = visualization_stream.get()
-            logger.info(visualization_stream.qsize())
+            # logger.info(visualization_stream.qsize())
             if visual.FIND_COLOR_INTERACTIVE:
                 if target_config_stream is not None:
                     B = cv2.getTrackbarPos("B", "Segmentation Parameters")
@@ -112,7 +112,7 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     while True:
-        logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
+        # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
