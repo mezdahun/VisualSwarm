@@ -9,10 +9,10 @@ from numpy import uint8
 NUM_SEGMENTATION_PROCS = 2
 
 # Interactive color tune
-FIND_COLOR_INTERACTIVE = False
+FIND_COLOR_INTERACTIVE = True
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = False
+SHOW_VISION_STREAMS = True
 
 # Change parameters here
 # To interactively tune these set FIND_COLOR_INTERACTIVE to True
