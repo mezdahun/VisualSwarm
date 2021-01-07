@@ -5,11 +5,10 @@
 import logging
 import cv2
 import numpy as np
+
 from math import floor
 import datetime
-import pandas as pd
-
-from influxdb import DataFrameClient
+from influxdb import InfluxDBClient
 
 from visualswarm.contrib import segmentation, projection, camera, visual
 
@@ -22,7 +21,7 @@ ifpass = "tu-scioi"
 ifdb   = "home"
 ifhost = "127.0.0.1"
 ifport = 8086
-ifclient = DataFrameClient(ifhost, ifport, ifuser, ifpass, ifdb)
+measurement_name = "system"
 
 def nothing(x):
     pass
@@ -138,16 +137,28 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         proj_field_vis = projection_field[0:-1:downsample_factor]
         # take a timestamp for this measurement
         time = datetime.datetime.utcnow()
-        measurement_name = "system"
 
-        df = pd.DataFrame(data=projection_field)
-        protocol = 'json'
-        ifclient.write_points(df, 'demo', protocol=protocol)
+        # collect some stats from psutil
+        disk = psutil.disk_usage('/')
+        mem = psutil.virtual_memory()
+        load = psutil.getloadavg()
 
+        # format the data as a single measurement for influx
+        body = [
+            {
+                "measurement": measurement_name,
+                "time": time,
+                "fields": {
+                    "stringproj": str(list(proj_field_vis))
+                }
+            }
+        ]
 
-
+        # connect to influx
+        ifclient = InfluxDBClient(ifhost, ifport, ifuser, ifpass, ifdb)
 
         # write the measurement
+        ifclient.write_points(body)
         # plotWidget.clear()
         # plotWidget.plot(proj_field_vis)
         # app.processEvents()  # you MUST process the plot now
