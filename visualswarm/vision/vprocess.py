@@ -109,8 +109,8 @@ def visualizer(visualization_stream, target_config_stream=None):
                     SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
                     SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
                     target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
-            vis_width = floor(camera.RESOLUTION[0]/visual.VIS_DOWNSAMPLE_FACTOR)
-            vis_height = floor(camera.RESOLUTION[1]/visual.VIS_DOWNSAMPLE_FACTOR)
+            vis_width = floor(camera.RESOLUTION[0] / visual.VIS_DOWNSAMPLE_FACTOR)
+            vis_height = floor(camera.RESOLUTION[1] / visual.VIS_DOWNSAMPLE_FACTOR)
             cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
             cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
             if visual.FIND_COLOR_INTERACTIVE:
@@ -120,34 +120,46 @@ def visualizer(visualization_stream, target_config_stream=None):
         logger.info('Visualization stream None, visualization stream returns!')
 
 
+def pad_to_n_digits(number, n=3):
+    len_diff = n - len(str(number))
+    if len_diff > 0:
+        return len_diff * '0' + str(number)
+    else:
+        return str(number)
+
+
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     measurement_name = "visual_projection_field"
 
     while True:
-        # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
         logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
 
-        downsample_factor = 5
-        proj_field_vis = projection_field[0:-1:downsample_factor]
+        if projection.SAVE_PROJECTION_FIELD:
+            # Saving projection field data to InfluxDB to visualize with Grafana
+            proj_field_vis = projection_field[0:-1:projection.DOWNGRADING_FACTOR]
+            # take a timestamp for this measurement
+            time = datetime.datetime.utcnow()
 
-        # take a timestamp for this measurement
-        time = datetime.datetime.utcnow()
+            # generating data to dump in db
+            keys = [f'field_{pad_to_n_digits(i)}' for i in range(len(proj_field_vis))]
+            field_dict = dict(zip(keys, proj_field_vis))
 
-        # generating data to dump in db
-        keys = [f'field_1{i}' for i in range(len(proj_field_vis))]
-        field_dict = dict(zip(keys, proj_field_vis))
+            # format the data as a single measurement for influx
+            body = [
+                {
+                    "measurement": measurement_name,
+                    "time": time,
+                    "fields": field_dict
+                }
+            ]
 
-        # format the data as a single measurement for influx
-        body = [
-            {
-                "measurement": measurement_name,
-                "time": time,
-                "fields": field_dict
-            }
-        ]
-
-        # write the measurement
-        ifclient.write_points(body)
+            # write the measurement
+            # try:
+            ifclient.write_points(body)
+            # except:
+            #     ifclient.drop_database('home')
+            #     ifclient.create_database('home')
+            #     ifclient.write_points(body)
