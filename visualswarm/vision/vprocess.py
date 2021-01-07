@@ -126,4 +126,4 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         # cv2.imshow("Visual Projection Field", cropped_image)
         # cv2.waitKey(1)
         plotWidget.plot(projection_field)
-        # QtGui.QApplication.processEvents()  # you MUST process the plot now
+        QtGui.QApplication.processEvents()  # you MUST process the plot now
