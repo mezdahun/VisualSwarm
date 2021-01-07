@@ -141,7 +141,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         measurement_name = "system"
 
         df = pd.DataFrame(data=projection_field)
-
+        protocol = 'line'
         ifclient.write_points(df, 'demo', protocol=protocol)
 
 
