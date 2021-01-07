@@ -16,8 +16,8 @@ setup(
         'opencv-python>=4.4.0.46',
         'picamera>=1.13',
         'matplotlib',
-        'vext.pyqt5',
-        'pyqtgraph'
+        'vext.pyqt5>=0.7.4',
+        'pyqtgraph>=0.11.1'
     ],
     extras_require={
         'test': [
