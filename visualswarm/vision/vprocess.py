@@ -9,12 +9,22 @@ from matplotlib import pyplot as plt
 from math import floor
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
+import datetime
+import psutil
+from influxdb import InfluxDBClient
 
 from visualswarm.contrib import segmentation, projection, camera, visual
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
+# influx configuration - edit these
+ifuser = "grafana"
+ifpass = "tu-scioi"
+ifdb   = "home"
+ifhost = "127.0.0.1"
+ifport = 8086
+measurement_name = "system"
 
 def nothing(x):
     pass
@@ -128,6 +138,38 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         # cv2.waitKey(1)
         downsample_factor = 10
         proj_field_vis = projection_field[0:-1:downsample_factor]
+        # take a timestamp for this measurement
+        time = datetime.datetime.utcnow()
+
+        # collect some stats from psutil
+        disk = psutil.disk_usage('/')
+        mem = psutil.virtual_memory()
+        load = psutil.getloadavg()
+
+        # format the data as a single measurement for influx
+        body = [
+            {
+                "measurement": measurement_name,
+                "time": time,
+                "fields": {
+                    "load_1": load[0],
+                    "load_5": load[1],
+                    "load_15": load[2],
+                    "disk_percent": disk.percent,
+                    "disk_free": disk.free,
+                    "disk_used": disk.used,
+                    "mem_percent": mem.percent,
+                    "mem_free": mem.free,
+                    "mem_used": mem.used,
+                }
+            }
+        ]
+
+        # connect to influx
+        ifclient = InfluxDBClient(ifhost, ifport, ifuser, ifpass, ifdb)
+
+        # write the measurement
+        ifclient.write_points(body)
         # plotWidget.clear()
         # plotWidget.plot(proj_field_vis)
         # app.processEvents()  # you MUST process the plot now

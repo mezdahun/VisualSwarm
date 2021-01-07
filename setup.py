@@ -17,7 +17,9 @@ setup(
         'picamera>=1.13',
         'matplotlib',
         'vext.pyqt5>=0.7.4',
-        'pyqtgraph>=0.11.1'
+        'pyqtgraph>=0.11.1',
+        'psutil',
+        'influxdb'
     ],
     extras_require={
         'test': [
