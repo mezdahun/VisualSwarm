@@ -119,6 +119,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
     while True:
         # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
+        logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
         # for i in range(cropped_image.shape[0]):
