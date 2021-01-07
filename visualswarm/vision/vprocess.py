@@ -21,7 +21,7 @@ ifpass = "tu-scioi"
 ifdb   = "home"
 ifhost = "127.0.0.1"
 ifport = 8086
-measurement_name = "projection2"
+measurement_name = "projection3"
 
 def nothing(x):
     pass
@@ -133,12 +133,12 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         #     cropped_image[i, :] = projection_field
         # cv2.imshow("Visual Projection Field", cropped_image)
         # cv2.waitKey(1)
-        downsample_factor = 10
+        downsample_factor = 5
         proj_field_vis = projection_field[0:-1:downsample_factor]
         # take a timestamp for this measurement
         time = datetime.datetime.utcnow()
 
-        keys = [f'field_{i}' for i in range(len(proj_field_vis))]
+        keys = [f'field_1{i}' for i in range(len(proj_field_vis))]
         field_dict = dict(zip(keys, proj_field_vis))
 
         # format the data as a single measurement for influx
