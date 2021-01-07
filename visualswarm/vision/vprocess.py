@@ -21,7 +21,7 @@ ifpass = "tu-scioi"
 ifdb   = "home"
 ifhost = "127.0.0.1"
 ifport = 8086
-measurement_name = "projection3"
+
 
 def nothing(x):
     pass
@@ -120,8 +120,7 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
-    # app = QtGui.QApplication([])
-    # plotWidget = pg.plot(title="Three plot curves")
+    measurement_name = "visual_projection_field"
 
     while True:
         # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
@@ -129,15 +128,14 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
-        # for i in range(cropped_image.shape[0]):
-        #     cropped_image[i, :] = projection_field
-        # cv2.imshow("Visual Projection Field", cropped_image)
-        # cv2.waitKey(1)
+
         downsample_factor = 5
         proj_field_vis = projection_field[0:-1:downsample_factor]
+
         # take a timestamp for this measurement
         time = datetime.datetime.utcnow()
 
+        # generating data to dump in db
         keys = [f'field_1{i}' for i in range(len(proj_field_vis))]
         field_dict = dict(zip(keys, proj_field_vis))
 
@@ -155,6 +153,3 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
 
         # write the measurement
         ifclient.write_points(body)
-        # plotWidget.clear()
-        # plotWidget.plot(proj_field_vis)
-        # app.processEvents()  # you MUST process the plot now
