@@ -18,7 +18,7 @@ setup(
         'matplotlib',
         'vext.pyqt5>=0.7.4',
         'pyqtgraph>=0.11.1',
-        'psutil',
+        'pandas',
         'influxdb'
     ],
     extras_require={
