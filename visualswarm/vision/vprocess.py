@@ -17,7 +17,6 @@ from visualswarm import env
 logger = logging.getLogger('visualswarm.app')
 
 # connect to influx
-logger.info(env.INFLUX_PSWD)
 ifclient = InfluxDBClient(env.INFLUX_HOST,
                           env.INFLUX_PORT,
                           env.INFLUX_USER,
@@ -139,6 +138,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
+        logger.info(env.INFLUX_PSWD)
 
         if projection.SAVE_PROJECTION_FIELD:
             # Saving projection field data to InfluxDB to visualize with Grafana
