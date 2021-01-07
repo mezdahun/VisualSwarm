@@ -115,7 +115,6 @@ def visualizer(visualization_stream, target_config_stream=None):
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     app = QtGui.QApplication([])
     plotWidget = pg.plot(title="Three plot curves")
-    plotWidget.disableAutoRange()
 
     while True:
         # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
