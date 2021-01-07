@@ -113,8 +113,8 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
-    app = QtGui.QApplication([])
-    plotWidget = pg.plot(title="Three plot curves")
+    # app = QtGui.QApplication([])
+    # plotWidget = pg.plot(title="Three plot curves")
 
     while True:
         # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
@@ -128,6 +128,6 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         # cv2.waitKey(1)
         downsample_factor = 10
         proj_field_vis = projection_field[0:-1:downsample_factor]
-        plotWidget.clear()
-        plotWidget.plot(proj_field_vis)
-        app.processEvents()  # you MUST process the plot now
+        # plotWidget.clear()
+        # plotWidget.plot(proj_field_vis)
+        # app.processEvents()  # you MUST process the plot now
