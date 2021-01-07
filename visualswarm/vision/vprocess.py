@@ -125,7 +125,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         #     cropped_image[i, :] = projection_field
         # cv2.imshow("Visual Projection Field", cropped_image)
         # cv2.waitKey(1)
-        downsample_factor = 5
+        downsample_factor = 10
         proj_field_vis = projection_field[0:-1:downsample_factor]
         plotWidget.clear()
         plotWidget.plot(projection_field)
