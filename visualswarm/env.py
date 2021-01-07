@@ -9,7 +9,7 @@ import os
 LOG_LEVEL = logging.getLevelName(os.getenv('LOG_LEVEL', 'DEBUG'))
 
 # influx configuration from .env.local or default
-INFLUX_FRESH_DB_UPON_START = os.getenv('INFLUX_FRESH_DB_START', 'False')
+INFLUX_FRESH_DB_UPON_START = os.getenv('INFLUX_FRESH_DB_START', False)
 INFLUX_USER = os.getenv('INFLUX_USER', 'grafana')
 INFLUX_PSWD = os.getenv('INFLUX_PSWD')
 INFLUX_DB_NAME = os.getenv('INFLUX_DB_NAME', 'home')
