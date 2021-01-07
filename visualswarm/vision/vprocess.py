@@ -17,11 +17,14 @@ from visualswarm import env
 logger = logging.getLogger('visualswarm.app')
 
 # connect to influx
+logger.info(env.INFLUX_PSWD)
 ifclient = InfluxDBClient(env.INFLUX_HOST,
                           env.INFLUX_PORT,
                           env.INFLUX_USER,
                           env.INFLUX_PSWD,
                           env.INFLUX_DB_NAME)
+#     ifclient.drop_database(env.INFLUX_DB_NAME))
+#     ifclient.create_database(env.INFLUX_DB_NAME))
 
 
 def nothing(x):
@@ -156,10 +159,4 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
                 }
             ]
 
-            # write the measurement
-            # try:
             ifclient.write_points(body)
-            # except:
-            #     ifclient.drop_database('home')
-            #     ifclient.create_database('home')
-            #     ifclient.write_points(body)
