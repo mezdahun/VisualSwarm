@@ -114,9 +114,7 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     app = QtGui.QApplication([])
-    win = pg.GraphicsWindow(title="Visual Projection Field")  # creates a window
-    p = win.addPlot(title="Realtime plot")  # creates empty space for the plot in the window
-    curve = p.plot()
+    plotWidget = pg.plot(title="Three plot curves")
 
     while True:
         # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
@@ -127,5 +125,5 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         #     cropped_image[i, :] = projection_field
         # cv2.imshow("Visual Projection Field", cropped_image)
         # cv2.waitKey(1)
-        curve.setData(projection_field)  # set the curve with this data
-        QtGui.QApplication.processEvents()  # you MUST process the plot now
+        plotWidget.plot(projection_field)
+        # QtGui.QApplication.processEvents()  # you MUST process the plot now
