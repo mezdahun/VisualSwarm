@@ -11,16 +11,17 @@ import datetime
 from influxdb import InfluxDBClient
 
 from visualswarm.contrib import segmentation, projection, camera, visual
+from visualswarm import env
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
-# influx configuration - edit these
-ifuser = "grafana"
-ifpass = "tu-scioi"
-ifdb   = "home"
-ifhost = "127.0.0.1"
-ifport = 8086
+# connect to influx
+ifclient = InfluxDBClient(env.INFLUX_HOST,
+                          env.INFLUX_PORT,
+                          env.INFLUX_USER,
+                          env.INFLUX_PSWD,
+                          env.INFLUX_DB_NAME)
 
 
 def nothing(x):
@@ -147,9 +148,6 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
                 "fields": field_dict
             }
         ]
-
-        # connect to influx
-        ifclient = InfluxDBClient(ifhost, ifport, ifuser, ifpass, ifdb)
 
         # write the measurement
         ifclient.write_points(body)
