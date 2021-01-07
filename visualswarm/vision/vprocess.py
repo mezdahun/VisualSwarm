@@ -146,7 +146,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
             time = datetime.datetime.utcnow()
 
             # generating data to dump in db
-            keys = [f'field_{pad_to_n_digits(i)}' for i in range(len(proj_field_vis))]
+            keys = [f'{pad_to_n_digits(i)}' for i in range(len(proj_field_vis))]
             field_dict = dict(zip(keys, proj_field_vis))
 
             # format the data as a single measurement for influx
