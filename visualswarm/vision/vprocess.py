@@ -138,11 +138,6 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         # take a timestamp for this measurement
         time = datetime.datetime.utcnow()
 
-        # collect some stats from psutil
-        disk = psutil.disk_usage('/')
-        mem = psutil.virtual_memory()
-        load = psutil.getloadavg()
-
         # format the data as a single measurement for influx
         body = [
             {
