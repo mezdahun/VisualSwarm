@@ -5,13 +5,11 @@
 import logging
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
 from math import floor
-from pyqtgraph.Qt import QtGui, QtCore
-import pyqtgraph as pg
 import datetime
-import psutil
-from influxdb import InfluxDBClient
+import pandas as pd
+
+from influxdb import DataFrameClient
 
 from visualswarm.contrib import segmentation, projection, camera, visual
 
@@ -24,7 +22,7 @@ ifpass = "tu-scioi"
 ifdb   = "home"
 ifhost = "127.0.0.1"
 ifport = 8086
-measurement_name = "system"
+ifclient = DataFrameClient(ifhost, ifport, ifuser, ifpass, ifdb)
 
 def nothing(x):
     pass
@@ -140,36 +138,16 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         proj_field_vis = projection_field[0:-1:downsample_factor]
         # take a timestamp for this measurement
         time = datetime.datetime.utcnow()
+        measurement_name = "system"
 
-        # collect some stats from psutil
-        disk = psutil.disk_usage('/')
-        mem = psutil.virtual_memory()
-        load = psutil.getloadavg()
+        df = pd.DataFrame(data=projection_field)
 
-        # format the data as a single measurement for influx
-        body = [
-            {
-                "measurement": measurement_name,
-                "time": time,
-                "fields": {
-                    "load_1": load[0],
-                    "load_5": load[1],
-                    "load_15": load[2],
-                    "disk_percent": disk.percent,
-                    "disk_free": disk.free,
-                    "disk_used": disk.used,
-                    "mem_percent": mem.percent,
-                    "mem_free": mem.free,
-                    "mem_used": mem.used,
-                }
-            }
-        ]
+        ifclient.write_points(df, 'demo', protocol=protocol)
 
-        # connect to influx
-        ifclient = InfluxDBClient(ifhost, ifport, ifuser, ifpass, ifdb)
+
+
 
         # write the measurement
-        ifclient.write_points(body)
         # plotWidget.clear()
         # plotWidget.plot(proj_field_vis)
         # app.processEvents()  # you MUST process the plot now
