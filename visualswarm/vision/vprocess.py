@@ -22,8 +22,11 @@ ifclient = InfluxDBClient(env.INFLUX_HOST,
                           env.INFLUX_USER,
                           env.INFLUX_PSWD,
                           env.INFLUX_DB_NAME)
-ifclient.drop_database(env.INFLUX_DB_NAME)
-ifclient.create_database(env.INFLUX_DB_NAME)
+
+# starting fresh database if requested
+if env.INFLUX_FRESH_DB_UPON_START:
+    ifclient.drop_database(env.INFLUX_DB_NAME)
+    ifclient.create_database(env.INFLUX_DB_NAME)
 
 
 def nothing(x):
