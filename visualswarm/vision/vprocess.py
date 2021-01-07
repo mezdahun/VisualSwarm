@@ -130,5 +130,5 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         downsample_factor = 10
         proj_field_vis = projection_field[0:-1:downsample_factor]
         plotWidget.clear()
-        plotWidget.plot(projection_field)
+        plotWidget.plot(proj_field_vis)
         QtGui.QApplication.processEvents()  # you MUST process the plot now
