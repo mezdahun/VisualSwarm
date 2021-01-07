@@ -21,7 +21,7 @@ ifpass = "tu-scioi"
 ifdb   = "home"
 ifhost = "127.0.0.1"
 ifport = 8086
-measurement_name = "system"
+measurement_name = "projection"
 
 def nothing(x):
     pass
