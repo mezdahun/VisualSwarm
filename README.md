@@ -55,7 +55,7 @@ pip install .
 
 To check if the app was installed you can run the command line entrypoint simply as
 ```bash
-visualswarm-health
+vswrm-health
 ```
 
 This should give you a _"VisualSwarm application OK!"_ message and return.
