@@ -7,6 +7,8 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 from math import floor
+from pyqtgraph.Qt import QtGui, QtCore
+import pyqtgraph as pg
 
 from visualswarm.contrib import segmentation, projection, camera, visual
 
@@ -111,12 +113,19 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
+    app = QtGui.QApplication([])
+    win = pg.GraphicsWindow(title="Visual Projection Field")  # creates a window
+    p = win.addPlot(title="Realtime plot")  # creates empty space for the plot in the window
+    curve = p.plot()
+
     while True:
         # logger.info(f'HIGH LEVEL: {high_level_vision_stream.qsize()}')
         (img, mask, frame_id) = high_level_vision_stream.get()
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
-        for i in range(cropped_image.shape[0]):
-            cropped_image[i, :] = projection_field
-        cv2.imshow("Visual Projection Field", cropped_image)
-        cv2.waitKey(1)
+        # for i in range(cropped_image.shape[0]):
+        #     cropped_image[i, :] = projection_field
+        # cv2.imshow("Visual Projection Field", cropped_image)
+        # cv2.waitKey(1)
+        curve.setData(projection_field)  # set the curve with this data
+        QtGui.QApplication.processEvents()  # you MUST process the plot now
