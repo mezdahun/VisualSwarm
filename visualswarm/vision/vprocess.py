@@ -2,32 +2,19 @@
 @author: mezdahun
 @description: Processing low-level input to get High level input
 """
+import datetime
 import logging
+from math import floor
+
 import cv2
 import numpy as np
 
-from math import floor
-import datetime
-from influxdb import InfluxDBClient
-
-from visualswarm.contrib import segmentation, projection, camera, visual
 from visualswarm import env
+from visualswarm.monitoring import ifdb
+from visualswarm.contrib import camera, projection, segmentation, visual
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
-
-# connect to influx
-ifclient = InfluxDBClient(env.INFLUX_HOST,
-                          env.INFLUX_PORT,
-                          env.INFLUX_USER,
-                          env.INFLUX_PSWD,
-                          env.INFLUX_DB_NAME)
-
-# starting fresh database if requested
-if env.INFLUX_FRESH_DB_UPON_START:
-    ifclient.drop_database(env.INFLUX_DB_NAME)
-    ifclient.create_database(env.INFLUX_DB_NAME)
-
 
 def nothing(x):
     pass
@@ -135,6 +122,7 @@ def pad_to_n_digits(number, n=3):
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
     measurement_name = "visual_projection_field"
+    ifclient = ifdb.create_ifclient()
 
     while True:
         (img, mask, frame_id) = high_level_vision_stream.get()

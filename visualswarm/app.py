@@ -6,8 +6,10 @@
 import logging
 from multiprocessing import Process, Queue
 from visualswarm import env
+from visualswarm.monitoring import ifdb
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual
+from visualswarm import env
 import cv2
 
 # setup logging
@@ -24,6 +26,11 @@ def health():
 
 def start_vision_stream():
     """Start the visual stream of the Pi"""
+    # starting fresh database if requested
+    if env.INFLUX_FRESH_DB_UPON_START:
+        ifclient = ifdb.create_ifclient()
+        ifclient.drop_database(env.INFLUX_DB_NAME)
+        ifclient.create_database(env.INFLUX_DB_NAME)
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
     # Creating Queues
     raw_vision_stream = Queue()
