@@ -1,4 +1,4 @@
-from unittest import TestCase, mock, skip
+from unittest import TestCase, mock
 
 from visualswarm.vision import vprocess
 
@@ -7,8 +7,6 @@ class VProcessTest(TestCase):
 
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_high_level_vision(self):
-
-        # Case 1 : no interactive parameter tuning
         with mock.patch('cv2.cvtColor') as cvtColor:
             with mock.patch('cv2.inRange') as inRange:
                 with mock.patch('cv2.GaussianBlur') as GaussianBlur:
@@ -17,6 +15,7 @@ class VProcessTest(TestCase):
                             with mock.patch('cv2.contourArea') as contourArea:
                                 with mock.patch('cv2.convexHull') as convexHull:
                                     with mock.patch('cv2.drawContours') as drawContours:
+                                        # Case 1 : no interactive parameter tuning
                                         with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', False):
                                             cvtColor.return_value = None
                                             inRange.return_value = None
@@ -44,7 +43,6 @@ class VProcessTest(TestCase):
                                             self.assertEqual(contourArea.call_count, 1)
                                             self.assertEqual(convexHull.call_count, 0)
                                             self.assertEqual(drawContours.call_count, 3)
-
 
                                         # Case 2 : Interactive Parameter tuning
                                         cvtColor.reset_mock()
@@ -94,8 +92,6 @@ class VProcessTest(TestCase):
                                             self.assertEqual(drawContours.call_count, 3)
                                             self.assertEqual(visualization_stream.put.call_count, 1)
 
-
-
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_visualizer(self):
         # Case 1 no visualization
@@ -103,7 +99,6 @@ class VProcessTest(TestCase):
             vprocess.visualizer(None)
             self.assertEqual(cm.output,
                              ['INFO:visualswarm.app:Visualization stream is None, visualization process returns!'])
-
         # Case 2 visualization
         # Case 2.a no interactive plotting
         with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', False):
@@ -123,26 +118,31 @@ class VProcessTest(TestCase):
                         self.assertEqual(fake_resize.call_count, 2)
                         self.assertEqual(fake_waitKey.call_count, 1)
 
-        # Case 2.b no interactive plotting
+        # Case 2.b with interactive plotting
         with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
             with mock.patch('cv2.imshow') as fake_imshow:
                 with mock.patch('cv2.resize') as fake_resize:
                     with mock.patch('cv2.waitKey') as fake_waitKey:
                         with mock.patch('cv2.namedWindow') as fake_namedWindow:
                             with mock.patch('cv2.createTrackbar') as fake_createTrackbar:
-                                fake_imshow.return_value = None
-                                fake_resize.return_value = None
-                                fake_waitKey.return_value = None
-                                fake_namedWindow.return_value = None
-                                fake_createTrackbar.return_value = None
-                                img = None
-                                mask = None
-                                frame_id = 15
-                                visualizer_stream = mock.MagicMock()
-                                visualizer_stream.get.return_value = (img, mask, frame_id)
-                                vprocess.visualizer(visualizer_stream)
-                                self.assertEqual(fake_imshow.call_count, 3)
-                                self.assertEqual(fake_resize.call_count, 2)
-                                self.assertEqual(fake_waitKey.call_count, 1)
-                                self.assertEqual(fake_createTrackbar.call_count, 6)
-                                self.assertEqual(fake_namedWindow.call_count, 1)
+                                with mock.patch('cv2.getTrackbarPos') as fake_getTrackbarPos:
+                                    fake_imshow.return_value = None
+                                    fake_resize.return_value = None
+                                    fake_waitKey.return_value = None
+                                    fake_namedWindow.return_value = None
+                                    fake_createTrackbar.return_value = None
+                                    fake_getTrackbarPos.return_value = 0
+                                    img = None
+                                    mask = None
+                                    frame_id = 15
+                                    visualizer_stream = mock.MagicMock()
+                                    visualizer_stream.get.return_value = (img, mask, frame_id)
+                                    parameter_stream = mock.MagicMock()
+                                    parameter_stream.put.return_value = None
+                                    vprocess.visualizer(visualizer_stream, parameter_stream)
+                                    self.assertEqual(fake_imshow.call_count, 3)
+                                    self.assertEqual(fake_resize.call_count, 2)
+                                    self.assertEqual(fake_waitKey.call_count, 1)
+                                    self.assertEqual(fake_createTrackbar.call_count, 6)
+                                    self.assertEqual(fake_namedWindow.call_count, 1)
+                                    self.assertEqual(parameter_stream.put.call_count, 1)
