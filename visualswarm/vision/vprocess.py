@@ -146,9 +146,9 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
             body = [
                 {
                     "measurement": measurement_name,
-                    "time": time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
+                    "time": time,
                     "fields": field_dict
                 }
             ]
 
-            ifclient.write_points(body)
+            ifclient.write_points(body, time_precision='ms')
