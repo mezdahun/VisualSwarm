@@ -14,7 +14,9 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         'opencv-python>=4.4.0.46',
-        'picamera>=1.13'
+        'picamera>=1.13',
+        'pandas',
+        'influxdb'
     ],
     extras_require={
         'test': [
@@ -24,7 +26,8 @@ setup(
             'pytest',
             'pytest-cov',
             'safety',
-            'fake-rpi'
+            'fake-rpi',
+            'freezegun'
         ]
     },
     entry_points={
