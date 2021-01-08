@@ -4,8 +4,8 @@
 """
 
 # Interactive color tune
-FIND_COLOR_INTERACTIVE = True
+FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = False
+SHOW_VISION_STREAMS = True
 VIS_DOWNSAMPLE_FACTOR = 1
