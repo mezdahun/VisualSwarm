@@ -9,6 +9,7 @@ from math import floor
 import cv2
 import numpy as np
 
+from visualswarm import env
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import camera, projection, segmentation, visual
 
@@ -73,12 +74,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         high_level_vision_stream.put((img, blurred, frame_id))
         if visualization_stream is not None:
             visualization_stream.put((img, blurred, frame_id))
+        if env.EXIT_CONDITION:
+            break
 
 
 def visualizer(visualization_stream, target_config_stream=None):
     """
     Process to Visualize Raw and Processed camera streams via a visualization stream. It is also used to tune parameters
-    interactively, in this case a configuration stream is also used to fetch interactively given parameters from the user.
+    interactively, in this case a configuration stream is also used to fetch interactively given parameters from the
+    user.
         Args:
             visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
             target_config_stream: stream to transmit segmentation parameters between interactive tuning input window and

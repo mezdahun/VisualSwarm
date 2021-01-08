@@ -3,6 +3,7 @@ from unittest import TestCase, mock
 from setup_fake_rpi import FAKE_STATUS
 
 from visualswarm import app
+from visualswarm.contrib import segmentation
 
 
 class AppTest(TestCase):
@@ -16,8 +17,10 @@ class AppTest(TestCase):
     @mock.patch('visualswarm.app.Queue')
     def test_start_vision_stream(self, mockQueue, mockProcess):
         if FAKE_STATUS:
+            num_processes = 3 + segmentation.NUM_SEGMENTATION_PROCS
+            num_queues = 3
             mp = mockProcess.return_value
             app.start_vision_stream()
-            self.assertEqual(mp.start.call_count, 2)
-            self.assertEqual(mp.join.call_count, 2)
-            self.assertEqual(mockQueue.call_count, 2)
+            self.assertEqual(mp.start.call_count, num_processes)
+            self.assertEqual(mp.join.call_count, num_processes)
+            self.assertEqual(mockQueue.call_count, num_queues)

@@ -16,3 +16,6 @@ INFLUX_DB_NAME = os.getenv('INFLUX_DB_NAME', 'home')
 INFLUX_HOST = os.getenv('INFLUX_HOST', '127.0.0.1')
 INFLUX_PORT = os.getenv('INFLUX_HOST', '8086')
 
+# testing parameters
+EXIT_CONDITION = False
+
