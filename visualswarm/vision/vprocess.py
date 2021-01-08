@@ -151,4 +151,4 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
                 }
             ]
 
-            ifclient.write_points(body, time_precision='ms')
+            ifclient.write_points(body, time_precision='u')
