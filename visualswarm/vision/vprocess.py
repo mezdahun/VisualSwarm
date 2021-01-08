@@ -121,6 +121,8 @@ def visualizer(visualization_stream, target_config_stream=None):
             if visual.FIND_COLOR_INTERACTIVE:
                 cv2.imshow("Segmentation Parameters", color_sample)
             cv2.waitKey(1)
+            if env.EXIT_CONDITION:
+                break
     else:
         logger.info('Visualization stream is None, visualization process returns!')
 
