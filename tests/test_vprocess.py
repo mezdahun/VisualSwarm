@@ -1,5 +1,8 @@
 from unittest import TestCase, mock
 
+import numpy as np
+from freezegun import freeze_time
+
 from visualswarm.vision import vprocess
 
 
@@ -55,42 +58,43 @@ class VProcessTest(TestCase):
                                         convexHull.reset_mock()
                                         drawContours.reset_mock()
                                         with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
-                                            cvtColor.return_value = [[[0]]]
-                                            inRange.return_value = None
-                                            GaussianBlur.return_value = None
-                                            medianBlur.return_value = mock.MagicMock()
-                                            medianBlur.copy.return_value = None
-                                            findContours.return_value = ([None], None)
-                                            contourArea.return_value = -1  # shall be smaller than any int threshold
-                                            convexHull.return_value = None
-                                            drawContours.return_value = None
+                                            with mock.patch('visualswarm.contrib.segmentation.MIN_BLOB_AREA', 0):
+                                                cvtColor.return_value = [[[0]]]
+                                                inRange.return_value = None
+                                                GaussianBlur.return_value = None
+                                                medianBlur.return_value = mock.MagicMock()
+                                                medianBlur.copy.return_value = None
+                                                findContours.return_value = ([None], None)
+                                                contourArea.return_value = 10  # now larger than threshold
+                                                convexHull.return_value = None
+                                                drawContours.return_value = None
 
-                                            img = None
-                                            frame_id = 15
-                                            raw_vision_stream = mock.MagicMock()
-                                            raw_vision_stream.get.return_value = (img, frame_id)
-                                            high_level_vision_stream = mock.MagicMock()
-                                            high_level_vision_stream.put.return_value = None
-                                            parameter_stream = mock.MagicMock()
-                                            parameter_stream.get.return_value = (0, 0, 0, 0, 0, 0)
-                                            parameter_stream.qsize.return_value = 2
-                                            visualization_stream = mock.MagicMock()
-                                            visualization_stream.put.return_value = None
-                                            vprocess.high_level_vision(raw_vision_stream,
-                                                                       high_level_vision_stream,
-                                                                       visualization_stream,
-                                                                       parameter_stream)
+                                                img = None
+                                                frame_id = 15
+                                                raw_vision_stream = mock.MagicMock()
+                                                raw_vision_stream.get.return_value = (img, frame_id)
+                                                high_level_vision_stream = mock.MagicMock()
+                                                high_level_vision_stream.put.return_value = None
+                                                parameter_stream = mock.MagicMock()
+                                                parameter_stream.get.return_value = (0, 0, 0, 0, 0, 0)
+                                                parameter_stream.qsize.return_value = 2
+                                                visualization_stream = mock.MagicMock()
+                                                visualization_stream.put.return_value = None
+                                                vprocess.high_level_vision(raw_vision_stream,
+                                                                           high_level_vision_stream,
+                                                                           visualization_stream,
+                                                                           parameter_stream)
 
-                                            self.assertEqual(parameter_stream.get.call_count, 1)
-                                            self.assertEqual(cvtColor.call_count, 2)
-                                            self.assertEqual(inRange.call_count, 1)
-                                            self.assertEqual(GaussianBlur.call_count, 1)
-                                            self.assertEqual(medianBlur.call_count, 1)
-                                            self.assertEqual(findContours.call_count, 1)
-                                            self.assertEqual(contourArea.call_count, 1)
-                                            self.assertEqual(convexHull.call_count, 0)
-                                            self.assertEqual(drawContours.call_count, 3)
-                                            self.assertEqual(visualization_stream.put.call_count, 1)
+                                                self.assertEqual(parameter_stream.get.call_count, 1)
+                                                self.assertEqual(cvtColor.call_count, 2)
+                                                self.assertEqual(inRange.call_count, 1)
+                                                self.assertEqual(GaussianBlur.call_count, 1)
+                                                self.assertEqual(medianBlur.call_count, 1)
+                                                self.assertEqual(findContours.call_count, 1)
+                                                self.assertEqual(contourArea.call_count, 1)
+                                                self.assertEqual(convexHull.call_count, 1)
+                                                self.assertEqual(drawContours.call_count, 3)
+                                                self.assertEqual(visualization_stream.put.call_count, 1)
 
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_visualizer(self):
@@ -146,3 +150,43 @@ class VProcessTest(TestCase):
                                     self.assertEqual(fake_createTrackbar.call_count, 6)
                                     self.assertEqual(fake_namedWindow.call_count, 1)
                                     self.assertEqual(parameter_stream.put.call_count, 1)
+
+    @freeze_time("2000-01-01")
+    @mock.patch('visualswarm.env.EXIT_CONDITION', True)
+    def test_FOV_extraction(self):
+        with mock.patch('visualswarm.monitoring.ifdb.create_ifclient') as fake_create_client:
+            fake_ifclient = mock.MagicMock()
+            fake_ifclient.write_points.return_value = None
+            fake_create_client.return_value = fake_ifclient
+
+            with mock.patch('visualswarm.contrib.projection.H_MARGIN', 0):
+                with mock.patch('visualswarm.contrib.projection.W_MARGIN', 0):
+                    with mock.patch('numpy.max') as fake_npmax:
+                        # Case 1 : no saving to db
+                        with mock.patch('visualswarm.contrib.projection.SAVE_PROJECTION_FIELD', False):
+                            fake_npmax.return_value = None
+                            img = None
+                            mask = np.array([[1, 2, 3], [0, 0, 0]])
+                            frame_id = 15
+                            vision_stream = mock.MagicMock()
+                            vision_stream.get.return_value = (img, mask, frame_id)
+                            vprocess.FOV_extraction(vision_stream, None)
+                            fake_npmax.assert_called_once()
+
+                        # Case 2 : saving to db
+                        fake_npmax.reset_mock()
+                        with mock.patch('visualswarm.contrib.projection.SAVE_PROJECTION_FIELD', True):
+                            with mock.patch('visualswarm.contrib.projection.DOWNGRADING_FACTOR', 1):
+                                with mock.patch('visualswarm.monitoring.ifdb.pad_to_n_digits') as fake_pad:
+                                    fake_npmax.return_value = np.array([1, 2, 3])
+                                    fake_pad.return_value = '001'
+                                    img = None
+                                    mask = np.array([[1, 2, 3], [0, 0, 0]])
+                                    frame_id = 15
+                                    vision_stream = mock.MagicMock()
+                                    vision_stream.get.return_value = (img, mask, frame_id)
+                                    vprocess.FOV_extraction(vision_stream, None)
+                                    fake_npmax.assert_called_once()
+
+    def test_nothing(self):
+        self.assertEqual(vprocess.nothing(None), None)

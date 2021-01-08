@@ -54,15 +54,14 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
         # Gaussian blur
-        blurred = cv2.GaussianBlur(mask, (15, 15), 0)
-        blurred = cv2.medianBlur(blurred, 9)
+        blurred = cv2.GaussianBlur(mask, (segmentation.GAUSSIAN_KERNEL_WIDTH, segmentation.GAUSSIAN_KERNEL_WIDTH), 0)
+        blurred = cv2.medianBlur(blurred, segmentation.MEDIAN_BLUR_WIDTH)
 
         # Find contours
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
 
         # Selecting appropriate contours
-        threshold_area = 50  # threshold area keep only larger contours
-        fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= threshold_area]
+        fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= segmentation.MIN_BLOB_AREA]
 
         # Creating convex hull from selected contours
         hull_list = []
@@ -71,8 +70,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             hull_list.append(hull)
 
         # visualize contours and convex hull on the original image and the area on the new mask
-        cv2.drawContours(img, fconts, -1, (0, 0, 255), 3)
-        cv2.drawContours(img, hull_list, -1, (0, 255, 0), 3)
+        cv2.drawContours(img, fconts, -1, visual.RAW_CONTOUR_COLOR, visual.RAW_CONTOUR_WIDTH)
+        cv2.drawContours(img, hull_list, -1, visual.CONVEX_CONTOUR_COLOR, visual.CONVEX_CONTOUR_WIDTH)
         cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
         # Forwarding result to FOV extraction
@@ -152,7 +151,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
 
     while True:
         (img, mask, frame_id) = high_level_vision_stream.get()
-        logger.info(high_level_vision_stream.qsize())
+        # logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
 
@@ -177,3 +176,8 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
             ]
 
             ifclient.write_points(body, time_precision='ms')
+
+        # FOV_stream.put(projection_field)
+        # To test infinite loops
+        if env.EXIT_CONDITION:
+            break

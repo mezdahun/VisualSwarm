@@ -15,6 +15,13 @@ HSV_HUE_RANGE = 25
 SV_MINIMUM = 50
 SV_MAXIMUM = 255
 
+# Blur
+GAUSSIAN_KERNEL_WIDTH = 15
+MEDIAN_BLUR_WIDTH = 9
+
+# Others
+MIN_BLOB_AREA = 50
+
 # Calculating secondary parameters (Do not change)
 R, G, B = TARGET_RGB_COLOR
 TARGET_HSV_COLOR = cvtColor(uint8([[[B, G, R]]]), COLOR_BGR2HSV)

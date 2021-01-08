@@ -15,9 +15,6 @@ setup(
     install_requires=[
         'opencv-python>=4.4.0.46',
         'picamera>=1.13',
-        'matplotlib',
-        'vext.pyqt5>=0.7.4',
-        'pyqtgraph>=0.11.1',
         'pandas',
         'influxdb'
     ],
@@ -29,7 +26,8 @@ setup(
             'pytest',
             'pytest-cov',
             'safety',
-            'fake-rpi'
+            'fake-rpi',
+            'freezegun'
         ]
     },
     entry_points={
