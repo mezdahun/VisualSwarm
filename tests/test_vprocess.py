@@ -59,7 +59,7 @@ class VProcessTest(TestCase):
                                 visualizer_stream = mock.MagicMock()
                                 visualizer_stream.get.return_value = (img, mask, frame_id)
                                 vprocess.visualizer(visualizer_stream)
-                                self.assertEqual(fake_imshow.call_count, 2)
+                                self.assertEqual(fake_imshow.call_count, 3)
                                 self.assertEqual(fake_resize.call_count, 2)
                                 self.assertEqual(fake_waitKey.call_count, 1)
                                 self.assertEqual(fake_createTrackbar.call_count, 6)
