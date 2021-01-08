@@ -146,7 +146,7 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
             body = [
                 {
                     "measurement": measurement_name,
-                    "time": time,
+                    "time": time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3],
                     "fields": field_dict
                 }
             ]
