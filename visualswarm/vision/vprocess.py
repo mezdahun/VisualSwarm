@@ -122,6 +122,14 @@ def visualizer(visualization_stream, target_config_stream=None):
 
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
+    """
+    Process to Field of View and generate final visual projection field.
+        Args:
+            high_level_vision_stream: multiprocessing.Queue type object to get processed visual information
+            FOV_stream: stream to push final visual projection field
+        Returns:
+            -shall not return-
+    """
     measurement_name = "visual_projection_field"
     ifclient = ifdb.create_ifclient()
 
