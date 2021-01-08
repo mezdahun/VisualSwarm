@@ -9,8 +9,6 @@ from visualswarm import env
 from visualswarm.monitoring import ifdb
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual
-from visualswarm import env
-import cv2
 
 # setup logging
 logging.basicConfig()
@@ -26,26 +24,35 @@ def health():
 
 def start_vision_stream():
     """Start the visual stream of the Pi"""
-    # starting fresh database if requested
+    # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:
+        logger.info(f'{bcolors.OKGREEN}CLEAN InfluxDB{bcolors.ENDC} upon start as requested')
         ifclient = ifdb.create_ifclient()
         ifclient.drop_database(env.INFLUX_DB_NAME)
         ifclient.create_database(env.INFLUX_DB_NAME)
+
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
+
     # Creating Queues
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
+
     if visual.SHOW_VISION_STREAMS:
+        # showing raw and processed camera stream
         visualization_stream = Queue()
     else:
         visualization_stream = None
+
     if visual.FIND_COLOR_INTERACTIVE:
+        # interactive target parameter tuning turned on
         target_config_stream = Queue()
         # overriding visualization otherwise interactive parameter tuning makes no sense
         visualization_stream = Queue()
     else:
         target_config_stream = None
+
     fov_stream = Queue()
+
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
     high_level_vision_pool = [Process(target=vprocess.high_level_vision,
@@ -55,6 +62,7 @@ def start_vision_stream():
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     FOV_extractor = Process(target=vprocess.FOV_extraction, args=(high_level_vision_stream, fov_stream,))
+
     try:
         # Start subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
@@ -64,14 +72,18 @@ def start_vision_stream():
             proc.start()
         visualizer.start()
         FOV_extractor.start()
+
         # Wait for subprocesses in main process to terminate
         visualizer.join()
         for proc in high_level_vision_pool:
             proc.join()
         raw_vision.join()
         FOV_extractor.join()
+
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
+
+        # Terminating Processes
         FOV_extractor.terminate()
         FOV_extractor.join()
         visualizer.terminate()
@@ -83,6 +95,8 @@ def start_vision_stream():
         raw_vision.terminate()
         raw_vision.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} Raw vision process and joined!')
+
+        # Closing Queues
         raw_vision_stream.close()
         high_level_vision_stream.close()
         if visualization_stream is not None:

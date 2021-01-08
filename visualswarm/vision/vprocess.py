@@ -9,12 +9,12 @@ from math import floor
 import cv2
 import numpy as np
 
-from visualswarm import env
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import camera, projection, segmentation, visual
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
+
 
 def nothing(x):
     pass
@@ -76,6 +76,16 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
 
 def visualizer(visualization_stream, target_config_stream=None):
+    """
+    Process to Visualize Raw and Processed camera streams via a visualization stream. It is also used to tune parameters
+    interactively, in this case a configuration stream is also used to fetch interactively given parameters from the user.
+        Args:
+            visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
+            target_config_stream: stream to transmit segmentation parameters between interactive tuning input window and
+                the visualization_stream
+        Returns:
+            -shall not return-
+    """
     if visualization_stream is not None:
         if visual.FIND_COLOR_INTERACTIVE:
             cv2.namedWindow("Segmentation Parameters")
@@ -90,7 +100,6 @@ def visualizer(visualization_stream, target_config_stream=None):
         while True:
             # visualization
             (img, mask, frame_id) = visualization_stream.get()
-            # logger.info(visualization_stream.qsize())
             if visual.FIND_COLOR_INTERACTIVE:
                 if target_config_stream is not None:
                     B = cv2.getTrackbarPos("B", "Segmentation Parameters")
@@ -109,15 +118,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                 cv2.imshow("Segmentation Parameters", color_sample)
             cv2.waitKey(1)
     else:
-        logger.info('Visualization stream None, visualization stream returns!')
-
-
-def pad_to_n_digits(number, n=3):
-    len_diff = n - len(str(number))
-    if len_diff > 0:
-        return len_diff * '0' + str(number)
-    else:
-        return str(number)
+        logger.info('Visualization stream is None, visualization process returns!')
 
 
 def FOV_extraction(high_level_vision_stream, FOV_stream):
@@ -133,11 +134,12 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
         if projection.SAVE_PROJECTION_FIELD:
             # Saving projection field data to InfluxDB to visualize with Grafana
             proj_field_vis = projection_field[0:-1:projection.DOWNGRADING_FACTOR]
+
             # take a timestamp for this measurement
             time = datetime.datetime.utcnow()
 
             # generating data to dump in db
-            keys = [f'{pad_to_n_digits(i)}' for i in range(len(proj_field_vis))]
+            keys = [f'{ifdb.pad_to_n_digits(i)}' for i in range(len(proj_field_vis))]
             field_dict = dict(zip(keys, proj_field_vis))
 
             # format the data as a single measurement for influx
