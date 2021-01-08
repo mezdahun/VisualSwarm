@@ -5,14 +5,96 @@ from visualswarm.vision import vprocess
 
 class VProcessTest(TestCase):
 
-    @skip
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_high_level_vision(self):
-        img = None
-        frame_id = 15
-        raw_vision_stream = mock.MagicMock()
-        raw_vision_stream.get.return_value = (img, frame_id)
-        vprocess.high_level_vision(raw_vision_stream, None)
+
+        # Case 1 : no interactive parameter tuning
+        with mock.patch('cv2.cvtColor') as cvtColor:
+            with mock.patch('cv2.inRange') as inRange:
+                with mock.patch('cv2.GaussianBlur') as GaussianBlur:
+                    with mock.patch('cv2.medianBlur') as medianBlur:
+                        with mock.patch('cv2.findContours') as findContours:
+                            with mock.patch('cv2.contourArea') as contourArea:
+                                with mock.patch('cv2.convexHull') as convexHull:
+                                    with mock.patch('cv2.drawContours') as drawContours:
+                                        with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', False):
+                                            cvtColor.return_value = None
+                                            inRange.return_value = None
+                                            GaussianBlur.return_value = None
+                                            medianBlur.return_value = mock.MagicMock()
+                                            medianBlur.copy.return_value = None
+                                            findContours.return_value = ([None], None)
+                                            contourArea.return_value = -1  # shall be smaller than any int threshold
+                                            convexHull.return_value = None
+                                            drawContours.return_value = None
+
+                                            img = None
+                                            frame_id = 15
+                                            raw_vision_stream = mock.MagicMock()
+                                            raw_vision_stream.get.return_value = (img, frame_id)
+                                            high_level_vision_stream = mock.MagicMock()
+                                            high_level_vision_stream.put.return_value = None
+                                            vprocess.high_level_vision(raw_vision_stream, high_level_vision_stream)
+
+                                            self.assertEqual(cvtColor.call_count, 1)
+                                            self.assertEqual(inRange.call_count, 1)
+                                            self.assertEqual(GaussianBlur.call_count, 1)
+                                            self.assertEqual(medianBlur.call_count, 1)
+                                            self.assertEqual(findContours.call_count, 1)
+                                            self.assertEqual(contourArea.call_count, 1)
+                                            self.assertEqual(convexHull.call_count, 0)
+                                            self.assertEqual(drawContours.call_count, 3)
+
+
+                                        # Case 2 : Interactive Parameter tuning
+                                        cvtColor.reset_mock()
+                                        inRange.reset_mock()
+                                        GaussianBlur.reset_mock()
+                                        medianBlur.reset_mock()
+                                        medianBlur.reset_mock()
+                                        findContours.reset_mock()
+                                        contourArea.reset_mock()
+                                        convexHull.reset_mock()
+                                        drawContours.reset_mock()
+                                        with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
+                                            cvtColor.return_value = [[[0]]]
+                                            inRange.return_value = None
+                                            GaussianBlur.return_value = None
+                                            medianBlur.return_value = mock.MagicMock()
+                                            medianBlur.copy.return_value = None
+                                            findContours.return_value = ([None], None)
+                                            contourArea.return_value = -1  # shall be smaller than any int threshold
+                                            convexHull.return_value = None
+                                            drawContours.return_value = None
+
+                                            img = None
+                                            frame_id = 15
+                                            raw_vision_stream = mock.MagicMock()
+                                            raw_vision_stream.get.return_value = (img, frame_id)
+                                            high_level_vision_stream = mock.MagicMock()
+                                            high_level_vision_stream.put.return_value = None
+                                            parameter_stream = mock.MagicMock()
+                                            parameter_stream.get.return_value = (0, 0, 0, 0, 0, 0)
+                                            parameter_stream.qsize.return_value = 2
+                                            visualization_stream = mock.MagicMock()
+                                            visualization_stream.put.return_value = None
+                                            vprocess.high_level_vision(raw_vision_stream,
+                                                                       high_level_vision_stream,
+                                                                       visualization_stream,
+                                                                       parameter_stream)
+
+                                            self.assertEqual(parameter_stream.get.call_count, 1)
+                                            self.assertEqual(cvtColor.call_count, 2)
+                                            self.assertEqual(inRange.call_count, 1)
+                                            self.assertEqual(GaussianBlur.call_count, 1)
+                                            self.assertEqual(medianBlur.call_count, 1)
+                                            self.assertEqual(findContours.call_count, 1)
+                                            self.assertEqual(contourArea.call_count, 1)
+                                            self.assertEqual(convexHull.call_count, 0)
+                                            self.assertEqual(drawContours.call_count, 3)
+                                            self.assertEqual(visualization_stream.put.call_count, 1)
+
+
 
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_visualizer(self):

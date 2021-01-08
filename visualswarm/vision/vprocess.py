@@ -57,23 +57,32 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         blurred = cv2.GaussianBlur(mask, (15, 15), 0)
         blurred = cv2.medianBlur(blurred, 9)
 
+        # Find contours
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
 
+        # Selecting appropriate contours
         threshold_area = 50  # threshold area keep only larger contours
         fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= threshold_area]
 
+        # Creating convex hull from selected contours
         hull_list = []
         for i in range(len(fconts)):
             hull = cv2.convexHull(fconts[i])
             hull_list.append(hull)
 
+        # visualize contours and convex hull on the original image and the area on the new mask
         cv2.drawContours(img, fconts, -1, (0, 0, 255), 3)
         cv2.drawContours(img, hull_list, -1, (0, 255, 0), 3)
         cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
+        # Forwarding result to FOV extraction
         high_level_vision_stream.put((img, blurred, frame_id))
+
+        # Forwarding result for visualization if requested
         if visualization_stream is not None:
             visualization_stream.put((img, blurred, frame_id))
+
+        # To test infinite loops
         if env.EXIT_CONDITION:
             break
 
@@ -121,6 +130,8 @@ def visualizer(visualization_stream, target_config_stream=None):
             if visual.FIND_COLOR_INTERACTIVE:
                 cv2.imshow("Segmentation Parameters", color_sample)
             cv2.waitKey(1)
+
+            # To test infinite loops
             if env.EXIT_CONDITION:
                 break
     else:
