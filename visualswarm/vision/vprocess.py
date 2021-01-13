@@ -30,6 +30,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             raw_vision_stream: multiprocessing.Queue type object to read raw visual input.
             high_level_vision_stream: multiprocessing.Queue type object to push high-level visual data.
             visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
+            target_config_stream: stream to transmit configuration parameters if interactive configuration is turned on.
         Returns:
             -shall not return-
     """
