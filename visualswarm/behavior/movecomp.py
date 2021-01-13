@@ -29,7 +29,7 @@ def dt_V_of(t, joined_V):
 def comp_velocity(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
     """Calculating the velocity difference of the agent according the main algorithm"""
     # Deriving over t
-    if V_prev is None or t_prev is None or t_now is None:
+    if V_prev is not None or t_prev is not None or t_now is not None:
         logger.debug('Movement calculation called with NONE as time-related parameters.')
         t_vec = np.hstack((t_prev, t_now))
         joined_V = np.vstack((V_prev, t_prev))
