@@ -27,6 +27,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
     ifclient = ifdb.create_ifclient()
     phi = None
     v = 0
+    logger.info(f'Velocity: {v}')
     while True:
         projection_field = VPF_stream.get()
         if phi is None:
