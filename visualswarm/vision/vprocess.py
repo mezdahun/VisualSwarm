@@ -74,7 +74,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         cv2.drawContours(img, hull_list, -1, visual.CONVEX_CONTOUR_COLOR, visual.CONVEX_CONTOUR_WIDTH)
         cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
-        # Forwarding result to FOV extraction
+        # Forwarding result to VPF extraction
         high_level_vision_stream.put((img, blurred, frame_id))
 
         # Forwarding result for visualization if requested
@@ -137,12 +137,12 @@ def visualizer(visualization_stream, target_config_stream=None):
         logger.info('Visualization stream is None, visualization process returns!')
 
 
-def FOV_extraction(high_level_vision_stream, FOV_stream):
+def VPF_extraction(high_level_vision_stream, VPF_stream):
     """
-    Process to Field of View and generate final visual projection field.
+    Process to extract final visual projection field from high level visual input.
         Args:
             high_level_vision_stream: multiprocessing.Queue type object to get processed visual information
-            FOV_stream: stream to push final visual projection field
+            VPF_stream: stream to push final visual projection field
         Returns:
             -shall not return-
     """
@@ -177,7 +177,8 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        # FOV_stream.put(projection_field)
+        # TODO uncomment when consumer is implemented
+        # VPF_stream.put(projection_field)
         # To test infinite loops
         if env.EXIT_CONDITION:
             break

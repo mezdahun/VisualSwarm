@@ -153,7 +153,7 @@ class VProcessTest(TestCase):
 
     @freeze_time("2000-01-01")
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
-    def test_FOV_extraction(self):
+    def test_VPF_extraction(self):
         with mock.patch('visualswarm.monitoring.ifdb.create_ifclient') as fake_create_client:
             fake_ifclient = mock.MagicMock()
             fake_ifclient.write_points.return_value = None
@@ -170,7 +170,7 @@ class VProcessTest(TestCase):
                             frame_id = 15
                             vision_stream = mock.MagicMock()
                             vision_stream.get.return_value = (img, mask, frame_id)
-                            vprocess.FOV_extraction(vision_stream, None)
+                            vprocess.VPF_extraction(vision_stream, None)
                             fake_npmax.assert_called_once()
 
                         # Case 2 : saving to db
@@ -185,7 +185,7 @@ class VProcessTest(TestCase):
                                     frame_id = 15
                                     vision_stream = mock.MagicMock()
                                     vision_stream.get.return_value = (img, mask, frame_id)
-                                    vprocess.FOV_extraction(vision_stream, None)
+                                    vprocess.VPF_extraction(vision_stream, None)
                                     fake_npmax.assert_called_once()
 
     def test_nothing(self):
