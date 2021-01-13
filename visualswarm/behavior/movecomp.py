@@ -26,7 +26,7 @@ def dt_V_of(t, joined_V):
     return dt_V
 
 
-def comp_velocity(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
+def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
     """Calculating the velocity difference of the agent according the main algorithm"""
     # Deriving over t
     if V_prev is not None or t_prev is not None or t_now is not None:
@@ -44,7 +44,10 @@ def comp_velocity(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
     G_vel = flockparams.ALP0 * (-V_now + \
                                 flockparams.ALP1 * np.square(dPhi_V) + \
                                 flockparams.ALP2 * dt_V)
-
+    G_psi = flockparams.BET0 * (-V_now + \
+                                flockparams.BET1 * np.square(dPhi_V) + \
+                                flockparams.BET2 * dt_V)
     # Calculating change in velocity
     dvel = flockparams.GAM * (flockparams.V0 - vel_now) + integrate.trapz(np.cos(phi) * G_vel, phi)
-    return dvel
+    dpsi = integrate.trapz(np.sin(phi) * G_vel, phi)
+    return dvel, dpsi

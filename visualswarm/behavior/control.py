@@ -28,15 +28,16 @@ def VPF_to_behavior(VPF_stream, control_stream):
     ifclient = ifdb.create_ifclient()
     phi = None
     v = 0
+    psi = 0
     logger.info(f'Velocity: {v}')
     while True:
         projection_field = VPF_stream.get()
         if phi is None:
             phi = np.linspace(projection.PHI_START, projection.PHI_END, len(projection_field))
 
-        dv = movecomp.comp_velocity(v, phi, projection_field)
+        dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
         v += dv
-        logger.info(f'Velocity: {v}')
+        psi += dpsi
 
         if flockparams.SAVE_CONTROL_PARAMS:
 
@@ -44,7 +45,8 @@ def VPF_to_behavior(VPF_stream, control_stream):
             time = datetime.datetime.utcnow()
 
             # generating data to dump in db
-            field_dict = {"agent_velocity": v}
+            field_dict = {"agent_velocity": v,
+                          "heading_angle": psi}
 
             # format the data as a single measurement for influx
             body = [
