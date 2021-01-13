@@ -13,6 +13,7 @@ from visualswarm.behavior import movecomp
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 
+
 def VPF_to_behavior(VPF_stream, control_stream):
     """
     Process to extract final visual projection field from high level visual input.
@@ -35,6 +36,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
         v += dv
 
         if flockparams.SAVE_CONTROL_PARAMS:
+            pass
             # # Saving projection field data to InfluxDB to visualize with Grafana
             # proj_field_vis = projection_field[0:-1:projection.DOWNGRADING_FACTOR]
             #
@@ -56,9 +58,3 @@ def VPF_to_behavior(VPF_stream, control_stream):
             #
             # ifclient.write_points(body, time_precision='ms')
         pass
-
-        # TODO uncomment when consumer is implemented
-        # VPF_stream.put(projection_field)
-        # To test infinite loops
-        if env.EXIT_CONDITION:
-            break
