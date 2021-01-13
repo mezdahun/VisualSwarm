@@ -9,6 +9,7 @@ from visualswarm import env
 from visualswarm.monitoring import ifdb
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual
+from visualswarm.behavior import control
 
 # setup logging
 logging.basicConfig()
@@ -52,6 +53,7 @@ def start_vision_stream():
         target_config_stream = None
 
     VPF_stream = Queue()
+    control_stream = Queue()
 
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
@@ -62,6 +64,7 @@ def start_vision_stream():
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
+    behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
 
     try:
         # Start subprocesses
@@ -72,6 +75,7 @@ def start_vision_stream():
             proc.start()
         visualizer.start()
         VPF_extractor.start()
+        behavior.start()
 
         # Wait for subprocesses in main process to terminate
         visualizer.join()
@@ -79,11 +83,14 @@ def start_vision_stream():
             proc.join()
         raw_vision.join()
         VPF_extractor.join()
+        behavior.join()
 
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
+        behavior.terminate()
+        behavior.join()
         VPF_extractor.terminate()
         VPF_extractor.join()
         visualizer.terminate()
@@ -104,5 +111,6 @@ def start_vision_stream():
         if target_config_stream is not None:
             target_config_stream.close()
         VPF_stream.close()
+        control_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} vision streams!')
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
