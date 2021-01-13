@@ -35,6 +35,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
         dv = movecomp.comp_velocity(v, phi, projection_field)
         v += dv
+        logger.info(f'Velocity: {v}')
 
         if flockparams.SAVE_CONTROL_PARAMS:
             pass
