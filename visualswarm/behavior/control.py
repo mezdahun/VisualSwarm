@@ -2,6 +2,7 @@
 @author: mezdahun
 @description: Submodule to implement control according to visual stream
 """
+import datetime
 import logging
 
 import numpy as np
@@ -38,25 +39,21 @@ def VPF_to_behavior(VPF_stream, control_stream):
         logger.info(f'Velocity: {v}')
 
         if flockparams.SAVE_CONTROL_PARAMS:
-            pass
-            # # Saving projection field data to InfluxDB to visualize with Grafana
-            # proj_field_vis = projection_field[0:-1:projection.DOWNGRADING_FACTOR]
-            #
-            # # take a timestamp for this measurement
-            # time = datetime.datetime.utcnow()
-            #
-            # # generating data to dump in db
-            # keys = [f'{ifdb.pad_to_n_digits(i)}' for i in range(len(proj_field_vis))]
-            # field_dict = dict(zip(keys, proj_field_vis))
-            #
-            # # format the data as a single measurement for influx
-            # body = [
-            #     {
-            #         "measurement": measurement_name,
-            #         "time": time,
-            #         "fields": field_dict
-            #     }
-            # ]
-            #
-            # ifclient.write_points(body, time_precision='ms')
+
+            # take a timestamp for this measurement
+            time = datetime.datetime.utcnow()
+
+            # generating data to dump in db
+            field_dict = {"agent_velocity": v}
+
+            # format the data as a single measurement for influx
+            body = [
+                {
+                    "measurement": measurement_name,
+                    "time": time,
+                    "fields": field_dict
+                }
+            ]
+
+            ifclient.write_points(body, time_precision='ms')
         pass
