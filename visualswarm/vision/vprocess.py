@@ -178,8 +178,8 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        # TODO uncomment when consumer is implemented
-        # VPF_stream.put(projection_field)
+        VPF_stream.put(projection_field)
+
         # To test infinite loops
         if env.EXIT_CONDITION:
             break
