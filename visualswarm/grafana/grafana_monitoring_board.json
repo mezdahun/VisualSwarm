@@ -147,6 +147,111 @@
       }
     },
     {
+      "datasource": null,
+      "description": "Processing delay from capturing a raw image with camera module to get the corresponding control parameters according to this frame.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "decimals": 0,
+          "mappings": [],
+          "max": 1000,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 125
+              },
+              {
+                "color": "red",
+                "value": 250
+              },
+              {
+                "color": "rgb(78, 11, 11)",
+                "value": 500
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 5,
+        "x": 11,
+        "y": 0
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "pluginVersion": "7.3.6",
+      "targets": [
+        {
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "control_parameters",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "processing_delay"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "last"
+              },
+              {
+                "params": [
+                  "*1000"
+                ],
+                "type": "math"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Processing Delay [ms]",
+      "type": "stat"
+    },
+    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -163,9 +268,9 @@
       "fillGradient": 6,
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 11,
-        "y": 0
+        "w": 11,
+        "x": 0,
+        "y": 8
       },
       "hiddenSeries": false,
       "id": 6,
@@ -317,10 +422,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 23,
+        "h": 9,
+        "w": 11,
         "x": 0,
-        "y": 8
+        "y": 16
       },
       "heatmap": {},
       "hideZeroBuckets": true,
@@ -387,7 +492,7 @@
       "yBucketSize": null
     }
   ],
-  "refresh": "",
+  "refresh": "500ms",
   "schemaVersion": 26,
   "style": "dark",
   "tags": [],
@@ -410,5 +515,5 @@
   "timezone": "",
   "title": "Agent Monitoring Dashboard (VisualSwarm)",
   "uid": "RxiUOJZRz",
-  "version": 24
+  "version": 28
 }
