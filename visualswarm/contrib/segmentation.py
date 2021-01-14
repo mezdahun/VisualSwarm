@@ -10,8 +10,8 @@ NUM_SEGMENTATION_PROCS = 2
 
 # Change parameters here
 # To interactively tune these set FIND_COLOR_INTERACTIVE to True
-TARGET_RGB_COLOR = (21, 68, 0)
-HSV_HUE_RANGE = 20
+TARGET_RGB_COLOR = (207, 207, 0)
+HSV_HUE_RANGE = 16
 SV_MINIMUM = 80
 SV_MAXIMUM = 255
 
