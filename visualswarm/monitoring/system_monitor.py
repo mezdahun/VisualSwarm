@@ -20,29 +20,23 @@ def system_monitor():
         # collect some stats from psutil
         disk = psutil.disk_usage('/')
         mem = psutil.virtual_memory()
-        load = psutil.getloadavg()
         cpu_percent = psutil.cpu_percent(percpu=True)
 
-        pprint(psutil.sensors_temperatures()['cpu_thermal'][0].current)
+        cpu_temp = psutil.sensors_temperatures()['cpu_thermal'][0].current
+
         # format the data as a single measurement for influx
         body = [
             {
                 "measurement": measurement_name,
                 "time": time,
                 "fields": {
-                    "load_1": load[0],
-                    "load_5": load[1],
-                    "load_15": load[2],
                     "disk_percent": disk.percent,
-                    "disk_free": disk.free,
-                    "disk_used": disk.used,
                     "mem_percent": mem.percent,
-                    "mem_free": mem.free,
-                    "mem_used": mem.used,
                     "cpu_1": cpu_percent[0],
                     "cpu_2": cpu_percent[1],
                     "cpu_3": cpu_percent[2],
-                    "cpu_4": cpu_percent[3]
+                    "cpu_4": cpu_percent[3],
+                    "cpu_temperature": cpu_temp
                 }
             }
         ]
