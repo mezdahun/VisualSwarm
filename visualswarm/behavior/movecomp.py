@@ -16,7 +16,16 @@ logger = logging.getLogger('visualswarm.app')
 
 def dPhi_V_of(Phi, V):
     """Calculating derivative of VPF according to Phi visual angle at a given timepoint t"""
-    dPhi_V = np.diff(V, prepend=0) / np.diff(Phi, prepend=0)
+    # circular padding for edge cases
+    padV = np.pad(V, (1, 1), 'wrap')
+    dPhi_V_raw = np.diff(padV)
+    # we want to include non-zero value if it is on the edge
+    print(dPhi_V_raw[0], dPhi_V_raw[-1])
+    if dPhi_V_raw[0] > 0 and dPhi_V_raw[-1] > 0:
+        dPhi_V_raw = dPhi_V_raw[0:-1]
+    else:
+        dPhi_V_raw = dPhi_V_raw[1:, ...]
+    dPhi_V = dPhi_V_raw / np.diff(Phi, prepend=0)
     return dPhi_V
 
 
