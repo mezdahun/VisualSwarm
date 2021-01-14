@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import projection, flockparams
+from visualswarm.contrib import projection, monitorparams
 from visualswarm.behavior import movecomp
 
 # using main logger
@@ -39,7 +39,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
         v += dv
         psi += dpsi
 
-        if flockparams.SAVE_CONTROL_PARAMS:
+        if monitorparams.SAVE_CONTROL_PARAMS:
 
             # take a timestamp for this measurement
             time = datetime.datetime.utcnow()

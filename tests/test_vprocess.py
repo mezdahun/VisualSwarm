@@ -163,7 +163,7 @@ class VProcessTest(TestCase):
                 with mock.patch('visualswarm.contrib.projection.W_MARGIN', 0):
                     with mock.patch('numpy.max') as fake_npmax:
                         # Case 1 : no saving to db
-                        with mock.patch('visualswarm.contrib.projection.SAVE_PROJECTION_FIELD', False):
+                        with mock.patch('visualswarm.contrib.monitorparams.SAVE_PROJECTION_FIELD', False):
                             fake_npmax.return_value = None
                             img = None
                             mask = np.array([[1, 2, 3], [0, 0, 0]])
@@ -175,8 +175,8 @@ class VProcessTest(TestCase):
 
                         # Case 2 : saving to db
                         fake_npmax.reset_mock()
-                        with mock.patch('visualswarm.contrib.projection.SAVE_PROJECTION_FIELD', True):
-                            with mock.patch('visualswarm.contrib.projection.DOWNGRADING_FACTOR', 1):
+                        with mock.patch('visualswarm.contrib.monitorparams.SAVE_PROJECTION_FIELD', True):
+                            with mock.patch('visualswarm.contrib.monitorparams.DOWNGRADING_FACTOR', 1):
                                 with mock.patch('visualswarm.monitoring.ifdb.pad_to_n_digits') as fake_pad:
                                     fake_npmax.return_value = np.array([1, 2, 3])
                                     fake_pad.return_value = '001'
