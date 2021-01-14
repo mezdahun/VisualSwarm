@@ -4,8 +4,8 @@
 """
 
 # Velocity Parameters
-GAM = 0.9
-V0 = 100
+GAM = 0.7
+V0 = 0
 ALP0 = 0.8
 ALP1 = 0.8
 ALP2 = 0
