@@ -22,6 +22,7 @@ def dPhi_V_of(Phi, V):
     print(f'before: {np.count_nonzero(dPhi_V_raw)}')
     # we want to include non-zero value if it is on the edge
     if dPhi_V_raw[0] > 0 and dPhi_V_raw[-1] > 0:
+        print('edge case')
         dPhi_V_raw = dPhi_V_raw[0:-1]
     else:
         dPhi_V_raw = dPhi_V_raw[1:, ...]
