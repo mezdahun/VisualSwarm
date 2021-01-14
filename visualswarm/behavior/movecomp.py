@@ -50,6 +50,6 @@ def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=
     # Calculating change in velocity
     # logger.info(f'relax: {flockparams.GAM * (flockparams.V0 - vel_now)} --- integ: {integrate.trapz(np.cos(phi) * G_vel, phi)}')
     # dvel = flockparams.GAM * (flockparams.V0 - vel_now) + integrate.trapz(np.cos(phi) * G_vel, phi)
-    dvel = np.square(dPhi_V)
+    dvel = integrate.trapz(np.square(dPhi_V), phi)
     dpsi = integrate.trapz(np.sin(phi) * G_psi, phi)
     return dvel, dpsi
