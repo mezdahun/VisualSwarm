@@ -51,23 +51,18 @@ def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=
     dPhi_V = dPhi_V_of(phi, V_now)
 
     # Calculating series expansion of functional G
-    G_vel = flockparams.ALP0 * (-V_now + flockparams.ALP2 * dt_V)
+    G_vel = flockparams.ALP0 * (-V_now + \
+                                flockparams.ALP1 * np.square(dPhi_V) + \
+                                flockparams.ALP2 * dt_V)
 
-    # Spikey parts shall be handled separately because of numerical integration
-    G_vel_spike = flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V)
-
-    G_psi = flockparams.BET0 * (-V_now + flockparams.BET2 * dt_V)
-
-    # Spikey parts shall be handled separately because of numerical integration
-    G_psi_spike = flockparams.BET0 * flockparams.BET1 * np.square(dPhi_V)
-
-    # Calculating change in velocity and heading direction
+    G_psi = flockparams.BET0 * (-V_now + \
+                                flockparams.BET1 * np.square(dPhi_V) + \
+                                flockparams.BET2 * dt_V)
+    # Calculating change in velocity
+    # logger.info(f'relax: {flockparams.GAM * (flockparams.V0 - vel_now)} --- integ: {integrate.trapz(np.cos(phi) * G_vel, phi)}')
+    dvel = flockparams.GAM * (flockparams.V0 - vel_now) + integrate.trapz(np.cos(phi) * G_vel, phi)
     dphi = phi[-1] - phi[-2]
     spikey_part = np.sum(flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V)) * dphi
-    dvel = flockparams.GAM * (flockparams.V0 - vel_now) + \
-           integrate.trapz(np.cos(phi) * G_vel, phi) + \
-           integrate.trapz(np.cos(phi) * G_vel_spike, phi)
-           # np.sum(np.cos(phi) * G_vel_spike) * dphi
-    dpsi = integrate.trapz(np.sin(phi) * G_psi, phi) + \
-           np.sum(np.sin(phi) * G_psi_spike) * dphi
+    # dvel = integrate.trapz(np.square(dPhi_V), phi)
+    dpsi = integrate.trapz(np.sin(phi) * G_psi, phi)
     return dvel, dpsi
