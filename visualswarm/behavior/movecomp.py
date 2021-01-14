@@ -26,7 +26,7 @@ def dPhi_V_of(Phi, V):
         dPhi_V_raw = dPhi_V_raw[0:-1]
     else:
         dPhi_V_raw = dPhi_V_raw[1:, ...]
-    print(f'after: {np.count_nonzero(dPhi_V_raw)}')
+    print(f'after: {np.max(dPhi_V_raw)}')
     dPhi_V = dPhi_V_raw / np.diff(Phi, prepend=0)
     return dPhi_V
 
