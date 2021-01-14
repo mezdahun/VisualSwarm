@@ -23,7 +23,7 @@ def stabilize_color_space_params(picam):
         Returns:
             picam: configured PiCamera instance
     """
-    picam.iso = 200
+    picam.iso = 300
     # Wait for the automatic gain control to settle
     time.sleep(2)
     # Now fix the values
