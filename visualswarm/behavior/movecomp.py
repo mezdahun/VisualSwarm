@@ -62,7 +62,7 @@ def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=
     # logger.info(f'relax: {flockparams.GAM * (flockparams.V0 - vel_now)} --- integ: {integrate.trapz(np.cos(phi) * G_vel, phi)}')
     # dvel = flockparams.GAM * (flockparams.V0 - vel_now) + integrate.trapz(np.cos(phi) * G_vel, phi)
     dphi = phi[-1] - phi[-2]
-    spikey_part = np.sum(flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V)) * dphi
+    spikey_part = np.sum(flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V))
     print(spikey_part)
     dvel = integrate.trapz(np.square(dPhi_V), phi)
     dpsi = integrate.trapz(np.sin(phi) * G_psi, phi)
