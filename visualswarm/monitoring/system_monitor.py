@@ -23,7 +23,7 @@ def system_monitor():
         load = psutil.getloadavg()
         cpu_percent = psutil.cpu_percent(percpu=True)
 
-        pprint(psutil.sensors_temperatures()['cpu_thermal'].current)
+        pprint(psutil.sensors_temperatures()['cpu_thermal'][0].current)
         # format the data as a single measurement for influx
         body = [
             {
