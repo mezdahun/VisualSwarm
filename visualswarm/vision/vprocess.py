@@ -155,6 +155,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
         # logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
+        projection_field = projection_field / 255
 
         if monitorparams.SAVE_PROJECTION_FIELD:
             # Saving projection field data to InfluxDB to visualize with Grafana
