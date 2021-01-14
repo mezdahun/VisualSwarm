@@ -20,7 +20,7 @@ GAUSSIAN_KERNEL_WIDTH = 15
 MEDIAN_BLUR_WIDTH = 9
 
 # Others
-MIN_BLOB_AREA = 75
+MIN_BLOB_AREA = 100
 
 # Calculating secondary parameters (Do not change)
 R, G, B = TARGET_RGB_COLOR
