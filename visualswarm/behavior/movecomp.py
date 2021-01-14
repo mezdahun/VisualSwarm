@@ -66,8 +66,7 @@ def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=
     spikey_part = np.sum(flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V)) * dphi
     dvel = flockparams.GAM * (flockparams.V0 - vel_now) + \
            integrate.trapz(np.cos(phi) * G_vel, phi) + \
-           integrate.trapz(np.cos(phi) * G_vel_spike, phi)
-           # np.sum(np.cos(phi) * G_vel_spike) * dphi
+           np.sum(np.cos(phi) * G_vel_spike) * dphi
     dpsi = integrate.trapz(np.sin(phi) * G_psi, phi) + \
            np.sum(np.sin(phi) * G_psi_spike) * dphi
     return dvel, dpsi
