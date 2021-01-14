@@ -4,8 +4,8 @@
 """
 from numpy import pi
 
-H_MARGIN = 1
-W_MARGIN = 1
+H_MARGIN = 10
+W_MARGIN = 10
 
 # Visual field of the camera
 PHI_START = -pi
