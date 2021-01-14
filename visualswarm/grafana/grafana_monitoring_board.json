@@ -436,20 +436,7 @@
       "pluginVersion": "7.3.6",
       "targets": [
         {
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
+          "groupBy": [],
           "measurement": "system_parameters",
           "orderByTime": "ASC",
           "policy": "default",
@@ -462,10 +449,6 @@
                   "disk_percent"
                 ],
                 "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
               }
             ]
           ],
@@ -528,20 +511,7 @@
       "pluginVersion": "7.3.6",
       "targets": [
         {
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
+          "groupBy": [],
           "measurement": "system_parameters",
           "orderByTime": "ASC",
           "policy": "default",
@@ -554,10 +524,6 @@
                   "mem_percent"
                 ],
                 "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
               }
             ]
           ],
@@ -620,20 +586,7 @@
       "pluginVersion": "7.3.6",
       "targets": [
         {
-          "groupBy": [
-            {
-              "params": [
-                "$__interval"
-              ],
-              "type": "time"
-            },
-            {
-              "params": [
-                "null"
-              ],
-              "type": "fill"
-            }
-          ],
+          "groupBy": [],
           "measurement": "system_parameters",
           "orderByTime": "ASC",
           "policy": "default",
@@ -646,10 +599,6 @@
                   "cpu_temperature"
                 ],
                 "type": "field"
-              },
-              {
-                "params": [],
-                "type": "last"
               }
             ]
           ],
@@ -850,7 +799,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "firstNotNull"
           ],
           "fields": "",
           "values": false
@@ -1092,7 +1041,7 @@
             "h": 9,
             "w": 11,
             "x": 0,
-            "y": 1
+            "y": 10
           },
           "heatmap": {},
           "hideZeroBuckets": true,
@@ -1186,5 +1135,5 @@
   "timezone": "",
   "title": "Agent Monitoring Dashboard (VisualSwarm)",
   "uid": "RxiUOJZRz",
-  "version": 30
+  "version": 31
 }
