@@ -45,7 +45,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
             time = datetime.datetime.utcnow()
 
             # generating data to dump in db
-            field_dict = {"agent_velocity": v,
+            field_dict = {"agent_velocity": dv,
                           "heading_angle": dpsi}
 
             # format the data as a single measurement for influx
