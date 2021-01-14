@@ -3,7 +3,7 @@
 @description: Camera module related parameters
 """
 # Basic parameters
-RESOLUTION = (640, 480)
+    RESOLUTION = (480, 360)
 FRAMERATE = 16
 CAPTURE_FORMAT = "bgr"
 USE_VIDEO_PORT = True
