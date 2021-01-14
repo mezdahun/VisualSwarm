@@ -29,7 +29,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
     phi = None
     v = 0
     psi = 0
-    logger.info(f'Velocity: {v}')
+
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
         if phi is None:
@@ -59,4 +59,3 @@ def VPF_to_behavior(VPF_stream, control_stream):
             ]
 
             ifclient.write_points(body, time_precision='ms')
-        pass

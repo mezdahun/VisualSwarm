@@ -6,7 +6,7 @@
 import logging
 from multiprocessing import Process, Queue
 from visualswarm import env
-from visualswarm.monitoring import ifdb
+from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual
 from visualswarm.behavior import control
@@ -65,6 +65,7 @@ def start_vision_stream():
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
+    system_monitor_proc = Process(target=system_monitor.system_monitor)
 
     try:
         # Start subprocesses
@@ -76,6 +77,7 @@ def start_vision_stream():
         visualizer.start()
         VPF_extractor.start()
         behavior.start()
+        system_monitor_proc.start()
 
         # Wait for subprocesses in main process to terminate
         visualizer.join()
@@ -84,11 +86,14 @@ def start_vision_stream():
         raw_vision.join()
         VPF_extractor.join()
         behavior.join()
+        system_monitor_proc.join()
 
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
+        system_monitor_proc.terminate()
+        system_monitor_proc.join()
         behavior.terminate()
         behavior.join()
         VPF_extractor.terminate()

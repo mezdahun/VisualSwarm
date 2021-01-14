@@ -17,7 +17,8 @@ setup(
         'picamera>=1.13',
         'pandas',
         'influxdb',
-        'scipy'
+        'scipy',
+        'psutil'
     ],
     extras_require={
         'test': [
