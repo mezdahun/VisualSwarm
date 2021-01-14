@@ -23,7 +23,7 @@ def stabilize_color_space_params(picam):
         Returns:
             picam: configured PiCamera instance
     """
-    picam.iso = 100
+    picam.iso = 200
     # Wait for the automatic gain control to settle
     time.sleep(2)
     # Now fix the values
@@ -51,8 +51,7 @@ def raw_vision(raw_vision_stream):
                  f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
                  f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
-    # picam = stabilize_color_space_params(picam)
-    picam.awb_mode = 'shade'
+    picam = stabilize_color_space_params(picam)
 
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
