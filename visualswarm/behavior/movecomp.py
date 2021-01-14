@@ -19,12 +19,13 @@ def dPhi_V_of(Phi, V):
     # circular padding for edge cases
     padV = np.pad(V, (1, 1), 'wrap')
     dPhi_V_raw = np.diff(padV)
+    print(f'before: {np.count_nonzero(dPhi_V_raw)}')
     # we want to include non-zero value if it is on the edge
-    print(dPhi_V_raw[0], dPhi_V_raw[-1])
     if dPhi_V_raw[0] > 0 and dPhi_V_raw[-1] > 0:
         dPhi_V_raw = dPhi_V_raw[0:-1]
     else:
         dPhi_V_raw = dPhi_V_raw[1:, ...]
+    print(f'after: {np.count_nonzero(dPhi_V_raw)}')
     dPhi_V = dPhi_V_raw / np.diff(Phi, prepend=0)
     return dPhi_V
 
