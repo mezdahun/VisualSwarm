@@ -7,6 +7,7 @@ from picamera import PiCamera
 from picamera.array import PiRGBArray
 
 import time
+from datetime import datetime
 
 from visualswarm.contrib import camera, logparams
 
@@ -65,8 +66,11 @@ def raw_vision(raw_vision_stream):
         # Grab the raw NumPy array representing the image
         image = frame.array
 
+        # Adding time of capture for delay measurement
+        capture_timestamp = datetime.utcnow()
+
         # pushing the captured image to the vision stream
-        raw_vision_stream.put((image, frame_id))
+        raw_vision_stream.put((image, frame_id, capture_timestamp))
 
         # Clear the raw capture stream in preparation for the next frame
         raw_capture.truncate(0)

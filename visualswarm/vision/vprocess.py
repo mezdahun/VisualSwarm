@@ -38,7 +38,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
     hsv_high = segmentation.HSV_HIGH
 
     while True:
-        (img, frame_id) = raw_vision_stream.get()
+        (img, frame_id, capture_timestamp) = raw_vision_stream.get()
         # logger.info(raw_vision_stream.qsize())
         if visual.FIND_COLOR_INTERACTIVE:
             if target_config_stream is not None:
@@ -76,7 +76,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
         # Forwarding result to VPF extraction
-        high_level_vision_stream.put((img, blurred, frame_id))
+        high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
 
         # Forwarding result for visualization if requested
         if visualization_stream is not None:
@@ -151,7 +151,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
     ifclient = ifdb.create_ifclient()
 
     while True:
-        (img, mask, frame_id) = high_level_vision_stream.get()
+        (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
         # logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
@@ -179,7 +179,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        VPF_stream.put(projection_field)
+        VPF_stream.put((projection_field, capture_timestamp))
 
         # To test infinite loops
         if env.EXIT_CONDITION:

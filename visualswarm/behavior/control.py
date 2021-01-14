@@ -7,6 +7,8 @@ import logging
 
 import numpy as np
 
+from datetime import datetime
+
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import projection, monitorparams
 from visualswarm.behavior import movecomp
@@ -31,7 +33,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
     psi = 0
     logger.info(f'Velocity: {v}')
     while True:
-        projection_field = VPF_stream.get()
+        (projection_field, capture_timestamp) = VPF_stream.get()
         if phi is None:
             phi = np.linspace(projection.PHI_START, projection.PHI_END, len(projection_field))
 
@@ -46,7 +48,8 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             # generating data to dump in db
             field_dict = {"agent_velocity": v,
-                          "heading_angle": dpsi}
+                          "heading_angle": dpsi,
+                          "processing_delay": (capture_timestamp - time).total_seconds()}
 
             # format the data as a single measurement for influx
             body = [
