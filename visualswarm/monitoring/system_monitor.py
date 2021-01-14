@@ -7,7 +7,7 @@ import datetime
 from time import sleep
 import psutil
 from visualswarm.monitoring import ifdb
-
+from pprint import pprint
 
 def system_monitor():
     measurement_name = "system_parameters"
@@ -23,6 +23,8 @@ def system_monitor():
         load = psutil.getloadavg()
         cpu_percent = psutil.cpu_percent(percpu=True)
 
+        pprint(psutil.sensors_temperatures())
+        pprint(psutil.sensors_battery())
         # format the data as a single measurement for influx
         body = [
             {
