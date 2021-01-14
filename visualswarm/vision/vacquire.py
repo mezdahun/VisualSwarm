@@ -31,6 +31,19 @@ def raw_vision(raw_vision_stream):
                  f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
                  f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
+    # Set Camera params to stabilize color space
+    # https://picamera.readthedocs.io/en/release-1.12/recipes1.html
+    picam.iso = 100
+    # Wait for the automatic gain control to settle
+    time.sleep(2)
+    # Now fix the values
+    picam.shutter_speed = picam.exposure_speed
+    picam.exposure_mode = 'off'
+    g = picam.awb_gains
+    picam.awb_mode = 'off'
+    picam.awb_gains = g
+
+
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
