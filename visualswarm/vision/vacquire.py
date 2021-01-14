@@ -10,10 +10,30 @@ import time
 
 from visualswarm.contrib import camera, logparams
 
-
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
+
+
+def stabilize_color_space_params(picam):
+    """Method to fiy camera parameters such that the color space is uniform across captured frames.
+    More info at: https://picamera.readthedocs.io/en/release-1.12/recipes1.html
+        Args:
+            picam: PiCamera instance to configure
+        Returns:
+            picam: configured PiCamera instance
+    """
+    picam.iso = 100
+    # Wait for the automatic gain control to settle
+    time.sleep(2)
+    # Now fix the values
+    picam.shutter_speed = picam.exposure_speed
+    picam.exposure_mode = 'off'
+    g = picam.awb_gains
+    picam.awb_mode = 'off'
+    picam.awb_gains = g
+
+    return picam
 
 
 def raw_vision(raw_vision_stream):
@@ -31,18 +51,7 @@ def raw_vision(raw_vision_stream):
                  f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
                  f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
-    # Set Camera params to stabilize color space
-    # https://picamera.readthedocs.io/en/release-1.12/recipes1.html
-    picam.iso = 100
-    # Wait for the automatic gain control to settle
-    time.sleep(2)
-    # Now fix the values
-    picam.shutter_speed = picam.exposure_speed
-    picam.exposure_mode = 'off'
-    g = picam.awb_gains
-    picam.awb_mode = 'off'
-    picam.awb_gains = g
-
+    picam = stabilize_color_space_params(picam)
 
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
