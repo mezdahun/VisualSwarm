@@ -19,14 +19,14 @@ def dPhi_V_of(Phi, V):
     # circular padding for edge cases
     padV = np.pad(V, (1, 1), 'wrap')
     dPhi_V_raw = np.diff(padV)
-    print(f'before: {np.count_nonzero(dPhi_V_raw)}')
+    # print(f'before: {np.count_nonzero(dPhi_V_raw)}')
     # we want to include non-zero value if it is on the edge
     if dPhi_V_raw[0] > 0 and dPhi_V_raw[-1] > 0:
-        print('edge case')
+        # print('edge case')
         dPhi_V_raw = dPhi_V_raw[0:-1]
     else:
         dPhi_V_raw = dPhi_V_raw[1:, ...]
-    print(f'after: {np.count_nonzero(dPhi_V_raw)}')
+    # print(f'after: {np.count_nonzero(dPhi_V_raw)}')
     dPhi_V = dPhi_V_raw / np.diff(Phi, prepend=0)
     return dPhi_V
 
@@ -63,6 +63,7 @@ def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=
     # dvel = flockparams.GAM * (flockparams.V0 - vel_now) + integrate.trapz(np.cos(phi) * G_vel, phi)
     dphi = phi[-1] - phi[-2]
     spikey_part = np.sum(flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V)) * dphi
+    print(spikey_part)
     dvel = integrate.trapz(np.square(dPhi_V), phi)
     dpsi = integrate.trapz(np.sin(phi) * G_psi, phi)
     return spikey_part, dpsi
