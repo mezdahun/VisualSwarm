@@ -45,8 +45,8 @@ def system_monitor():
         # write the measurement
         ifclient.write_points(body)
 
+        sleep(0.25)
+
         # To test infinite loops
         if env.EXIT_CONDITION:
             break
-
-        sleep(0.25)

@@ -5,7 +5,7 @@ import numpy as np
 from visualswarm.behavior import movecomp
 
 
-class VAcquireTest(TestCase):
+class MoveCompTest(TestCase):
 
     def test_dPhi_V_of(self):
         phi = np.linspace(0, 9, 10)
