@@ -7,6 +7,7 @@ import datetime
 from time import sleep
 import psutil
 from visualswarm.monitoring import ifdb
+from visualswarm import env
 
 
 def system_monitor():
@@ -43,5 +44,9 @@ def system_monitor():
 
         # write the measurement
         ifclient.write_points(body)
+
+        # To test infinite loops
+        if env.EXIT_CONDITION:
+            break
 
         sleep(0.25)
