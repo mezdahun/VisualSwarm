@@ -7,10 +7,7 @@ from visualswarm.behavior import movecomp
 
 class VAcquireTest(TestCase):
 
-    @mock.patch('visualswarm.vision.vacquire.PiRGBArray')
-    @mock.patch('picamera.PiCamera.capture_continuous', create=True)
-    @mock.patch('visualswarm.vision.vacquire.stabilize_color_space_params')
-    def test_dPhi_V_of(self, mock_stabilize, mock_PiC_loop, mock_PiRGBArray):
+    def test_dPhi_V_of(self):
         phi = np.linspace(0, 9, 10)
 
         # Case 1: object in FOV not touching edge
@@ -49,3 +46,17 @@ class VAcquireTest(TestCase):
         vdiff_ok[7] = 1
         vdiff = movecomp.dPhi_V_of(phi, V)
         np.testing.assert_array_equal(vdiff, vdiff_ok)
+
+    @mock.patch('visualswarm.behavior.movecomp.dPhi_V_of')
+    @mock.patch('scipy.integrate.trapz')
+    def test_compute_control_params(self, mock_integrate, mock_dphi):
+        mock_integrate.return_value = 100
+        mock_dphi.return_value = np.zeros(10)
+        phi = np.zeros(10)
+
+        with mock.patch('visualswarm.contrib.flockparams.GAM', 2):
+            with mock.patch('visualswarm.contrib.flockparams.V0', 5):
+                vel_now = 10
+                dv, dpsi = movecomp.compute_control_params(vel_now, phi, np.zeros(10))
+                self.assertEqual(dv, 90)
+                self.assertEqual(dpsi, 100)
