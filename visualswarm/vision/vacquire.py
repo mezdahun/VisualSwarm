@@ -53,6 +53,7 @@ def raw_vision(raw_vision_stream):
                  f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
     stabilize_color_space_params(picam)
+    logger.info(picam.iso)
 
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
