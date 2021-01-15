@@ -30,22 +30,24 @@ def dPhi_V_of(Phi, V):
     return dPhi_V
 
 
-def dt_V_of(t, joined_V):
-    """Calculating the temporal derivative of VPF to all Phi visual angles"""
-    dt_V = np.diff(joined_V, axis=0, prepend=0) / np.diff(t, prepend=0)
-    return dt_V
+# def dt_V_of(dt, joined_V):
+#     """Calculating the temporal derivative of VPF to all Phi visual angles"""
+#     dt_V = np.diff(joined_V, axis=0, prepend=0) / dt
+#     return dt_V
 
 
 def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
     """Calculating the velocity difference of the agent according the main algorithm"""
-    # Deriving over t
-    if V_prev is not None or t_prev is not None or t_now is not None:
-        logger.debug('Movement calculation called with NONE as time-related parameters.')
-        t_vec = np.hstack((t_prev, t_now))
-        joined_V = np.vstack((V_prev, t_prev))
-        dt_V = dt_V_of(t_vec, joined_V)
-    else:
-        dt_V = np.zeros(len(phi))
+    # # Deriving over t
+    # if V_prev is not None and t_prev is not None and t_now is not None:
+    #     dt = t_now - t_prev
+    #     logger.debug('Movement calculation called with NONE as time-related parameters.')
+    #     joined_V = np.vstack((V_prev, t_prev))
+    #     dt_V = dt_V_of(dt, joined_V)
+    # else:
+    #     dt_V = np.zeros(len(phi))
+
+    dt_V = np.zeros(len(phi))
 
     # Deriving over Phi
     dPhi_V = dPhi_V_of(phi, V_now)
