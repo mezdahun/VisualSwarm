@@ -31,3 +31,22 @@ class VAcquireTest(TestCase):
             raw_vision_stream.put.assert_called_once()
             array_instance = mock_PiRGBArray()
             array_instance.truncate.assert_called_once()
+
+    @mock.patch('time.sleep')
+    def test_stabilize_color_space_params(self, fake_sleep):
+        fake_sleep.return_value = None
+        picam = mock.MagicMock()
+        picam.iso = 0
+        picam.exposure_speed = 100
+        picam.shutter_speed = 0
+        picam.exposure_mode = 'on'
+        picam.awb_gains = 'should remain'
+        picam.awb_mode = 'on'
+
+        # TODO fix hardcoded values
+        vacquire.stabilize_color_space_params(picam)
+        self.assertEqual(picam.iso, 300)
+        self.assertEqual(picam.shutter_speed, 100)
+        self.assertEqual(picam.exposure_mode, 'off')
+        self.assertEqual(picam.awb_mode, 'off')
+        self.assertEqual(picam.awb_gains, 'should remain')
