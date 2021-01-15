@@ -10,6 +10,7 @@ import numpy as np
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import projection, monitorparams
 from visualswarm.behavior import movecomp
+from visualswarm import env
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -59,3 +60,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
             ]
 
             ifclient.write_points(body, time_precision='ms')
+
+        # To test infinite loops
+        if env.EXIT_CONDITION:
+            break
