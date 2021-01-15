@@ -18,11 +18,11 @@ class AppTest(TestCase):
     def test_start_vision_stream(self, mockQueue, mockProcess):
         if FAKE_STATUS:
             # Case 1 with interactive visualization
-            num_processes = 3 + segmentation.NUM_SEGMENTATION_PROCS
+            num_processes = 5 + segmentation.NUM_SEGMENTATION_PROCS
             with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
                 # Case 1/A visualization started even if didnt set in env
                 with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', False):
-                    num_queues = 5
+                    num_queues = 6
                     mp = mockProcess.return_value
                     app.start_vision_stream()
                     self.assertEqual(mp.start.call_count, num_processes)
@@ -33,7 +33,7 @@ class AppTest(TestCase):
                 mockProcess.reset_mock()
                 mockQueue.reset_mock()
                 with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', True):
-                    num_queues = 6
+                    num_queues = 7
                     mp = mockProcess.return_value
                     app.start_vision_stream()
                     self.assertEqual(mp.start.call_count, num_processes)
@@ -45,7 +45,7 @@ class AppTest(TestCase):
                 mockProcess.reset_mock()
                 mockQueue.reset_mock()
                 with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', False):
-                    num_queues = 3
+                    num_queues = 4
                     mp = mockProcess.return_value
                     app.start_vision_stream()
                     self.assertEqual(mp.start.call_count, num_processes)
@@ -56,7 +56,7 @@ class AppTest(TestCase):
                 mockProcess.reset_mock()
                 mockQueue.reset_mock()
                 with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', True):
-                    num_queues = 4
+                    num_queues = 5
                     mp = mockProcess.return_value
                     app.start_vision_stream()
                     self.assertEqual(mp.start.call_count, num_processes)

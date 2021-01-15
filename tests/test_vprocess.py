@@ -32,8 +32,9 @@ class VProcessTest(TestCase):
 
                                             img = None
                                             frame_id = 15
+                                            capture_timestamp = None
                                             raw_vision_stream = mock.MagicMock()
-                                            raw_vision_stream.get.return_value = (img, frame_id)
+                                            raw_vision_stream.get.return_value = (img, frame_id, capture_timestamp)
                                             high_level_vision_stream = mock.MagicMock()
                                             high_level_vision_stream.put.return_value = None
                                             vprocess.high_level_vision(raw_vision_stream, high_level_vision_stream)
@@ -71,8 +72,9 @@ class VProcessTest(TestCase):
 
                                                 img = None
                                                 frame_id = 15
+                                                capture_timestamp = None
                                                 raw_vision_stream = mock.MagicMock()
-                                                raw_vision_stream.get.return_value = (img, frame_id)
+                                                raw_vision_stream.get.return_value = (img, frame_id, capture_timestamp)
                                                 high_level_vision_stream = mock.MagicMock()
                                                 high_level_vision_stream.put.return_value = None
                                                 parameter_stream = mock.MagicMock()
@@ -164,13 +166,16 @@ class VProcessTest(TestCase):
                     with mock.patch('numpy.max') as fake_npmax:
                         # Case 1 : no saving to db
                         with mock.patch('visualswarm.contrib.monitorparams.SAVE_PROJECTION_FIELD', False):
-                            fake_npmax.return_value = None
+                            fake_npmax.return_value = np.array([1, 2, 3])
                             img = None
                             mask = np.array([[1, 2, 3], [0, 0, 0]])
                             frame_id = 15
+                            capture_timestamp = None
                             vision_stream = mock.MagicMock()
-                            vision_stream.get.return_value = (img, mask, frame_id)
-                            vprocess.VPF_extraction(vision_stream, None)
+                            vision_stream.get.return_value = (img, mask, frame_id, capture_timestamp)
+                            VPF_stream = mock.MagicMock()
+                            VPF_stream.put.return_value = None
+                            vprocess.VPF_extraction(vision_stream, VPF_stream)
                             fake_npmax.assert_called_once()
 
                         # Case 2 : saving to db
@@ -178,15 +183,19 @@ class VProcessTest(TestCase):
                         with mock.patch('visualswarm.contrib.monitorparams.SAVE_PROJECTION_FIELD', True):
                             with mock.patch('visualswarm.contrib.monitorparams.DOWNGRADING_FACTOR', 1):
                                 with mock.patch('visualswarm.monitoring.ifdb.pad_to_n_digits') as fake_pad:
-                                    fake_npmax.return_value = np.array([1, 2, 3])
-                                    fake_pad.return_value = '001'
-                                    img = None
-                                    mask = np.array([[1, 2, 3], [0, 0, 0]])
-                                    frame_id = 15
-                                    vision_stream = mock.MagicMock()
-                                    vision_stream.get.return_value = (img, mask, frame_id)
-                                    vprocess.VPF_extraction(vision_stream, None)
-                                    fake_npmax.assert_called_once()
+                                    with mock.patch('numpy.max') as fake_npmax:
+                                        fake_npmax.return_value = np.array([1, 2, 3])
+                                        fake_pad.return_value = '001'
+                                        img = None
+                                        mask = np.array([[1, 2, 3], [0, 0, 0]])
+                                        frame_id = 15
+                                        capture_timestamp = None
+                                        vision_stream = mock.MagicMock()
+                                        vision_stream.get.return_value = (img, mask, frame_id, capture_timestamp)
+                                        VPF_stream = mock.MagicMock()
+                                        VPF_stream.put.return_value = None
+                                        vprocess.VPF_extraction(vision_stream, VPF_stream)
+                                        fake_npmax.assert_called_once()
 
     def test_nothing(self):
         self.assertEqual(vprocess.nothing(None), None)

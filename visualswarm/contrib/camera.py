@@ -12,4 +12,3 @@ USE_VIDEO_PORT = True
 FIX_ISO = False
 ISO = 100
 AWB_MODE = 'off'
-

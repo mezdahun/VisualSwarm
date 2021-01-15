@@ -9,9 +9,12 @@ class VAcquireTest(TestCase):
 
     @mock.patch('visualswarm.vision.vacquire.PiRGBArray')
     @mock.patch('picamera.PiCamera.capture_continuous', create=True)
-    def test_raw_vision(self, mock_PiC_loop, mock_PiRGBArray):
+    @mock.patch('visualswarm.vision.vacquire.stabilize_color_space_params')
+    def test_raw_vision(self, mock_stabilize, mock_PiC_loop, mock_PiRGBArray):
         if FAKE_STATUS:
             # under faking HW
+            mock_stabilize.return_value = None
+
             mock_PiRGBArray.return_value = mock.MagicMock()
 
             frame = mock.MagicMock
@@ -23,6 +26,7 @@ class VAcquireTest(TestCase):
 
             vacquire.raw_vision(raw_vision_stream)
 
+            mock_stabilize.assert_called_once()
             mock_PiRGBArray.assert_called_once()
             raw_vision_stream.put.assert_called_once()
             array_instance = mock_PiRGBArray()

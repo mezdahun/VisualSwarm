@@ -26,7 +26,7 @@ def dPhi_V_of(Phi, V):
         dPhi_V_raw = dPhi_V_raw[0:-1]
     else:
         dPhi_V_raw = dPhi_V_raw[1:, ...]
-    dPhi_V = dPhi_V_raw / (Phi[-1]-Phi[-2])
+    dPhi_V = dPhi_V_raw / (Phi[-1] - Phi[-2])
     return dPhi_V
 
 
@@ -63,7 +63,7 @@ def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=
 
     # Calculating change in velocity and heading direction
     dphi = phi[-1] - phi[-2]
-    spikey_part = np.sum(flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V)) * dphi
+
     dvel = flockparams.GAM * (flockparams.V0 - vel_now) + \
            integrate.trapz(np.cos(phi) * G_vel, phi) + \
            np.sum(np.cos(phi) * G_vel_spike) * dphi
