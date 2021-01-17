@@ -2,6 +2,7 @@
 <!-- Simple simulation environment with 1 robot -->
 <!-- github: https://github.com/mezdahun/VisualSwarm -->
 <!-- author: mezdahun -->
+<!--version: Aseba v1.6+ required for simulation-->
 
 <!--Beginning of Playground definition-->
 <aseba-playground>
