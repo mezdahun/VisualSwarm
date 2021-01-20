@@ -1,9 +1,8 @@
+import datetime
 from unittest import TestCase, mock
 
 import numpy as np
-
 from freezegun import freeze_time
-import datetime
 
 from visualswarm.behavior import control
 
@@ -54,4 +53,3 @@ class MoveCompTest(TestCase):
                             fake_create_client.assert_called_once()
                             fake_control_params.assert_called_once()
                             fake_ifclient.write_points.assert_called_once()
-
