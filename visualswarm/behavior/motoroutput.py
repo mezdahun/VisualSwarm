@@ -4,6 +4,7 @@ from gi.repository import GObject as gobject
 from gi.repository import GLib
 from optparse import OptionParser
 import time
+from multiprocessing import Process, Queue
 
 proxSensorsVal = [0, 0, 0, 0, 0]
 
@@ -53,13 +54,13 @@ def handle_GetVariable_error(e):
     raise Exception(str(e))
 
 
-if __name__ == '__main__':
+def execute():
     gobject.threads_init()
-    parser = OptionParser()
-    parser.add_option("-s", "--system", action="store_true", dest="system", default=False,
-                      help="use the system bus instead of the session bus")
-
-    (options, args) = parser.parse_args()
+    # parser = OptionParser()
+    # parser.add_option("-s", "--system", action="store_true", dest="system", default=False,
+    #                   help="use the system bus instead of the session bus")
+    #
+    # (options, args) = parser.parse_args()
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
@@ -84,4 +85,9 @@ if __name__ == '__main__':
     # call the callback of Braitenberg algorithm
     handle = GLib.timeout_add(100, Braitenberg)  # gobject.timeout_add(100, Braitenberg)  # every 0.1 sec
     loop.run()
+
+
+if __name__ == '__main__':
+    raw_vision = Process(target=execute)
+    raw_vision.start()
     print('after loop')
