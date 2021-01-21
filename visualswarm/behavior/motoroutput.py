@@ -62,16 +62,6 @@ def execute():
     #
     # (options, args) = parser.parse_args()
 
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-
-    # if options.system:
-    #     bus = dbus.SystemBus()
-    # else:
-    bus = dbus.SessionBus()
-
-    # Create Aseba network
-    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'), dbus_interface='ch.epfl.mobots.AsebaNetwork')
-
     # print in the terminal the name of each Aseba NOde
     print(network.GetNodesList())
 
@@ -88,6 +78,15 @@ def execute():
 
 
 if __name__ == '__main__':
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+    # if options.system:
+    #     bus = dbus.SystemBus()
+    # else:
+    bus = dbus.SessionBus()
+
+    # Create Aseba network
+    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'), dbus_interface='ch.epfl.mobots.AsebaNetwork')
     raw_vision = Process(target=execute)
     raw_vision.start()
     print('after loop')
