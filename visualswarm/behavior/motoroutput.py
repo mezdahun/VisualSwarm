@@ -5,6 +5,8 @@ from gi.repository import GLib
 from optparse import OptionParser
 import time
 from multiprocessing import Process, Queue
+import tempfile
+import random
 
 # Create a global variable or Queue for GetVariable values
 # to get and store Thymio sensor values
@@ -19,6 +21,20 @@ def test_motor_control():
     # print the proximity sensors value in the terminal
     print(proxSensorsVal[0], proxSensorsVal[1], proxSensorsVal[2], proxSensorsVal[3], proxSensorsVal[4])
 
+    with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
+        aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
+        node_id = 1
+        name = ' + thymio + '
+        aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
+        # add code to handle incoming events
+        R = random.randint(0,32)
+        G = random.randint(0, 32)
+        B = random.randint(0, 32)
+        aesl.write(f'call leds.top({R},{G},{B})\n')
+        aesl.write('</node>\n')
+        aesl.write('</network>\n')
+        aesl.seek(0)
+        network.LoadScripts(aesl.name)
     #
     # # Parameters of the Braitenberg, to give weight to each wheels
     # leftWheel = [-0.01, -0.005, -0.0001, 0.006, 0.015]
@@ -42,7 +58,7 @@ def test_motor_control():
     # print(totalRight)
     #
     # # send motor value to the robot
-    # network.SetVariable("thymio-II", "motor.left.target", [totalLeft])
+    network.SetVariable("thymio-II", "motor.left.target", [totalLeft])
     # network.SetVariable("thymio-II", "motor.right.target", [totalRight])
     #
     return True
