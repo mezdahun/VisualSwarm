@@ -6,16 +6,19 @@ from optparse import OptionParser
 import time
 from multiprocessing import Process, Queue
 
+# Create a global variable or Queue for GetVariable values
+# to get and store Thymio sensor values
 proxSensorsVal = [0, 0, 0, 0, 0]
 
 
-def Braitenberg():
+def test_motor_control():
     # get the values of the sensors
     network.GetVariable("thymio-II", "prox.horizontal", reply_handler=handle_GetVariable_reply,
                         error_handler=handle_GetVariable_error)
 
     # print the proximity sensors value in the terminal
     print(proxSensorsVal[0], proxSensorsVal[1], proxSensorsVal[2], proxSensorsVal[3], proxSensorsVal[4])
+
     #
     # # Parameters of the Braitenberg, to give weight to each wheels
     # leftWheel = [-0.01, -0.005, -0.0001, 0.006, 0.015]
@@ -54,25 +57,14 @@ def handle_GetVariable_error(e):
     raise Exception(str(e))
 
 
-def execute():
-    # parser = OptionParser()
-    # parser.add_option("-s", "--system", action="store_true", dest="system", default=False,
-    #                   help="use the system bus instead of the session bus")
-    #
-    # (options, args) = parser.parse_args()
-
-    # print in the terminal the name of each Aseba NOde
+def execute_motor_control_test():
+    # print in the terminal the name of each Aseba Node
     print(network.GetNodesList())
 
-    # for i in range(100):
-    #     Braitenberg()
-    #     time.sleep(0.5)
-
     # GObject loop
-    print('starting loop')
-    loop = GLib.MainLoop()  # gobject.MainLoop()
-    # call the callback of Braitenberg algorithm
-    handle = GLib.timeout_add(100, Braitenberg)  # gobject.timeout_add(100, Braitenberg)  # every 0.1 sec
+    loop = GLib.MainLoop()
+    # call the callback of test_motor_control in every iteration
+    GLib.timeout_add(100, test_motor_control)  # every 0.1 sec
     loop.run()
 
 
@@ -87,6 +79,6 @@ if __name__ == '__main__':
 
     # Create Aseba network
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'), dbus_interface='ch.epfl.mobots.AsebaNetwork')
-    raw_vision = Process(target=execute)
-    raw_vision.start()
+    motor_control = Process(target=execute)
+    motor_control.start()
     print('after loop')
