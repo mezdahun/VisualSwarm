@@ -18,7 +18,9 @@ setup(
         'pandas',
         'influxdb',
         'scipy',
-        'psutil'
+        'psutil',
+        'pycairo',
+        'PyGObject'
     ],
     extras_require={
         'test': [
