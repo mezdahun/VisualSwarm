@@ -83,3 +83,4 @@ if __name__ == '__main__':
     # call the callback of Braitenberg algorithm
     handle = GLib.timeout_add(100, Braitenberg)  # gobject.timeout_add(100, Braitenberg)  # every 0.1 sec
     loop.run()
+    print('after loop')
