@@ -13,8 +13,8 @@ def Braitenberg():
     network.GetVariable("thymio-II", "prox.horizontal", reply_handler=handle_GetVariable_reply,
                         error_handler=handle_GetVariable_error)
 
-    # # print the proximity sensors value in the terminal
-    # print(proxSensorsVal[0], proxSensorsVal[1], proxSensorsVal[2], proxSensorsVal[3], proxSensorsVal[4])
+    # print the proximity sensors value in the terminal
+    print(proxSensorsVal[0], proxSensorsVal[1], proxSensorsVal[2], proxSensorsVal[3], proxSensorsVal[4])
     #
     # # Parameters of the Braitenberg, to give weight to each wheels
     # leftWheel = [-0.01, -0.005, -0.0001, 0.006, 0.015]
@@ -45,7 +45,8 @@ def Braitenberg():
 
 
 def handle_GetVariable_reply(r):
-    print(r)
+    global proxSensorsVal
+    proxSensorsVal = r
 
 
 def handle_GetVariable_error(e):
