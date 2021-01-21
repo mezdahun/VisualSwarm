@@ -62,10 +62,10 @@ if __name__ == '__main__':
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-    if options.system:
-        bus = dbus.SystemBus()
-    else:
-        bus = dbus.SessionBus()
+    # if options.system:
+    #     bus = dbus.SystemBus()
+    # else:
+    bus = dbus.SessionBus()
 
     # Create Aseba network
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'), dbus_interface='ch.epfl.mobots.AsebaNetwork')
