@@ -75,6 +75,7 @@ if __name__ == '__main__':
     print(network.GetNodesList())
 
     for i in range(100):
+        Braitenberg()
         time.sleep(0.5)
 
     # # GObject loop
