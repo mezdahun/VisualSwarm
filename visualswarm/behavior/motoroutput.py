@@ -10,7 +10,8 @@ proxSensorsVal = [0, 0, 0, 0, 0]
 
 def Braitenberg():
     # get the values of the sensors
-    print(network.GetVariable("thymio-II", "prox.horizontal"))
+    network.GetVariable("thymio-II", "prox.horizontal", reply_handler=handle_GetVariable_reply,
+                        error_handler=handle_GetVariable_error)
 
     # # print the proximity sensors value in the terminal
     # print(proxSensorsVal[0], proxSensorsVal[1], proxSensorsVal[2], proxSensorsVal[3], proxSensorsVal[4])
@@ -43,15 +44,12 @@ def Braitenberg():
     # return True
 
 
-# def get_variables_reply(r):
-#     global proxSensorsVal
-#     proxSensorsVal = r
-#
-#
-# def get_variables_error(e):
-#     print('error:')
-#     print(str(e))
-#     loop.quit()
+def handle_GetVariable_reply(r):
+    print(r)
+
+
+def handle_GetVariable_error(e):
+    raise Exception(str(e))
 
 
 if __name__ == '__main__':
