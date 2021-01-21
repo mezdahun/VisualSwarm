@@ -22,17 +22,17 @@ def test_motor_control():
     print(proxSensorsVal[0], proxSensorsVal[1], proxSensorsVal[2], proxSensorsVal[3], proxSensorsVal[4])
 
     with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
-        # aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
-        # node_id = 1
-        # name = ' + thymio + '
-        # aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
-        # # add code to handle incoming events
+        aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
+        node_id = 1
+        name = ' + thymio + '
+        aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
+        # add code to handle incoming events
         R = random.randint(0,32)
         G = random.randint(0, 32)
         B = random.randint(0, 32)
         aesl.write(f'call leds.top({R},{G},{B})\n')
-        # aesl.write('</node>\n')
-        # aesl.write('</network>\n')
+        aesl.write('</node>\n')
+        aesl.write('</network>\n')
         aesl.seek(0)
         network.LoadScripts(aesl.name)
     #
