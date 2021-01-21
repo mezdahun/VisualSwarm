@@ -55,7 +55,6 @@ def handle_GetVariable_error(e):
 
 
 def execute():
-    gobject.threads_init()
     # parser = OptionParser()
     # parser.add_option("-s", "--system", action="store_true", dest="system", default=False,
     #                   help="use the system bus instead of the session bus")
@@ -78,6 +77,7 @@ def execute():
 
 
 if __name__ == '__main__':
+    gobject.threads_init()
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
     # if options.system:
