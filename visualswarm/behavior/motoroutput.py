@@ -73,13 +73,13 @@ if __name__ == '__main__':
     # print in the terminal the name of each Aseba NOde
     print(network.GetNodesList())
 
-    for i in range(100):
-        Braitenberg()
-        time.sleep(0.5)
+    # for i in range(100):
+    #     Braitenberg()
+    #     time.sleep(0.5)
 
-    # # GObject loop
-    # print('starting loop')
-    # loop = GLib.MainLoop()  # gobject.MainLoop()
-    # # call the callback of Braitenberg algorithm
-    # handle = GLib.timeout_add(100, Braitenberg)  # gobject.timeout_add(100, Braitenberg)  # every 0.1 sec
-    # loop.run()
+    # GObject loop
+    print('starting loop')
+    loop = GLib.MainLoop()  # gobject.MainLoop()
+    # call the callback of Braitenberg algorithm
+    handle = GLib.timeout_add(100, Braitenberg)  # gobject.timeout_add(100, Braitenberg)  # every 0.1 sec
+    loop.run()
