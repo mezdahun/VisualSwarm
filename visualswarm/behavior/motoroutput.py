@@ -1,6 +1,7 @@
 import dbus
 import dbus.mainloop.glib
 from gi.repository import GObject as gobject
+from gi.repository import GLib
 from optparse import OptionParser
 
 proxSensorsVal = [0, 0, 0, 0, 0]
@@ -75,7 +76,7 @@ if __name__ == '__main__':
 
     # GObject loop
     print('starting loop')
-    loop = gobject.MainLoop()
+    loop = GLib.MainLoop()  # gobject.MainLoop()
     # call the callback of Braitenberg algorithm
-    handle = gobject.timeout_add(100, Braitenberg)  # every 0.1 sec
+    handle = GLib.timeout_add(100, Braitenberg)  # gobject.timeout_add(100, Braitenberg)  # every 0.1 sec
     loop.run()
