@@ -58,7 +58,7 @@ def test_motor_control():
     # print(totalRight)
     #
     # # send motor value to the robot
-    network.SetVariable("thymio-II", "motor.left.target", [totalLeft])
+    # network.SetVariable("thymio-II", "motor.left.target", [totalLeft])
     # network.SetVariable("thymio-II", "motor.right.target", [totalRight])
     #
     return True
