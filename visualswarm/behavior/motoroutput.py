@@ -41,7 +41,7 @@ def Braitenberg():
     # network.SetVariable("thymio-II", "motor.left.target", [totalLeft])
     # network.SetVariable("thymio-II", "motor.right.target", [totalRight])
     #
-    # return True
+    return True
 
 
 def handle_GetVariable_reply(r):
