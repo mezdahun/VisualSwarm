@@ -79,6 +79,6 @@ if __name__ == '__main__':
 
     # Create Aseba network
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'), dbus_interface='ch.epfl.mobots.AsebaNetwork')
-    motor_control = Process(target=execute)
+    motor_control = Process(target=execute_motor_control_test)
     motor_control.start()
     print('after loop')
