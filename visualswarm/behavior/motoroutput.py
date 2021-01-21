@@ -24,7 +24,7 @@ def test_motor_control():
     with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
         aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
         node_id = 1
-        name = ' + thymio + '
+        name = 'thymio-II'
         aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
         # add code to handle incoming events
         R = random.randint(0,32)
