@@ -20,7 +20,9 @@ setup(
         'scipy',
         'psutil',
         'pycairo',
-        'PyGObject'
+        'PyGObject',
+        'dbus-python'
+
     ],
     extras_require={
         'test': [
