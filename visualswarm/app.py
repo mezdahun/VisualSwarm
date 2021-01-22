@@ -110,31 +110,28 @@ def start_vision_stream():
         system_monitor_proc.join()
 
     except KeyboardInterrupt:
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
-        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
-        network.SetVariable("thymio-II", "motor.left.target", [0])
-        network.SetVariable("thymio-II", "motor.right.target", [0])
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
         system_monitor_proc.terminate()
         system_monitor_proc.join()
-        behavior.terminate()
-        behavior.join()
-        control_stream.put((0, 0))
-        time.sleep(0.2)
+        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
         motor_control.terminate()
         motor_control.join()
+        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} motor control process and joined!')
+        behavior.terminate()
+        behavior.join()
+        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} control parameter calculations!')
         VPF_extractor.terminate()
         VPF_extractor.join()
+        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visual field segmentation!')
         visualizer.terminate()
         visualizer.join()
+        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visualization stream!')
         for proc in high_level_vision_pool:
             proc.terminate()
             proc.join()
-        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} high level vision process and joined!')
+        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} high level vision process(es) and joined!')
         raw_vision.terminate()
         raw_vision.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} Raw vision process and joined!')
@@ -142,11 +139,23 @@ def start_vision_stream():
         # Closing Queues
         raw_vision_stream.close()
         high_level_vision_stream.close()
+        VPF_stream.close()
+        logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} vision streams!')
         if visualization_stream is not None:
             visualization_stream.close()
+            logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} visualization stream!')
         if target_config_stream is not None:
             target_config_stream.close()
-        VPF_stream.close()
+            logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} configuration stream!')
         control_stream.close()
-        logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} vision streams!')
+        logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} control parameter stream!')
+
+        logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SessionBus()
+        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
+        network.SetVariable("thymio-II", "motor.left.target", [0])
+        network.SetVariable("thymio-II", "motor.right.target", [0])
+
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
