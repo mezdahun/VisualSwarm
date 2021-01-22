@@ -27,7 +27,7 @@ def test_motor_control():
         name = 'thymio-II'
         aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
         # add code to handle incoming events
-        R = random.randint(0,32)
+        R = random.randint(0, 32)
         G = random.randint(0, 32)
         B = random.randint(0, 32)
         aesl.write(f'call leds.top({R},{G},{B})\n')
@@ -63,7 +63,9 @@ def test_motor_control():
     #
     return True
 
+
 def control_thymio(control_stream, network):
+    print('in control')
     (v, dpsi) = control_stream.get()
     v_left = v * dpsi
     v_right = v * (1 - dpsi)
@@ -89,6 +91,7 @@ def execute_motor_control_test():
     # call the callback of test_motor_control in every iteration
     GLib.timeout_add(100, test_motor_control)  # every 0.1 sec
     loop.run()
+
 
 def execute_control_thymio(control_stream, network):
     # print in the terminal the name of each Aseba Node
