@@ -89,7 +89,7 @@ def execute_motor_control_test():
     print(network.GetNodesList())
 
     # GObject loop
-    loop = GLib.MainLoop()
+    # loop = GLib.MainLoop()
     # call the callback of test_motor_control in every iteration
     GLib.timeout_add(100, test_motor_control)  # every 0.1 sec
     loop.run()
