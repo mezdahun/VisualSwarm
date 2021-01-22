@@ -16,5 +16,5 @@ BET1 = 1.2
 BET2 = 0
 
 # Normalizing Velocity
-V_MAX_ALG = 2500
-V_MAX_PHYS = 400
+V_MAX_ALG = 1
+V_MAX_PHYS = 1
