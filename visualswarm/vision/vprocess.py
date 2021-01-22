@@ -11,7 +11,7 @@ import numpy as np
 
 from visualswarm import env
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import camera, projection, segmentation, visual
+from visualswarm.contrib import camera, projection, segmentation, visual, monitorparams
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -30,6 +30,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             raw_vision_stream: multiprocessing.Queue type object to read raw visual input.
             high_level_vision_stream: multiprocessing.Queue type object to push high-level visual data.
             visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
+            target_config_stream: stream to transmit configuration parameters if interactive configuration is turned on.
         Returns:
             -shall not return-
     """
@@ -37,7 +38,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
     hsv_high = segmentation.HSV_HIGH
 
     while True:
-        (img, frame_id) = raw_vision_stream.get()
+        (img, frame_id, capture_timestamp) = raw_vision_stream.get()
         # logger.info(raw_vision_stream.qsize())
         if visual.FIND_COLOR_INTERACTIVE:
             if target_config_stream is not None:
@@ -74,8 +75,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         cv2.drawContours(img, hull_list, -1, visual.CONVEX_CONTOUR_COLOR, visual.CONVEX_CONTOUR_WIDTH)
         cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
-        # Forwarding result to FOV extraction
-        high_level_vision_stream.put((img, blurred, frame_id))
+        # Forwarding result to VPF extraction
+        high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
 
         # Forwarding result for visualization if requested
         if visualization_stream is not None:
@@ -137,12 +138,12 @@ def visualizer(visualization_stream, target_config_stream=None):
         logger.info('Visualization stream is None, visualization process returns!')
 
 
-def FOV_extraction(high_level_vision_stream, FOV_stream):
+def VPF_extraction(high_level_vision_stream, VPF_stream):
     """
-    Process to Field of View and generate final visual projection field.
+    Process to extract final visual projection field from high level visual input.
         Args:
             high_level_vision_stream: multiprocessing.Queue type object to get processed visual information
-            FOV_stream: stream to push final visual projection field
+            VPF_stream: stream to push final visual projection field
         Returns:
             -shall not return-
     """
@@ -150,14 +151,15 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
     ifclient = ifdb.create_ifclient()
 
     while True:
-        (img, mask, frame_id) = high_level_vision_stream.get()
+        (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
         # logger.info(high_level_vision_stream.qsize())
         cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
+        projection_field = projection_field / 255
 
-        if projection.SAVE_PROJECTION_FIELD:
+        if monitorparams.SAVE_PROJECTION_FIELD:
             # Saving projection field data to InfluxDB to visualize with Grafana
-            proj_field_vis = projection_field[0:-1:projection.DOWNGRADING_FACTOR]
+            proj_field_vis = projection_field[0:-1:monitorparams.DOWNGRADING_FACTOR]
 
             # take a timestamp for this measurement
             time = datetime.datetime.utcnow()
@@ -177,7 +179,8 @@ def FOV_extraction(high_level_vision_stream, FOV_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        # FOV_stream.put(projection_field)
+        VPF_stream.put((projection_field, capture_timestamp))
+
         # To test infinite loops
         if env.EXIT_CONDITION:
             break

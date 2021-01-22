@@ -7,13 +7,32 @@ from picamera import PiCamera
 from picamera.array import PiRGBArray
 
 import time
+from datetime import datetime
 
 from visualswarm.contrib import camera, logparams
-
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
+
+
+def stabilize_color_space_params(picam):
+    """Method to fiy camera parameters such that the color space is uniform across captured frames.
+    More info at: https://picamera.readthedocs.io/en/release-1.12/recipes1.html
+        Args:
+            picam: PiCamera instance to configure
+        Returns:
+            picam: configured PiCamera instance
+    """
+    picam.iso = 300
+    # Wait for the automatic gain control to settle
+    time.sleep(2)
+    # Now fix the values
+    picam.shutter_speed = picam.exposure_speed
+    picam.exposure_mode = 'off'
+    g = picam.awb_gains
+    picam.awb_mode = 'off'
+    picam.awb_gains = g
 
 
 def raw_vision(raw_vision_stream):
@@ -31,6 +50,8 @@ def raw_vision(raw_vision_stream):
                  f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
                  f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
+    stabilize_color_space_params(picam)
+
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
@@ -43,8 +64,11 @@ def raw_vision(raw_vision_stream):
         # Grab the raw NumPy array representing the image
         image = frame.array
 
+        # Adding time of capture for delay measurement
+        capture_timestamp = datetime.utcnow()
+
         # pushing the captured image to the vision stream
-        raw_vision_stream.put((image, frame_id))
+        raw_vision_stream.put((image, frame_id, capture_timestamp))
 
         # Clear the raw capture stream in preparation for the next frame
         raw_capture.truncate(0)

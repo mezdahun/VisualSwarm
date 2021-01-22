@@ -16,7 +16,13 @@ setup(
         'opencv-python>=4.4.0.46',
         'picamera>=1.13',
         'pandas',
-        'influxdb'
+        'influxdb',
+        'scipy',
+        'psutil',
+        'pycairo',
+        'PyGObject',
+        'dbus-python'
+
     ],
     extras_require={
         'test': [

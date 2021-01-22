@@ -6,9 +6,10 @@
 import logging
 from multiprocessing import Process, Queue
 from visualswarm import env
-from visualswarm.monitoring import ifdb
+from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual
+from visualswarm.behavior import control
 
 # setup logging
 logging.basicConfig()
@@ -51,7 +52,8 @@ def start_vision_stream():
     else:
         target_config_stream = None
 
-    fov_stream = Queue()
+    VPF_stream = Queue()
+    control_stream = Queue()
 
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
@@ -61,7 +63,9 @@ def start_vision_stream():
                                             visualization_stream,
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
-    FOV_extractor = Process(target=vprocess.FOV_extraction, args=(high_level_vision_stream, fov_stream,))
+    VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
+    behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
+    system_monitor_proc = Process(target=system_monitor.system_monitor)
 
     try:
         # Start subprocesses
@@ -71,21 +75,29 @@ def start_vision_stream():
         for proc in high_level_vision_pool:
             proc.start()
         visualizer.start()
-        FOV_extractor.start()
+        VPF_extractor.start()
+        behavior.start()
+        system_monitor_proc.start()
 
         # Wait for subprocesses in main process to terminate
         visualizer.join()
         for proc in high_level_vision_pool:
             proc.join()
         raw_vision.join()
-        FOV_extractor.join()
+        VPF_extractor.join()
+        behavior.join()
+        system_monitor_proc.join()
 
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
-        FOV_extractor.terminate()
-        FOV_extractor.join()
+        system_monitor_proc.terminate()
+        system_monitor_proc.join()
+        behavior.terminate()
+        behavior.join()
+        VPF_extractor.terminate()
+        VPF_extractor.join()
         visualizer.terminate()
         visualizer.join()
         for proc in high_level_vision_pool:
@@ -103,6 +115,7 @@ def start_vision_stream():
             visualization_stream.close()
         if target_config_stream is not None:
             target_config_stream.close()
-        fov_stream.close()
+        VPF_stream.close()
+        control_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} vision streams!')
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
