@@ -37,17 +37,17 @@ def start_vision_stream():
         ifclient.drop_database(env.INFLUX_DB_NAME)
         ifclient.create_database(env.INFLUX_DB_NAME)
 
-    # # gobject.threads_init()
-    #
-    # # loop = GLib.MainLoop()
-    #
-    # dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    #
-    # bus = dbus.SessionBus()
-    #
-    # # Create Aseba network
-    # network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-    #                          dbus_interface='ch.epfl.mobots.AsebaNetwork')
+    # gobject.threads_init()
+
+    # loop = GLib.MainLoop()
+
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+    bus = dbus.SessionBus()
+
+    # Create Aseba network
+    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
 
@@ -83,7 +83,7 @@ def start_vision_stream():
     visualizer.start()
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
-    motor_control = Process(target=motoroutput.execute_control_thymio, args=(control_stream,))
+    motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, network))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
 
     try:
