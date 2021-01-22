@@ -66,12 +66,13 @@ def test_motor_control():
 
 def control_thymio(control_stream, network):
     print('in control')
-    (v, dpsi) = control_stream.get()
-    print(v, dpsi)
+    while True:
+        (v, dpsi) = control_stream.get()
+        print(v, dpsi)
     # v_left = v * dpsi
     # v_right = v * (1 - dpsi)
-    # network.SetVariable("thymio-II", "motor.left.target", [v_left])
-    # network.SetVariable("thymio-II", "motor.right.target", [v_right])
+        network.SetVariable("thymio-II", "motor.left.target", [v_left])
+        network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
 
 def handle_GetVariable_reply(r):
