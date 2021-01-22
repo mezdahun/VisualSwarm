@@ -110,7 +110,10 @@ def start_vision_stream():
         system_monitor_proc.join()
 
     except KeyboardInterrupt:
-        print(network.GetNodesList())
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SessionBus()
+        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
         network.SetVariable("thymio-II", "motor.left.target", [0])
         network.SetVariable("thymio-II", "motor.right.target", [0])
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
