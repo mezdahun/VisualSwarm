@@ -8,5 +8,5 @@ H_MARGIN = 10
 W_MARGIN = 10
 
 # Visual field of the camera
-PHI_START = -pi
-PHI_END = pi
+PHI_START = -0.5394*pi
+PHI_END = 0.5394*pi
