@@ -9,7 +9,7 @@ import numpy as np
 
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import projection, monitorparams, flockparams
-from visualswarm.behavior import movecomp
+from visualswarm.behavior import movecomp, motoroutput
 from visualswarm import env
 
 # using main logger
@@ -56,7 +56,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
             time = datetime.datetime.utcnow()
 
             # generating data to dump in db
-            field_dict = {"agent_velocity": dv,
+            field_dict = {"agent_velocity": v,
                           "heading_angle": dpsi,
                           "processing_delay": (time - capture_timestamp).total_seconds()}
 
@@ -71,6 +71,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
+        control_stream.put((v, dpsi))
         # To test infinite loops
         if env.EXIT_CONDITION:
             break
