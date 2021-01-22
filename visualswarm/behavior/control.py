@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import projection, monitorparams
+from visualswarm.contrib import projection, monitorparams, flockparams
 from visualswarm.behavior import movecomp
 from visualswarm import env
 
@@ -39,6 +39,10 @@ def VPF_to_behavior(VPF_stream, control_stream):
         dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
         v += dv
         psi += dpsi
+        if v > flockparams.V_MAX_PHYS:
+            v = flockparams.V_MAX_PHYS
+        if psi > flockparams.DPSI_MAX_PHYS:
+            psi = flockparams.DPSI_MAX_PHYS
 
         if monitorparams.SAVE_CONTROL_PARAMS:
 
