@@ -7,7 +7,7 @@
 FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = False
+SHOW_VISION_STREAMS = True
 VIS_DOWNSAMPLE_FACTOR = 1
 
 # Drawing, color in RGB
