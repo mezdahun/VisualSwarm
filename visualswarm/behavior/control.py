@@ -44,7 +44,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
                 v = float(flockparams.V_MAX_PHYS)
             else:
                 v = -float(flockparams.V_MAX_PHYS)
-        if psi > flockparams.DPSI_MAX_PHYS:
+        if np.abs(psi) > flockparams.DPSI_MAX_PHYS:
             if psi > 0:
                 psi = float(flockparams.DPSI_MAX_PHYS)
             else:
