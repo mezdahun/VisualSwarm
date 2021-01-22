@@ -47,7 +47,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             # generating data to dump in db
             field_dict = {"agent_velocity": v,
-                          "heading_angle": dpsi,
+                          "heading_angle": psi,
                           "processing_delay": (time - capture_timestamp).total_seconds()}
 
             # format the data as a single measurement for influx
