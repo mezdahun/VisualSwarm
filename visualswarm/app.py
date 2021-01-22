@@ -10,6 +10,7 @@ from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual
 from visualswarm.behavior import control, motoroutput
+import time
 
 import dbus.mainloop.glib
 from gi.repository import GObject as gobject
@@ -110,10 +111,12 @@ def start_vision_stream():
         # Terminating Processes
         system_monitor_proc.terminate()
         system_monitor_proc.join()
-        motor_control.terminate()
-        motor_control.join()
         behavior.terminate()
         behavior.join()
+        control_stream.push((0, 0))
+        time.sleep(0.2)
+        motor_control.terminate()
+        motor_control.join()
         VPF_extractor.terminate()
         VPF_extractor.join()
         visualizer.terminate()
@@ -125,9 +128,6 @@ def start_vision_stream():
         raw_vision.terminate()
         raw_vision.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} Raw vision process and joined!')
-
-        network.SetVariable("thymio-II", "motor.left.target", [0])
-        network.SetVariable("thymio-II", "motor.right.target", [0])
 
         # Closing Queues
         raw_vision_stream.close()
