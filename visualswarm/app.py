@@ -126,6 +126,9 @@ def start_vision_stream():
         raw_vision.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} Raw vision process and joined!')
 
+        network.SetVariable("thymio-II", "motor.left.target", [0])
+        network.SetVariable("thymio-II", "motor.right.target", [0])
+
         # Closing Queues
         raw_vision_stream.close()
         high_level_vision_stream.close()
