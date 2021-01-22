@@ -95,16 +95,16 @@ def execute_motor_control_test():
     loop.run()
 
 
-def execute_control_thymio(control_stream, network):
+def execute_control_thymio(control_stream, network, loop):
     # print in the terminal the name of each Aseba Node
-    gobject.threads_init()
+    # gobject.threads_init()
     print(network.GetNodesList())
 
     # # GObject loop
     # loop = GLib.MainLoop()
     # call the callback of test_motor_control in every iteration
     GLib.timeout_add(100, control_thymio, control_stream, network)  # every 0.1 sec
-    # loop.run()
+    loop.run()
 
 
 # if __name__ == '__main__':
