@@ -113,7 +113,7 @@ def start_vision_stream():
         system_monitor_proc.join()
         behavior.terminate()
         behavior.join()
-        control_stream.push((0, 0))
+        control_stream.put((0, 0))
         time.sleep(0.2)
         motor_control.terminate()
         motor_control.join()
