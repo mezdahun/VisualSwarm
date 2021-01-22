@@ -110,6 +110,9 @@ def start_vision_stream():
         system_monitor_proc.join()
 
     except KeyboardInterrupt:
+        print(network.GetNodesList())
+        network.SetVariable("thymio-II", "motor.left.target", [0])
+        network.SetVariable("thymio-II", "motor.right.target", [0])
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
