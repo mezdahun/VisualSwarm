@@ -144,3 +144,6 @@ def start_vision_stream():
         control_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} vision streams!')
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
+
+        network.SetVariable("thymio-II", "motor.left.target", [0])
+        network.SetVariable("thymio-II", "motor.right.target", [0])
