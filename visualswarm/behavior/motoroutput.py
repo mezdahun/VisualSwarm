@@ -97,6 +97,7 @@ def execute_motor_control_test():
 
 def execute_control_thymio(control_stream, network):
     # print in the terminal the name of each Aseba Node
+    gobject.threads_init()
     print(network.GetNodesList())
 
     # GObject loop
