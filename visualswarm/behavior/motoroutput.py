@@ -64,8 +64,12 @@ def test_motor_control():
     return True
 
 
-def control_thymio(control_stream, network):
-    print('in control')
+def control_thymio(control_stream):
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SessionBus()
+    # Create Aseba network
+    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
     while True:
         (v, dpsi) = control_stream.get()
         print(v, dpsi)
@@ -98,7 +102,7 @@ def execute_motor_control_test():
 def execute_control_thymio(control_stream, network, loop):
     # print in the terminal the name of each Aseba Node
     # gobject.threads_init()
-    print(network.GetNodesList())
+    # print(network.GetNodesList())
 
     # # GObject loop
     # loop = GLib.MainLoop()
