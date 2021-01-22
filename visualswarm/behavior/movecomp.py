@@ -71,4 +71,5 @@ def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=
            np.sum(np.cos(phi) * G_vel_spike) * dphi
     dpsi = integrate.trapz(np.sin(phi) * G_psi, phi) + \
            np.sum(np.sin(phi) * G_psi_spike) * dphi
+    dvel = (dvel / flockparams.V_MAX_ALG) * flockparams.V_MAX_PHYS
     return dvel, dpsi
