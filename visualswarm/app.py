@@ -72,7 +72,6 @@ def start_vision_stream():
                                             visualization_stream,
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
-    visualizer.start()
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream,))
@@ -85,7 +84,7 @@ def start_vision_stream():
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
         for proc in high_level_vision_pool:
             proc.start()
-        # visualizer.start()
+        visualizer.start()
         VPF_extractor.start()
         behavior.start()
         motor_control.start()
