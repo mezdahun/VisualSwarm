@@ -41,14 +41,6 @@ def start_vision_stream():
 
     # loop = GLib.MainLoop()
 
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-
-    bus = dbus.SessionBus()
-
-    # Create Aseba network
-    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
-
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
 
     # Creating Queues
@@ -81,6 +73,11 @@ def start_vision_stream():
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     visualizer.start()
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SessionBus()
+    # Create Aseba network
+    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, network))
