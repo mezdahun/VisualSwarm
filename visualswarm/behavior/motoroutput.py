@@ -69,7 +69,7 @@ def control_thymio(control_stream, network):
     while True:
         (v, dpsi) = control_stream.get()
         print(v, dpsi)
-        v_left = v * dpsi/2
+        v_left = v * (1 + dpsi)/2
         v_right = v * (1 - dpsi)/2
         network.SetVariable("thymio-II", "motor.left.target", [v_left])
         network.SetVariable("thymio-II", "motor.right.target", [v_right])
