@@ -95,11 +95,22 @@ def execute_motor_control_test():
     loop.run()
 
 
-def execute_control_thymio(control_stream, network, loop):
+def execute_control_thymio(control_stream):
     # print in the terminal the name of each Aseba Node
     # gobject.threads_init()
     print(network.GetNodesList())
 
+    gobject.threads_init()
+
+    loop = GLib.MainLoop()
+
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+    bus = dbus.SessionBus()
+
+    # Create Aseba network
+    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
     # # GObject loop
     # loop = GLib.MainLoop()
     # call the callback of test_motor_control in every iteration
