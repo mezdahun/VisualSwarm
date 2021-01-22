@@ -39,10 +39,16 @@ def VPF_to_behavior(VPF_stream, control_stream):
         dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
         v += dv
         psi += dpsi
-        if v > flockparams.V_MAX_PHYS:
-            v = float(flockparams.V_MAX_PHYS)
+        if np.abs(v) > flockparams.V_MAX_PHYS:
+            if v > 0:
+                v = float(flockparams.V_MAX_PHYS)
+            else:
+                v = -float(flockparams.V_MAX_PHYS)
         if psi > flockparams.DPSI_MAX_PHYS:
-            psi = float(flockparams.DPSI_MAX_PHYS)
+            if psi > 0:
+                psi = float(flockparams.DPSI_MAX_PHYS)
+            else:
+                psi = -float(flockparams.DPSI_MAX_PHYS)
 
         if monitorparams.SAVE_CONTROL_PARAMS:
 
