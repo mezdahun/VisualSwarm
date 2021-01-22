@@ -67,10 +67,11 @@ def test_motor_control():
 def control_thymio(control_stream, network):
     print('in control')
     (v, dpsi) = control_stream.get()
-    v_left = v * dpsi
-    v_right = v * (1 - dpsi)
-    network.SetVariable("thymio-II", "motor.left.target", [v_left])
-    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+    print(v, dpsi)
+    # v_left = v * dpsi
+    # v_right = v * (1 - dpsi)
+    # network.SetVariable("thymio-II", "motor.left.target", [v_left])
+    # network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
 
 def handle_GetVariable_reply(r):
@@ -104,17 +105,17 @@ def execute_control_thymio(control_stream, network):
     loop.run()
 
 
-if __name__ == '__main__':
-    gobject.threads_init()
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-
-    # if options.system:
-    #     bus = dbus.SystemBus()
-    # else:
-    bus = dbus.SessionBus()
-
-    # Create Aseba network
-    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
-    motor_control = Process(target=execute_motor_control_test)
-    motor_control.start()
+# if __name__ == '__main__':
+#     gobject.threads_init()
+#     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+#
+#     # if options.system:
+#     #     bus = dbus.SystemBus()
+#     # else:
+#     bus = dbus.SessionBus()
+#
+#     # Create Aseba network
+#     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+#                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
+#     motor_control = Process(target=execute_motor_control_test)
+#     motor_control.start()
