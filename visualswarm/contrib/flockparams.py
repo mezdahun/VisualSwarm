@@ -11,8 +11,8 @@ ALP1 = 0.01
 ALP2 = 0
 
 # Heading Vector Parameters
-BET0 = 0.2
-BET1 = 0.0001
+BET0 = 0.5
+BET1 = 0.01
 BET2 = 0
 
 # Normalizing Velocity
