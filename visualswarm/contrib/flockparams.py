@@ -4,10 +4,10 @@
 """
 
 # Velocity Parameters
-GAM = 0.02
+GAM = 0.2
 V0 = 0
 ALP0 = 1
-ALP1 = 12
+ALP1 = 120
 ALP2 = 0
 
 # Heading Vector Parameters
