@@ -73,15 +73,15 @@ def control_thymio(control_stream):
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
     while True:
         (v, psi) = control_stream.get()
-        print('-------------------')
-        print(psi)
+        # print('-------------------')
+        # print(psi)
         psi -= np.pi
-        print(psi)
+        # print(psi)
         psi = psi/np.pi
-        print(psi)
+        # print(psi)
         v_left = v * (1 + psi)/2 * 100
         v_right = v * (1 - psi)/2 * 100
-        print(v_left, v_right)
+        # print(v_left, v_right)
         network.SetVariable("thymio-II", "motor.left.target", [v_left])
         network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
