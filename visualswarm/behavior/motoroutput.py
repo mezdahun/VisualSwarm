@@ -75,9 +75,9 @@ def control_thymio(control_stream):
         (v, psi) = control_stream.get()
         # print('-------------------')
         print(psi)
-        psi -= np.pi
+        # psi -= np.pi
         # print(psi)
-        psi = psi/np.pi
+        psi = psi/2 # np.pi
         # print(psi)
         v_left = v * (1 + psi)/2 * 100
         v_right = v * (1 - psi)/2 * 100
