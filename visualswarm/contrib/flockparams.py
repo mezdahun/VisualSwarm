@@ -6,7 +6,7 @@
 # Velocity Parameters
 GAM = 0.2
 V0 = 0
-ALP0 = 0.4
+ALP0 = 2.4
 ALP1 = 24
 ALP2 = 0
 
