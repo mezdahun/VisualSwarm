@@ -39,6 +39,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
         dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
         v += dv
         psi += dpsi  # TODO: I think we need modulo here
+        psi = psi % (2 * np.pi)
         # if np.abs(dv) > flockparams.V_MAX_PHYS:
         #     if dv > 0:
         #         dv = float(flockparams.V_MAX_PHYS)
@@ -57,7 +58,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             # generating data to dump in db
             field_dict = {"agent_velocity": v,
-                          "heading_angle": dpsi,
+                          "heading_angle": psi,
                           "processing_delay": (time - capture_timestamp).total_seconds()}
 
             # format the data as a single measurement for influx
