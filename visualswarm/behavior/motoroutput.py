@@ -7,6 +7,7 @@ import time
 from multiprocessing import Process, Queue
 import tempfile
 import random
+import numpy as np
 
 # Create a global variable or Queue for GetVariable values
 # to get and store Thymio sensor values
@@ -70,12 +71,14 @@ def control_thymio(control_stream):
     # Create Aseba network
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
-    # while True:
-    #     (v, dpsi) = control_stream.get()
-    #     v_left = v * (1 + dpsi)/2
-    #     v_right = v * (1 - dpsi)/2
-    #     network.SetVariable("thymio-II", "motor.left.target", [v_left])
-    #     network.SetVariable("thymio-II", "motor.right.target", [v_right])
+    while True:
+        (v, psi) = control_stream.get()
+        psi -= np.pi
+        psi = psi/np.pi
+        v_left = v * (1 + psi)/2
+        v_right = v * (1 - psi)/2
+        network.SetVariable("thymio-II", "motor.left.target", [v_left])
+        network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
 
 def handle_GetVariable_reply(r):
