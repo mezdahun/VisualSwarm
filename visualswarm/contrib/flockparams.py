@@ -7,7 +7,7 @@
 GAM = 0.2
 V0 = 0
 ALP0 = 0.5
-ALP1 = 0.05
+ALP1 = 0.005
 ALP2 = 0
 
 # Heading Vector Parameters
