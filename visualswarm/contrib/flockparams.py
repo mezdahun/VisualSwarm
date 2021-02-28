@@ -7,12 +7,12 @@
 GAM = 0.2
 V0 = 0
 ALP0 = 0.5
-ALP1 = 0.01
+ALP1 = 0.015
 ALP2 = 0
 
 # Heading Vector Parameters
 BET0 = 0.5
-BET1 = 0.01
+BET1 = 0.015
 BET2 = 0
 
 # Normalizing Velocity
