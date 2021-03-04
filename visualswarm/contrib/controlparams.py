@@ -3,4 +3,4 @@
 @description: Motor Control related parameters
 """
 
-ENABLE_MOTOR_CONTROL = False
+ENABLE_MOTOR_CONTROL = True
