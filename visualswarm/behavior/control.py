@@ -8,8 +8,8 @@ import logging
 import numpy as np
 
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import projection, monitorparams, flockparams
-from visualswarm.behavior import movecomp, motoroutput
+from visualswarm.contrib import projection, monitorparams
+from visualswarm.behavior import movecomp
 from visualswarm import env
 
 # using main logger
