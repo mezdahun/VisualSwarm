@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import projection, monitorparams
+from visualswarm.contrib import projection, monitorparams, controlparams
 from visualswarm.behavior import movecomp
 from visualswarm import env
 
@@ -39,6 +39,17 @@ def VPF_to_behavior(VPF_stream, control_stream):
         dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
         v += dv
         psi += dpsi
+        psi = psi % (2 * np.pi)
+        # if np.abs(dv) > flockparams.V_MAX_PHYS:
+        #     if dv > 0:
+        #         dv = float(flockparams.V_MAX_PHYS)
+        #     else:
+        #         dv = -float(flockparams.V_MAX_PHYS)
+        # if np.abs(dpsi) > flockparams.DPSI_MAX_PHYS:
+        #     if dpsi > 0:
+        #         dpsi = float(flockparams.DPSI_MAX_PHYS)
+        #     else:
+        #         dpsi = -float(flockparams.DPSI_MAX_PHYS)
 
         if monitorparams.SAVE_CONTROL_PARAMS:
 
@@ -60,6 +71,9 @@ def VPF_to_behavior(VPF_stream, control_stream):
             ]
 
             ifclient.write_points(body, time_precision='ms')
+
+        if controlparams.ENABLE_MOTOR_CONTROL:
+            control_stream.put((v, dpsi))
 
         # To test infinite loops
         if env.EXIT_CONDITION:
