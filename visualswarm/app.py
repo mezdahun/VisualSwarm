@@ -10,11 +10,8 @@ from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual
 from visualswarm.behavior import control, motoroutput
-import time
 
 import dbus.mainloop.glib
-from gi.repository import GObject as gobject
-from gi.repository import GLib
 
 # setup logging
 logging.basicConfig()
@@ -36,10 +33,6 @@ def start_vision_stream():
         ifclient = ifdb.create_ifclient()
         ifclient.drop_database(env.INFLUX_DB_NAME)
         ifclient.create_database(env.INFLUX_DB_NAME)
-
-    # gobject.threads_init()
-
-    # loop = GLib.MainLoop()
 
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
 
