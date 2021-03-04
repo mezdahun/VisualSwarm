@@ -38,7 +38,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
         dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
         v += dv
-        psi += dpsi  # TODO: I think we need modulo here
+        psi += dpsi
         psi = psi % (2 * np.pi)
         # if np.abs(dv) > flockparams.V_MAX_PHYS:
         #     if dv > 0:
