@@ -19,7 +19,7 @@ class AppTest(TestCase):
         if FAKE_STATUS:
             with mock.patch('visualswarm.env.INFLUX_FRESH_DB_UPON_START', False):
                 # Case 1 with interactive visualization
-                num_processes = 5 + segmentation.NUM_SEGMENTATION_PROCS
+                num_processes = 6 + segmentation.NUM_SEGMENTATION_PROCS
                 with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
                     # Case 1/A visualization started even if didnt set in env
                     with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', False):

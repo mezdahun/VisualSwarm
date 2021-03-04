@@ -30,9 +30,13 @@ class MoveCompTest(TestCase):
                         capture_timestamp = datetime.datetime(2000, 1, 1)
                         VPF_stream.get.return_value = (p_field, capture_timestamp)
 
+                        # Mocking output stream
+                        control_stream = mock.MagicMock()
+                        control_stream.get.return_value = None
+
                         # Case 1: no save control params
                         with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', False):
-                            control.VPF_to_behavior(VPF_stream, None)
+                            control.VPF_to_behavior(VPF_stream, control_stream)
                             fake_create_client.assert_called_once()
                             fake_control_params.assert_called_once()
 
@@ -49,7 +53,7 @@ class MoveCompTest(TestCase):
 
                         # Case 2: save control params to ifdb
                         with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', True):
-                            control.VPF_to_behavior(VPF_stream, None)
+                            control.VPF_to_behavior(VPF_stream, control_stream)
                             fake_create_client.assert_called_once()
                             fake_control_params.assert_called_once()
                             fake_ifclient.write_points.assert_called_once()
