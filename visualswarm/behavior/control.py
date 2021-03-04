@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import projection, monitorparams
+from visualswarm.contrib import projection, monitorparams, controlparams
 from visualswarm.behavior import movecomp
 from visualswarm import env
 
@@ -72,7 +72,9 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        control_stream.put((v, dpsi))
+        if controlparams.ENABLE_MOTOR_CONTROL:
+            control_stream.put((v, dpsi))
+
         # To test infinite loops
         if env.EXIT_CONDITION:
             break
