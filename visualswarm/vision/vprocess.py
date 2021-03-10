@@ -27,10 +27,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
     processes can consume this stream
         Args:
-            raw_vision_stream: multiprocessing.Queue type object to read raw visual input.
-            high_level_vision_stream: multiprocessing.Queue type object to push high-level visual data.
-            visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
-            target_config_stream: stream to transmit configuration parameters if interactive configuration is turned on.
+            raw_vision_stream (multiprocessing.Queue): stream object to read raw visual input.
+            high_level_vision_stream (multiprocessing.Queue): stream to push high-level visual data.
+            visualization_stream (multiprocessing.Queue): stream to visualize raw vs processed vision, and to tune
+                parameters interactively
+            target_config_stream (multiprocessing.Queue): stream to transmit configuration parameters if interactive
+                configuration is turned on.
         Returns:
             -shall not return-
     """
@@ -93,9 +95,10 @@ def visualizer(visualization_stream, target_config_stream=None):
     interactively, in this case a configuration stream is also used to fetch interactively given parameters from the
     user.
         Args:
-            visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
-            target_config_stream: stream to transmit segmentation parameters between interactive tuning input window and
-                the visualization_stream
+            visualization_stream (multiprocessing.Queue): stream to visualize raw vs processed vision, and to tune
+                parameters interactively
+            target_config_stream (multiprocessing.Queue): stream to transmit segmentation parameters between
+                interactive tuning input window and the visualization_stream
         Returns:
             -shall not return-
     """
@@ -142,8 +145,8 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
     """
     Process to extract final visual projection field from high level visual input.
         Args:
-            high_level_vision_stream: multiprocessing.Queue type object to get processed visual information
-            VPF_stream: stream to push final visual projection field
+            high_level_vision_stream (multiprocessing.Queue): Stream object to get processed visual information
+            VPF_stream (multiprocessing.Queue): stream to push final visual projection field
         Returns:
             -shall not return-
     """
