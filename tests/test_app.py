@@ -2,8 +2,8 @@ from unittest import TestCase, mock
 
 from setup_fake_rpi import FAKE_STATUS
 
+import visualswarm.contrib.vision
 from visualswarm import app
-from visualswarm.contrib import segmentation
 
 
 class AppTest(TestCase):
@@ -20,10 +20,10 @@ class AppTest(TestCase):
             with mock.patch('visualswarm.env.INFLUX_FRESH_DB_UPON_START', False):
                 with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', True):
                     # Case 1 with interactive visualization
-                    num_processes = 6 + segmentation.NUM_SEGMENTATION_PROCS
-                    with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
+                    num_processes = 6 + visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS
+                    with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', True):
                         # Case 1/A visualization started even if didnt set in env
-                        with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', False):
+                        with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', False):
                             num_queues = 6
                             mp = mockProcess.return_value
                             app.start_vision_stream()
@@ -34,7 +34,7 @@ class AppTest(TestCase):
                         # Case 1/B visualization was desired in env
                         mockProcess.reset_mock()
                         mockQueue.reset_mock()
-                        with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', True):
+                        with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', True):
                             num_queues = 7
                             mp = mockProcess.return_value
                             app.start_vision_stream()
@@ -42,11 +42,11 @@ class AppTest(TestCase):
                             self.assertEqual(mp.join.call_count, num_processes)
                             self.assertEqual(mockQueue.call_count, num_queues)
 
-                    with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', False):
+                    with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', False):
                         # Case 2 with no visualization at all
                         mockProcess.reset_mock()
                         mockQueue.reset_mock()
-                        with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', False):
+                        with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', False):
                             num_queues = 4
                             mp = mockProcess.return_value
                             app.start_vision_stream()
@@ -57,7 +57,7 @@ class AppTest(TestCase):
                         # Case 2/B visualization but not interactive
                         mockProcess.reset_mock()
                         mockQueue.reset_mock()
-                        with mock.patch('visualswarm.contrib.visual.SHOW_VISION_STREAMS', True):
+                        with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', True):
                             num_queues = 5
                             mp = mockProcess.return_value
                             app.start_vision_stream()
@@ -66,7 +66,7 @@ class AppTest(TestCase):
                             self.assertEqual(mockQueue.call_count, num_queues)
 
                     # Case 3 starting with DB wipe
-                    with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', False):
+                    with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', False):
                         with mock.patch('visualswarm.env.INFLUX_FRESH_DB_UPON_START', True):
                             with mock.patch('visualswarm.monitoring.ifdb.create_ifclient') as fake_create_client:
                                 fake_ifclient = mock.MagicMock()

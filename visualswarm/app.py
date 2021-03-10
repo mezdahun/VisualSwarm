@@ -5,10 +5,12 @@
 
 import logging
 from multiprocessing import Process, Queue
+
+import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, segmentation, visual, controlparams
+from visualswarm.contrib import logparams, vision, controlparams
 from visualswarm.behavior import behavior
 from visualswarm.control import motoroutput
 
@@ -41,13 +43,13 @@ def start_vision_stream():
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
 
-    if visual.SHOW_VISION_STREAMS:
+    if vision.SHOW_VISION_STREAMS:
         # showing raw and processed camera stream
         visualization_stream = Queue()
     else:
         visualization_stream = None
 
-    if visual.FIND_COLOR_INTERACTIVE:
+    if vision.FIND_COLOR_INTERACTIVE:
         # interactive target parameter tuning turned on
         target_config_stream = Queue()
         # overriding visualization otherwise interactive parameter tuning makes no sense
@@ -64,7 +66,8 @@ def start_vision_stream():
                                       args=(raw_vision_stream,
                                             high_level_vision_stream,
                                             visualization_stream,
-                                            target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
+                                            target_config_stream,)) for i in range(
+        visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,))
