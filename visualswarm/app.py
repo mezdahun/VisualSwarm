@@ -9,7 +9,7 @@ from visualswarm import env
 from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual, controlparams
-from visualswarm.behavior import control, motoroutput
+from visualswarm.behavior import behavior, motoroutput
 
 import dbus.mainloop.glib
 
@@ -66,7 +66,7 @@ def start_vision_stream():
                                             target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
-    behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
+    behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,))
     if controlparams.ENABLE_MOTOR_CONTROL:
         motor_control = Process(target=motoroutput.control_thymio, args=(control_stream,))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
@@ -80,7 +80,7 @@ def start_vision_stream():
             proc.start()
         visualizer.start()
         VPF_extractor.start()
-        behavior.start()
+        behavior_proc.start()
         if controlparams.ENABLE_MOTOR_CONTROL:
             motor_control.start()
         system_monitor_proc.start()
@@ -91,7 +91,7 @@ def start_vision_stream():
             proc.join()
         raw_vision.join()
         VPF_extractor.join()
-        behavior.join()
+        behavior_proc.join()
         if controlparams.ENABLE_MOTOR_CONTROL:
             motor_control.join()
         system_monitor_proc.join()
@@ -107,8 +107,8 @@ def start_vision_stream():
             motor_control.terminate()
             motor_control.join()
             logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} motor control process and joined!')
-        behavior.terminate()
-        behavior.join()
+        behavior_proc.terminate()
+        behavior_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} control parameter calculations!')
         VPF_extractor.terminate()
         VPF_extractor.join()

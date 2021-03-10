@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 import numpy as np
 from freezegun import freeze_time
 
-from visualswarm.behavior import control
+from visualswarm.behavior import behavior
 
 
 class MoveCompTest(TestCase):
@@ -37,7 +37,7 @@ class MoveCompTest(TestCase):
                         with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', False):
                             # Case 1: no save control params
                             with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', False):
-                                control.VPF_to_behavior(VPF_stream, control_stream)
+                                behavior.VPF_to_behavior(VPF_stream, control_stream)
                                 fake_create_client.assert_called_once()
                                 fake_control_params.assert_called_once()
 
@@ -54,12 +54,12 @@ class MoveCompTest(TestCase):
 
                             # Case 2: save control params to ifdb
                             with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', True):
-                                control.VPF_to_behavior(VPF_stream, control_stream)
+                                behavior.VPF_to_behavior(VPF_stream, control_stream)
                                 fake_create_client.assert_called_once()
                                 fake_control_params.assert_called_once()
                                 fake_ifclient.write_points.assert_called_once()
 
                         # Case 3: motor output turned off
                         with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', True):
-                            control.VPF_to_behavior(VPF_stream, control_stream)
+                            behavior.VPF_to_behavior(VPF_stream, control_stream)
                             control_stream.put.assert_called_once()
