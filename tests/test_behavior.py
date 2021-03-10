@@ -36,7 +36,7 @@ class MoveCompTest(TestCase):
 
                         with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', False):
                             # Case 1: no save control params
-                            with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', False):
+                            with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', False):
                                 behavior.VPF_to_behavior(VPF_stream, control_stream)
                                 fake_create_client.assert_called_once()
                                 fake_control_params.assert_called_once()
@@ -53,7 +53,7 @@ class MoveCompTest(TestCase):
                             fake_control_params.return_value = (1, 1)
 
                             # Case 2: save control params to ifdb
-                            with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', True):
+                            with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', True):
                                 behavior.VPF_to_behavior(VPF_stream, control_stream)
                                 fake_create_client.assert_called_once()
                                 fake_control_params.assert_called_once()

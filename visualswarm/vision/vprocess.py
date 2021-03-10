@@ -12,7 +12,7 @@ import numpy as np
 import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import camera, vision, monitorparams
+from visualswarm.contrib import camera, vision, monitoring
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -167,9 +167,9 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
         projection_field = np.max(cropped_image, axis=0)
         projection_field = projection_field / 255
 
-        if monitorparams.SAVE_PROJECTION_FIELD:
+        if monitoring.SAVE_PROJECTION_FIELD:
             # Saving projection field data to InfluxDB to visualize with Grafana
-            proj_field_vis = projection_field[0:-1:monitorparams.DOWNGRADING_FACTOR]
+            proj_field_vis = projection_field[0:-1:monitoring.DOWNGRADING_FACTOR]
 
             # take a timestamp for this measurement
             time = datetime.datetime.utcnow()

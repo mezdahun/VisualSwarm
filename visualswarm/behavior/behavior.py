@@ -9,7 +9,7 @@ import numpy as np
 
 import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import monitorparams, controlparams
+from visualswarm.contrib import monitoring, controlparams
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
@@ -43,7 +43,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
         psi += dpsi
         psi = psi % (2 * np.pi)
 
-        if monitorparams.SAVE_CONTROL_PARAMS:
+        if monitoring.SAVE_CONTROL_PARAMS:
 
             # take a timestamp for this measurement
             time = datetime.datetime.utcnow()
