@@ -35,7 +35,7 @@ If it is unevitable use the `#temp` flag in the beginning of your commit message
 ## Application
 To run the application or the test suite it is assumed that the SW is prepared as described on [this wiki page](https://github.com/mezdahun/VisualSwarm/wiki/Software-Setup)
 
-### Run locally
+### Run locally on Pi4
 To avoid conflicts with your global environment first create a virtualenv from the root project folder as
 ```bash
 sudo pipenv --python 3.7
@@ -59,6 +59,16 @@ vswrm-health
 ```
 
 This should give you a _"VisualSwarm application OK!"_ message and return.
+
+To start the stack without motor control use the entrypoint
+```bash
+vswrm-start-vision
+```
+
+To start the full stack with motor control use the entrypoint
+```bash
+vswrm-start
+```
 
 ## Git and GitHub guidelines
 ### Branches/Naming
