@@ -13,8 +13,8 @@ class MoveCompTest(TestCase):
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_VPF_to_behavior(self):
         with mock.patch('visualswarm.monitoring.ifdb.create_ifclient') as fake_create_client:
-            with mock.patch('visualswarm.contrib.projection.PHI_START', -np.pi):
-                with mock.patch('visualswarm.contrib.projection.PHI_END', np.pi):
+            with mock.patch('visualswarm.contrib.vision.PHI_START', -np.pi):
+                with mock.patch('visualswarm.contrib.vision.PHI_END', np.pi):
                     with mock.patch('visualswarm.behavior.statevarcomp.compute_state_variables') as fake_control_params:
 
                         # Mocking calculations

@@ -161,8 +161,8 @@ class VProcessTest(TestCase):
             fake_ifclient.write_points.return_value = None
             fake_create_client.return_value = fake_ifclient
 
-            with mock.patch('visualswarm.contrib.projection.H_MARGIN', 0):
-                with mock.patch('visualswarm.contrib.projection.W_MARGIN', 0):
+            with mock.patch('visualswarm.contrib.vision.H_MARGIN', 0):
+                with mock.patch('visualswarm.contrib.vision.W_MARGIN', 0):
                     with mock.patch('numpy.max') as fake_npmax:
                         # Case 1 : no saving to db
                         with mock.patch('visualswarm.contrib.monitorparams.SAVE_PROJECTION_FIELD', False):

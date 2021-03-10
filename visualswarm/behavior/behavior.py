@@ -7,8 +7,9 @@ import logging
 
 import numpy as np
 
+import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import projection, monitorparams, controlparams
+from visualswarm.contrib import monitorparams, controlparams
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
@@ -34,7 +35,8 @@ def VPF_to_behavior(VPF_stream, control_stream):
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
         if phi is None:
-            phi = np.linspace(projection.PHI_START, projection.PHI_END, len(projection_field))
+            phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
+                              len(projection_field))
 
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
         v += dv

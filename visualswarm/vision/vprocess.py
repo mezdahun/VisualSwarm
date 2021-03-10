@@ -12,7 +12,7 @@ import numpy as np
 import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import camera, projection, vision, monitorparams
+from visualswarm.contrib import camera, vision, monitorparams
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -162,7 +162,8 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
     while True:
         (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
         # logger.info(high_level_vision_stream.qsize())
-        cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
+        cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
+                             visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
         projection_field = projection_field / 255
 

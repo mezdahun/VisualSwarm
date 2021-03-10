@@ -3,7 +3,7 @@
 @description: Parameters related to visualization
 """
 from cv2 import cvtColor, COLOR_BGR2HSV
-from numpy import uint8
+from numpy import uint8, pi
 
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
@@ -35,3 +35,9 @@ HSV_HIGH = uint8([TARGET_HSV_COLOR[0][0][0] + HSV_HUE_RANGE, SV_MAXIMUM, SV_MAXI
 GAUSSIAN_KERNEL_WIDTH = 15
 MEDIAN_BLUR_WIDTH = 9
 MIN_BLOB_AREA = 100
+
+# Visual Projection
+H_MARGIN = 10
+W_MARGIN = 10
+PHI_START = -0.5394 * pi
+PHI_END = 0.5394 * pi
