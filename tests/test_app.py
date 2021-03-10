@@ -76,3 +76,8 @@ class AppTest(TestCase):
                             fake_create_client.assert_called_once()
                             fake_ifclient.drop_database.assert_called_once()
                             fake_ifclient.create_database.assert_called_once()
+
+    @mock.patch('visualswarm.app.start_application', return_value=None)
+    def test_start_application_with_control(self, mock_start):
+        app.start_application_with_control()
+        mock_start.assert_called_once_with(with_control=True)
