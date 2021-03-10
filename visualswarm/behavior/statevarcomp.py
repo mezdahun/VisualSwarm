@@ -19,13 +19,14 @@ def dPhi_V_of(Phi, V):
     # circular padding for edge cases
     padV = np.pad(V, (1, 1), 'wrap')
     dPhi_V_raw = np.diff(padV)
-    # print(f'before: {np.count_nonzero(dPhi_V_raw)}')
+
     # we want to include non-zero value if it is on the edge
     if dPhi_V_raw[0] > 0 and dPhi_V_raw[-1] > 0:
-        # print('edge case')
         dPhi_V_raw = dPhi_V_raw[0:-1]
+
     else:
         dPhi_V_raw = dPhi_V_raw[1:, ...]
+
     dPhi_V = dPhi_V_raw / (Phi[-1] - Phi[-2])
     return dPhi_V
 
@@ -71,6 +72,5 @@ def compute_state_variables(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev
            np.sum(np.cos(phi) * G_vel_spike) * dphi
     dpsi = integrate.trapz(np.sin(phi) * G_psi, phi) + \
            np.sum(np.sin(phi) * G_psi_spike) * dphi
-    # dvel = (dvel / flockparams.V_MAX_ALG) * flockparams.V_MAX_PHYS
-    # dpsi = (dpsi / flockparams.DPSI_MAX_ALG) * flockparams.DPSI_MAX_PHYS
+
     return dvel, dpsi
