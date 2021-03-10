@@ -10,7 +10,7 @@ import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, vision, control
+from visualswarm.contrib import logparams, vision
 from visualswarm.behavior import behavior
 from visualswarm.control import motoroutput
 
@@ -28,7 +28,7 @@ def health():
     logger.info("VisualSwarm application OK!")
 
 
-def start_vision_stream():
+def start_application(with_control=False):
     """Start the visual stream of the Pi"""
     # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:
@@ -71,7 +71,7 @@ def start_vision_stream():
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,))
-    if control.ENABLE_MOTOR_CONTROL:
+    if with_control:
         motor_control = Process(target=motoroutput.control_thymio, args=(control_stream,))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
 
@@ -85,7 +85,7 @@ def start_vision_stream():
         visualizer.start()
         VPF_extractor.start()
         behavior_proc.start()
-        if control.ENABLE_MOTOR_CONTROL:
+        if with_control:
             motor_control.start()
         system_monitor_proc.start()
 
@@ -96,7 +96,7 @@ def start_vision_stream():
         raw_vision.join()
         VPF_extractor.join()
         behavior_proc.join()
-        if control.ENABLE_MOTOR_CONTROL:
+        if with_control:
             motor_control.join()
         system_monitor_proc.join()
 
@@ -107,7 +107,7 @@ def start_vision_stream():
         system_monitor_proc.terminate()
         system_monitor_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
-        if control.ENABLE_MOTOR_CONTROL:
+        if with_control:
             motor_control.terminate()
             motor_control.join()
             logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} motor control process and joined!')
@@ -151,3 +151,7 @@ def start_vision_stream():
         network.SetVariable("thymio-II", "motor.right.target", [0])
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
+
+
+def start_application_with_control():
+    start_application(with_control=True)
