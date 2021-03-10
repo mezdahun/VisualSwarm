@@ -9,7 +9,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy import integrate
 
-from visualswarm.contrib import flockparams
+from visualswarm.contrib import behavior
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -75,20 +75,20 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     dPhi_V = dPhi_V_of(Phi, V_now)
 
     # Calculating series expansion of functional G
-    G_vel = flockparams.ALP0 * (-V_now + flockparams.ALP2 * dt_V)
+    G_vel = behavior.ALP0 * (-V_now + behavior.ALP2 * dt_V)
 
     # Spikey parts shall be handled separately because of numerical integration
-    G_vel_spike = flockparams.ALP0 * flockparams.ALP1 * np.square(dPhi_V)
+    G_vel_spike = behavior.ALP0 * behavior.ALP1 * np.square(dPhi_V)
 
-    G_psi = flockparams.BET0 * (-V_now + flockparams.BET2 * dt_V)
+    G_psi = behavior.BET0 * (-V_now + behavior.BET2 * dt_V)
 
     # Spikey parts shall be handled separately because of numerical integration
-    G_psi_spike = flockparams.BET0 * flockparams.BET1 * np.square(dPhi_V)
+    G_psi_spike = behavior.BET0 * behavior.BET1 * np.square(dPhi_V)
 
     # Calculating change in velocity and heading direction
     dPhi = Phi[-1] - Phi[-2]
 
-    dvel = flockparams.GAM * (flockparams.V0 - vel_now) + \
+    dvel = behavior.GAM * (behavior.V0 - vel_now) + \
            integrate.trapz(np.cos(Phi) * G_vel, Phi) + \
            np.sum(np.cos(Phi) * G_vel_spike) * dPhi
     dpsi = integrate.trapz(np.sin(Phi) * G_psi, Phi) + \

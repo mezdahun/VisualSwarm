@@ -54,8 +54,8 @@ class MoveCompTest(TestCase):
         mock_dphi.return_value = np.zeros(10)
         phi = np.zeros(10)
 
-        with mock.patch('visualswarm.contrib.flockparams.GAM', 2):
-            with mock.patch('visualswarm.contrib.flockparams.V0', 5):
+        with mock.patch('visualswarm.contrib.behavior.GAM', 2):
+            with mock.patch('visualswarm.contrib.behavior.V0', 5):
                 vel_now = 10
                 dv, dpsi = statevarcomp.compute_state_variables(vel_now, phi, np.zeros(10))
                 self.assertEqual(dv, 90)

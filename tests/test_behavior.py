@@ -34,7 +34,7 @@ class MoveCompTest(TestCase):
                         control_stream = mock.MagicMock()
                         control_stream.put.return_value = None
 
-                        with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', False):
+                        with mock.patch('visualswarm.contrib.control.ENABLE_MOTOR_CONTROL', False):
                             # Case 1: no save control params
                             with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', False):
                                 behavior.VPF_to_behavior(VPF_stream, control_stream)
@@ -60,6 +60,6 @@ class MoveCompTest(TestCase):
                                 fake_ifclient.write_points.assert_called_once()
 
                         # Case 3: motor output turned off
-                        with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', True):
+                        with mock.patch('visualswarm.contrib.control.ENABLE_MOTOR_CONTROL', True):
                             behavior.VPF_to_behavior(VPF_stream, control_stream)
                             control_stream.put.assert_called_once()

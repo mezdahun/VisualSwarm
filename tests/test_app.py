@@ -18,7 +18,7 @@ class AppTest(TestCase):
     def test_start_vision_stream(self, mockQueue, mockProcess):
         if FAKE_STATUS:
             with mock.patch('visualswarm.env.INFLUX_FRESH_DB_UPON_START', False):
-                with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', True):
+                with mock.patch('visualswarm.contrib.control.ENABLE_MOTOR_CONTROL', True):
                     # Case 1 with interactive visualization
                     num_processes = 6 + visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS
                     with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', True):
