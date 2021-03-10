@@ -22,7 +22,7 @@ def stabilize_color_space_params(picam):
         Args:
             picam: PiCamera instance to configure
         Returns:
-            picam: configured PiCamera instance
+            None
     """
     picam.iso = 300
     # Wait for the automatic gain control to settle
@@ -39,7 +39,7 @@ def raw_vision(raw_vision_stream):
     """Process to capture raw input via the camera module and sequentially push it to a vision stream so that other
     processes can consume this stream
         Args:
-            raw_vision_stream: multiprocessing.Queue type object to create stream for captured camera data.
+            raw_vision_stream (multiprocessing.Queue): Stream to create stream for captured camera data.
         Returns:
             -shall not return-
     """
