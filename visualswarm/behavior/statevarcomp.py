@@ -36,7 +36,7 @@ def dPhi_V_of(Phi, V):
 #     return dt_V
 
 
-def compute_control_params(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
+def compute_state_variables(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
     """Calculating the velocity difference of the agent according the main algorithm"""
     # # Deriving over t
     # if V_prev is not None and t_prev is not None and t_now is not None:
