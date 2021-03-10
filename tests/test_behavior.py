@@ -15,7 +15,7 @@ class MoveCompTest(TestCase):
         with mock.patch('visualswarm.monitoring.ifdb.create_ifclient') as fake_create_client:
             with mock.patch('visualswarm.contrib.projection.PHI_START', -np.pi):
                 with mock.patch('visualswarm.contrib.projection.PHI_END', np.pi):
-                    with mock.patch('visualswarm.behavior.movecomp.compute_control_params') as fake_control_params:
+                    with mock.patch('visualswarm.behavior.statevarcomp.compute_control_params') as fake_control_params:
 
                         # Mocking calculations
                         fake_ifclient = mock.MagicMock()

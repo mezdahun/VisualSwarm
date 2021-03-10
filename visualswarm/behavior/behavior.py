@@ -9,7 +9,7 @@ import numpy as np
 
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import projection, monitorparams, controlparams
-from visualswarm.behavior import movecomp
+from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
 # using main logger
@@ -36,7 +36,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
         if phi is None:
             phi = np.linspace(projection.PHI_START, projection.PHI_END, len(projection_field))
 
-        dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
+        dv, dpsi = statevarcomp.compute_control_params(v, phi, projection_field)
         v += dv
         psi += dpsi
         psi = psi % (2 * np.pi)
