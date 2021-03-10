@@ -9,7 +9,8 @@ from visualswarm import env
 from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, segmentation, visual, controlparams
-from visualswarm.behavior import behavior, motoroutput
+from visualswarm.behavior import behavior
+from visualswarm.control import motoroutput
 
 import dbus.mainloop.glib
 
