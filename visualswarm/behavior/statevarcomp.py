@@ -6,6 +6,7 @@ https://advances.sciencemag.org/content/6/6/eaay0792
 import logging
 
 import numpy as np
+import numpy.typing as npt
 from scipy import integrate
 
 from visualswarm.contrib import flockparams
@@ -14,8 +15,14 @@ from visualswarm.contrib import flockparams
 logger = logging.getLogger('visualswarm.app')
 
 
-def dPhi_V_of(Phi, V):
-    """Calculating derivative of VPF according to Phi visual angle at a given timepoint t"""
+def dPhi_V_of(Phi: npt.ArrayLike, V: npt.ArrayLike) -> npt.ArrayLike:
+    """Calculating derivative of VPF according to Phi visual angle array at a given timepoint t
+        Args:
+            Phi: linspace numpy array of visual field axis
+            V: binary visual projection field array
+        Returns:
+            dPhi_V: derivative array of V w.r.t Phi
+    """
     # circular padding for edge cases
     padV = np.pad(V, (1, 1), 'wrap')
     dPhi_V_raw = np.diff(padV)
@@ -37,8 +44,22 @@ def dPhi_V_of(Phi, V):
 #     return dt_V
 
 
-def compute_state_variables(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev=None):
-    """Calculating the velocity difference of the agent according the main algorithm"""
+def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.ArrayLike,
+                            t_now=None, V_prev=None, t_prev=None):
+    """Calculating state variables of a given agent according to the main algorithm as in
+    https://advances.sciencemag.org/content/6/6/eaay0792.
+        Args:
+            vel_now: current speed of the agent
+            V_now: current binary visual projection field array
+            Phi: linspace numpy array of visual field axis
+            t_now: current time
+            V_prev: previous binary visual projection field array
+            t_prev: previous time
+        Returns:
+            dvel: temporal change in agent velocity
+            dpsi: temporal change in agent heading angle
+
+    """
     # # Deriving over t
     # if V_prev is not None and t_prev is not None and t_now is not None:
     #     dt = t_now - t_prev
@@ -46,12 +67,12 @@ def compute_state_variables(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev
     #     joined_V = np.vstack((V_prev, t_prev))
     #     dt_V = dt_V_of(dt, joined_V)
     # else:
-    #     dt_V = np.zeros(len(phi))
+    #     dt_V = np.zeros(len(Phi))
 
-    dt_V = np.zeros(len(phi))
+    dt_V = np.zeros(len(Phi))
 
     # Deriving over Phi
-    dPhi_V = dPhi_V_of(phi, V_now)
+    dPhi_V = dPhi_V_of(Phi, V_now)
 
     # Calculating series expansion of functional G
     G_vel = flockparams.ALP0 * (-V_now + flockparams.ALP2 * dt_V)
@@ -65,12 +86,12 @@ def compute_state_variables(vel_now, phi, V_now, t_now=None, V_prev=None, t_prev
     G_psi_spike = flockparams.BET0 * flockparams.BET1 * np.square(dPhi_V)
 
     # Calculating change in velocity and heading direction
-    dphi = phi[-1] - phi[-2]
+    dPhi = Phi[-1] - Phi[-2]
 
     dvel = flockparams.GAM * (flockparams.V0 - vel_now) + \
-           integrate.trapz(np.cos(phi) * G_vel, phi) + \
-           np.sum(np.cos(phi) * G_vel_spike) * dphi
-    dpsi = integrate.trapz(np.sin(phi) * G_psi, phi) + \
-           np.sum(np.sin(phi) * G_psi_spike) * dphi
+           integrate.trapz(np.cos(Phi) * G_vel, Phi) + \
+           np.sum(np.cos(Phi) * G_vel_spike) * dPhi
+    dpsi = integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
+           np.sum(np.sin(Phi) * G_psi_spike) * dPhi
 
     return dvel, dpsi
