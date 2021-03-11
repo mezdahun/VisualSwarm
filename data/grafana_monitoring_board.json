@@ -69,7 +69,7 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -157,7 +157,7 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -245,7 +245,7 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -333,7 +333,7 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -457,7 +457,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Used Disk Space [%]",
+      "title": "Mean Used Disk Space [%]",
       "type": "stat"
     },
     {
@@ -532,7 +532,7 @@
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Used Memory [%]",
+      "title": "Mean Used Memory [%]",
       "type": "stat"
     },
     {
@@ -576,7 +576,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "mean"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
@@ -799,7 +799,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "firstNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
