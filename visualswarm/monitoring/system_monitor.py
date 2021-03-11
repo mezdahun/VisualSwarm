@@ -11,6 +11,10 @@ from visualswarm import env
 
 
 def system_monitor():
+    """
+        Method to collect system rescource parameters and write them into influxDB instance defined according
+        to visualswarm.monitoring.ifdb
+    """
     measurement_name = "system_parameters"
     ifclient = ifdb.create_ifclient()
 

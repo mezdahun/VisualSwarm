@@ -7,9 +7,10 @@ import logging
 
 import numpy as np
 
+import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import projection, monitorparams, controlparams
-from visualswarm.behavior import movecomp
+from visualswarm.contrib import monitoring, control
+from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
 # using main logger
@@ -20,8 +21,8 @@ def VPF_to_behavior(VPF_stream, control_stream):
     """
     Process to extract final visual projection field from high level visual input.
         Args:
-            VPF_stream: stream to receive visual projection field
-            control_stream: stream to push calculated control parameters
+            VPF_stream (multiprocessing Queue): stream to receive visual projection field
+            control_stream (multiprocessing Queue): stream to push calculated control parameters
         Returns:
             -shall not return-
     """
@@ -34,24 +35,15 @@ def VPF_to_behavior(VPF_stream, control_stream):
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
         if phi is None:
-            phi = np.linspace(projection.PHI_START, projection.PHI_END, len(projection_field))
+            phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
+                              len(projection_field))
 
-        dv, dpsi = movecomp.compute_control_params(v, phi, projection_field)
+        dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
         v += dv
         psi += dpsi
         psi = psi % (2 * np.pi)
-        # if np.abs(dv) > flockparams.V_MAX_PHYS:
-        #     if dv > 0:
-        #         dv = float(flockparams.V_MAX_PHYS)
-        #     else:
-        #         dv = -float(flockparams.V_MAX_PHYS)
-        # if np.abs(dpsi) > flockparams.DPSI_MAX_PHYS:
-        #     if dpsi > 0:
-        #         dpsi = float(flockparams.DPSI_MAX_PHYS)
-        #     else:
-        #         dpsi = -float(flockparams.DPSI_MAX_PHYS)
 
-        if monitorparams.SAVE_CONTROL_PARAMS:
+        if monitoring.SAVE_CONTROL_PARAMS:
 
             # take a timestamp for this measurement
             time = datetime.datetime.utcnow()
@@ -72,7 +64,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        if controlparams.ENABLE_MOTOR_CONTROL:
+        if control.ENABLE_MOTOR_CONTROL:
             control_stream.put((v, dpsi))
 
         # To test infinite loops

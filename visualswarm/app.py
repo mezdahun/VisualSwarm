@@ -5,11 +5,14 @@
 
 import logging
 from multiprocessing import Process, Queue
+
+import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, segmentation, visual, controlparams
-from visualswarm.behavior import control, motoroutput
+from visualswarm.contrib import logparams, vision
+from visualswarm.behavior import behavior
+from visualswarm.control import motoroutput
 
 import dbus.mainloop.glib
 
@@ -25,7 +28,7 @@ def health():
     logger.info("VisualSwarm application OK!")
 
 
-def start_vision_stream():
+def start_application(with_control=False):
     """Start the visual stream of the Pi"""
     # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:
@@ -40,13 +43,13 @@ def start_vision_stream():
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
 
-    if visual.SHOW_VISION_STREAMS:
+    if vision.SHOW_VISION_STREAMS:
         # showing raw and processed camera stream
         visualization_stream = Queue()
     else:
         visualization_stream = None
 
-    if visual.FIND_COLOR_INTERACTIVE:
+    if vision.FIND_COLOR_INTERACTIVE:
         # interactive target parameter tuning turned on
         target_config_stream = Queue()
         # overriding visualization otherwise interactive parameter tuning makes no sense
@@ -63,11 +66,12 @@ def start_vision_stream():
                                       args=(raw_vision_stream,
                                             high_level_vision_stream,
                                             visualization_stream,
-                                            target_config_stream,)) for i in range(segmentation.NUM_SEGMENTATION_PROCS)]
+                                            target_config_stream,)) for i in range(
+        visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
-    behavior = Process(target=control.VPF_to_behavior, args=(VPF_stream, control_stream,))
-    if controlparams.ENABLE_MOTOR_CONTROL:
+    behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,))
+    if with_control:
         motor_control = Process(target=motoroutput.control_thymio, args=(control_stream,))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
 
@@ -80,8 +84,8 @@ def start_vision_stream():
             proc.start()
         visualizer.start()
         VPF_extractor.start()
-        behavior.start()
-        if controlparams.ENABLE_MOTOR_CONTROL:
+        behavior_proc.start()
+        if with_control:
             motor_control.start()
         system_monitor_proc.start()
 
@@ -91,8 +95,8 @@ def start_vision_stream():
             proc.join()
         raw_vision.join()
         VPF_extractor.join()
-        behavior.join()
-        if controlparams.ENABLE_MOTOR_CONTROL:
+        behavior_proc.join()
+        if with_control:
             motor_control.join()
         system_monitor_proc.join()
 
@@ -103,12 +107,12 @@ def start_vision_stream():
         system_monitor_proc.terminate()
         system_monitor_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
-        if controlparams.ENABLE_MOTOR_CONTROL:
+        if with_control:
             motor_control.terminate()
             motor_control.join()
             logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} motor control process and joined!')
-        behavior.terminate()
-        behavior.join()
+        behavior_proc.terminate()
+        behavior_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} control parameter calculations!')
         VPF_extractor.terminate()
         VPF_extractor.join()
@@ -138,12 +142,17 @@ def start_vision_stream():
         control_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} control parameter stream!')
 
-        logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
-        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
-        network.SetVariable("thymio-II", "motor.left.target", [0])
-        network.SetVariable("thymio-II", "motor.right.target", [0])
+        if with_control:
+            logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
+            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+            bus = dbus.SessionBus()
+            network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                     dbus_interface='ch.epfl.mobots.AsebaNetwork')
+            network.SetVariable("thymio-II", "motor.left.target", [0])
+            network.SetVariable("thymio-II", "motor.right.target", [0])
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
+
+
+def start_application_with_control():
+    start_application(with_control=True)

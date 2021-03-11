@@ -19,7 +19,7 @@ class VProcessTest(TestCase):
                                 with mock.patch('cv2.convexHull') as convexHull:
                                     with mock.patch('cv2.drawContours') as drawContours:
                                         # Case 1 : no interactive parameter tuning
-                                        with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', False):
+                                        with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', False):
                                             cvtColor.return_value = None
                                             inRange.return_value = None
                                             GaussianBlur.return_value = None
@@ -58,8 +58,8 @@ class VProcessTest(TestCase):
                                         contourArea.reset_mock()
                                         convexHull.reset_mock()
                                         drawContours.reset_mock()
-                                        with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
-                                            with mock.patch('visualswarm.contrib.segmentation.MIN_BLOB_AREA', 0):
+                                        with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', True):
+                                            with mock.patch('visualswarm.contrib.vision.MIN_BLOB_AREA', 0):
                                                 cvtColor.return_value = [[[0]]]
                                                 inRange.return_value = None
                                                 GaussianBlur.return_value = None
@@ -107,7 +107,7 @@ class VProcessTest(TestCase):
                              ['INFO:visualswarm.app:Visualization stream is None, visualization process returns!'])
         # Case 2 visualization
         # Case 2.a no interactive plotting
-        with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', False):
+        with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', False):
             with mock.patch('cv2.imshow') as fake_imshow:
                 with mock.patch('cv2.resize') as fake_resize:
                     with mock.patch('cv2.waitKey') as fake_waitKey:
@@ -125,7 +125,7 @@ class VProcessTest(TestCase):
                         self.assertEqual(fake_waitKey.call_count, 1)
 
         # Case 2.b with interactive plotting
-        with mock.patch('visualswarm.contrib.visual.FIND_COLOR_INTERACTIVE', True):
+        with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', True):
             with mock.patch('cv2.imshow') as fake_imshow:
                 with mock.patch('cv2.resize') as fake_resize:
                     with mock.patch('cv2.waitKey') as fake_waitKey:
@@ -161,11 +161,11 @@ class VProcessTest(TestCase):
             fake_ifclient.write_points.return_value = None
             fake_create_client.return_value = fake_ifclient
 
-            with mock.patch('visualswarm.contrib.projection.H_MARGIN', 0):
-                with mock.patch('visualswarm.contrib.projection.W_MARGIN', 0):
+            with mock.patch('visualswarm.contrib.vision.H_MARGIN', 0):
+                with mock.patch('visualswarm.contrib.vision.W_MARGIN', 0):
                     with mock.patch('numpy.max') as fake_npmax:
                         # Case 1 : no saving to db
-                        with mock.patch('visualswarm.contrib.monitorparams.SAVE_PROJECTION_FIELD', False):
+                        with mock.patch('visualswarm.contrib.monitoring.SAVE_PROJECTION_FIELD', False):
                             fake_npmax.return_value = np.array([1, 2, 3])
                             img = None
                             mask = np.array([[1, 2, 3], [0, 0, 0]])
@@ -180,8 +180,8 @@ class VProcessTest(TestCase):
 
                         # Case 2 : saving to db
                         fake_npmax.reset_mock()
-                        with mock.patch('visualswarm.contrib.monitorparams.SAVE_PROJECTION_FIELD', True):
-                            with mock.patch('visualswarm.contrib.monitorparams.DOWNGRADING_FACTOR', 1):
+                        with mock.patch('visualswarm.contrib.monitoring.SAVE_PROJECTION_FIELD', True):
+                            with mock.patch('visualswarm.contrib.monitoring.DOWNGRADING_FACTOR', 1):
                                 with mock.patch('visualswarm.monitoring.ifdb.pad_to_n_digits') as fake_pad:
                                     with mock.patch('numpy.max') as fake_npmax:
                                         fake_npmax.return_value = np.array([1, 2, 3])

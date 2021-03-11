@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 import numpy as np
 from freezegun import freeze_time
 
-from visualswarm.behavior import control
+from visualswarm.behavior import behavior
 
 
 class MoveCompTest(TestCase):
@@ -13,9 +13,9 @@ class MoveCompTest(TestCase):
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_VPF_to_behavior(self):
         with mock.patch('visualswarm.monitoring.ifdb.create_ifclient') as fake_create_client:
-            with mock.patch('visualswarm.contrib.projection.PHI_START', -np.pi):
-                with mock.patch('visualswarm.contrib.projection.PHI_END', np.pi):
-                    with mock.patch('visualswarm.behavior.movecomp.compute_control_params') as fake_control_params:
+            with mock.patch('visualswarm.contrib.vision.PHI_START', -np.pi):
+                with mock.patch('visualswarm.contrib.vision.PHI_END', np.pi):
+                    with mock.patch('visualswarm.behavior.statevarcomp.compute_state_variables') as fake_control_params:
 
                         # Mocking calculations
                         fake_ifclient = mock.MagicMock()
@@ -34,10 +34,10 @@ class MoveCompTest(TestCase):
                         control_stream = mock.MagicMock()
                         control_stream.put.return_value = None
 
-                        with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', False):
+                        with mock.patch('visualswarm.contrib.control.ENABLE_MOTOR_CONTROL', False):
                             # Case 1: no save control params
-                            with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', False):
-                                control.VPF_to_behavior(VPF_stream, control_stream)
+                            with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', False):
+                                behavior.VPF_to_behavior(VPF_stream, control_stream)
                                 fake_create_client.assert_called_once()
                                 fake_control_params.assert_called_once()
 
@@ -53,13 +53,13 @@ class MoveCompTest(TestCase):
                             fake_control_params.return_value = (1, 1)
 
                             # Case 2: save control params to ifdb
-                            with mock.patch('visualswarm.contrib.monitorparams.SAVE_CONTROL_PARAMS', True):
-                                control.VPF_to_behavior(VPF_stream, control_stream)
+                            with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', True):
+                                behavior.VPF_to_behavior(VPF_stream, control_stream)
                                 fake_create_client.assert_called_once()
                                 fake_control_params.assert_called_once()
                                 fake_ifclient.write_points.assert_called_once()
 
                         # Case 3: motor output turned off
-                        with mock.patch('visualswarm.contrib.controlparams.ENABLE_MOTOR_CONTROL', True):
-                            control.VPF_to_behavior(VPF_stream, control_stream)
+                        with mock.patch('visualswarm.contrib.control.ENABLE_MOTOR_CONTROL', True):
+                            behavior.VPF_to_behavior(VPF_stream, control_stream)
                             control_stream.put.assert_called_once()

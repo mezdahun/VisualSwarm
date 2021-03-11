@@ -2,7 +2,7 @@ from unittest import TestCase, mock
 
 import numpy as np
 
-from visualswarm.behavior import movecomp
+from visualswarm.behavior import statevarcomp
 
 
 class MoveCompTest(TestCase):
@@ -16,7 +16,7 @@ class MoveCompTest(TestCase):
         vdiff_ok = np.zeros(10)
         vdiff_ok[2] = 1
         vdiff_ok[4] = -1
-        vdiff = movecomp.dPhi_V_of(phi, V)
+        vdiff = statevarcomp.dPhi_V_of(phi, V)
         np.testing.assert_array_equal(vdiff, vdiff_ok)
 
         # Case 2: object in FOV touching right edge
@@ -25,7 +25,7 @@ class MoveCompTest(TestCase):
         vdiff_ok = np.zeros(10)
         vdiff_ok[6] = 1
         vdiff_ok[-1] = -1
-        vdiff = movecomp.dPhi_V_of(phi, V)
+        vdiff = statevarcomp.dPhi_V_of(phi, V)
         np.testing.assert_array_equal(vdiff, vdiff_ok)
 
         # Case 3: object in FOV touching left edge
@@ -34,7 +34,7 @@ class MoveCompTest(TestCase):
         vdiff_ok = np.zeros(10)
         vdiff_ok[0] = 1
         vdiff_ok[5] = -1
-        vdiff = movecomp.dPhi_V_of(phi, V)
+        vdiff = statevarcomp.dPhi_V_of(phi, V)
         np.testing.assert_array_equal(vdiff, vdiff_ok)
 
         # Case 3: object circularly goes through on edges
@@ -44,19 +44,19 @@ class MoveCompTest(TestCase):
         vdiff_ok = np.zeros(10)
         vdiff_ok[1] = -1
         vdiff_ok[7] = 1
-        vdiff = movecomp.dPhi_V_of(phi, V)
+        vdiff = statevarcomp.dPhi_V_of(phi, V)
         np.testing.assert_array_equal(vdiff, vdiff_ok)
 
-    @mock.patch('visualswarm.behavior.movecomp.dPhi_V_of')
+    @mock.patch('visualswarm.behavior.statevarcomp.dPhi_V_of')
     @mock.patch('scipy.integrate.trapz')
     def test_compute_control_params(self, mock_integrate, mock_dphi):
         mock_integrate.return_value = 100
         mock_dphi.return_value = np.zeros(10)
         phi = np.zeros(10)
 
-        with mock.patch('visualswarm.contrib.flockparams.GAM', 2):
-            with mock.patch('visualswarm.contrib.flockparams.V0', 5):
+        with mock.patch('visualswarm.contrib.behavior.GAM', 2):
+            with mock.patch('visualswarm.contrib.behavior.V0', 5):
                 vel_now = 10
-                dv, dpsi = movecomp.compute_control_params(vel_now, phi, np.zeros(10))
+                dv, dpsi = statevarcomp.compute_state_variables(vel_now, phi, np.zeros(10))
                 self.assertEqual(dv, 90)
                 self.assertEqual(dpsi, 100)

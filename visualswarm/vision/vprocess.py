@@ -9,9 +9,10 @@ from math import floor
 import cv2
 import numpy as np
 
+import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import camera, projection, segmentation, visual, monitorparams
+from visualswarm.contrib import camera, vision, monitoring
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')
@@ -27,20 +28,22 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
     processes can consume this stream
         Args:
-            raw_vision_stream: multiprocessing.Queue type object to read raw visual input.
-            high_level_vision_stream: multiprocessing.Queue type object to push high-level visual data.
-            visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
-            target_config_stream: stream to transmit configuration parameters if interactive configuration is turned on.
+            raw_vision_stream (multiprocessing.Queue): stream object to read raw visual input.
+            high_level_vision_stream (multiprocessing.Queue): stream to push high-level visual data.
+            visualization_stream (multiprocessing.Queue): stream to visualize raw vs processed vision, and to tune
+                parameters interactively
+            target_config_stream (multiprocessing.Queue): stream to transmit configuration parameters if interactive
+                configuration is turned on.
         Returns:
             -shall not return-
     """
-    hsv_low = segmentation.HSV_LOW
-    hsv_high = segmentation.HSV_HIGH
+    hsv_low = visualswarm.contrib.vision.HSV_LOW
+    hsv_high = visualswarm.contrib.vision.HSV_HIGH
 
     while True:
         (img, frame_id, capture_timestamp) = raw_vision_stream.get()
         # logger.info(raw_vision_stream.qsize())
-        if visual.FIND_COLOR_INTERACTIVE:
+        if vision.FIND_COLOR_INTERACTIVE:
             if target_config_stream is not None:
                 if target_config_stream.qsize() > 1:
                     (R, B, G, hue_range, sv_min, sv_max) = target_config_stream.get()
@@ -55,14 +58,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
         # Gaussian blur
-        blurred = cv2.GaussianBlur(mask, (segmentation.GAUSSIAN_KERNEL_WIDTH, segmentation.GAUSSIAN_KERNEL_WIDTH), 0)
-        blurred = cv2.medianBlur(blurred, segmentation.MEDIAN_BLUR_WIDTH)
+        blurred = cv2.GaussianBlur(mask, (
+            visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
+        blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
 
         # Find contours
         conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
 
         # Selecting appropriate contours
-        fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= segmentation.MIN_BLOB_AREA]
+        fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= visualswarm.contrib.vision.MIN_BLOB_AREA]
 
         # Creating convex hull from selected contours
         hull_list = []
@@ -71,8 +75,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             hull_list.append(hull)
 
         # visualize contours and convex hull on the original image and the area on the new mask
-        cv2.drawContours(img, fconts, -1, visual.RAW_CONTOUR_COLOR, visual.RAW_CONTOUR_WIDTH)
-        cv2.drawContours(img, hull_list, -1, visual.CONVEX_CONTOUR_COLOR, visual.CONVEX_CONTOUR_WIDTH)
+        cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
+        cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
         cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
         # Forwarding result to VPF extraction
@@ -93,27 +97,32 @@ def visualizer(visualization_stream, target_config_stream=None):
     interactively, in this case a configuration stream is also used to fetch interactively given parameters from the
     user.
         Args:
-            visualization_stream: stream to visualize raw vs processed vision, and to tune parameters interactively
-            target_config_stream: stream to transmit segmentation parameters between interactive tuning input window and
-                the visualization_stream
+            visualization_stream (multiprocessing.Queue): stream to visualize raw vs processed vision, and to tune
+                parameters interactively
+            target_config_stream (multiprocessing.Queue): stream to transmit segmentation parameters between
+                interactive tuning input window and the visualization_stream
         Returns:
             -shall not return-
     """
     if visualization_stream is not None:
-        if visual.FIND_COLOR_INTERACTIVE:
+        if vision.FIND_COLOR_INTERACTIVE:
             cv2.namedWindow("Segmentation Parameters")
-            cv2.createTrackbar("R", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[0], 255, nothing)
-            cv2.createTrackbar("G", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[1], 255, nothing)
-            cv2.createTrackbar("B", "Segmentation Parameters", segmentation.TARGET_RGB_COLOR[2], 255, nothing)
-            cv2.createTrackbar("H_range", "Segmentation Parameters", segmentation.HSV_HUE_RANGE, 255, nothing)
-            cv2.createTrackbar("SV_min", "Segmentation Parameters", segmentation.SV_MINIMUM, 255, nothing)
-            cv2.createTrackbar("SV_max", "Segmentation Parameters", segmentation.SV_MAXIMUM, 255, nothing)
+            cv2.createTrackbar("R", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[0], 255,
+                               nothing)
+            cv2.createTrackbar("G", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[1], 255,
+                               nothing)
+            cv2.createTrackbar("B", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[2], 255,
+                               nothing)
+            cv2.createTrackbar("H_range", "Segmentation Parameters", visualswarm.contrib.vision.HSV_HUE_RANGE, 255,
+                               nothing)
+            cv2.createTrackbar("SV_min", "Segmentation Parameters", visualswarm.contrib.vision.SV_MINIMUM, 255, nothing)
+            cv2.createTrackbar("SV_max", "Segmentation Parameters", visualswarm.contrib.vision.SV_MAXIMUM, 255, nothing)
             color_sample = np.zeros((200, 200, 3), np.uint8)
 
         while True:
             # visualization
             (img, mask, frame_id) = visualization_stream.get()
-            if visual.FIND_COLOR_INTERACTIVE:
+            if vision.FIND_COLOR_INTERACTIVE:
                 if target_config_stream is not None:
                     B = cv2.getTrackbarPos("B", "Segmentation Parameters")
                     G = cv2.getTrackbarPos("G", "Segmentation Parameters")
@@ -123,11 +132,11 @@ def visualizer(visualization_stream, target_config_stream=None):
                     SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
                     SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
                     target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
-            vis_width = floor(camera.RESOLUTION[0] / visual.VIS_DOWNSAMPLE_FACTOR)
-            vis_height = floor(camera.RESOLUTION[1] / visual.VIS_DOWNSAMPLE_FACTOR)
+            vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
+            vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
             cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
             cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
-            if visual.FIND_COLOR_INTERACTIVE:
+            if vision.FIND_COLOR_INTERACTIVE:
                 cv2.imshow("Segmentation Parameters", color_sample)
             cv2.waitKey(1)
 
@@ -142,8 +151,8 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
     """
     Process to extract final visual projection field from high level visual input.
         Args:
-            high_level_vision_stream: multiprocessing.Queue type object to get processed visual information
-            VPF_stream: stream to push final visual projection field
+            high_level_vision_stream (multiprocessing.Queue): Stream object to get processed visual information
+            VPF_stream (multiprocessing.Queue): stream to push final visual projection field
         Returns:
             -shall not return-
     """
@@ -153,13 +162,14 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
     while True:
         (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
         # logger.info(high_level_vision_stream.qsize())
-        cropped_image = mask[projection.H_MARGIN:-projection.H_MARGIN, projection.W_MARGIN:-projection.W_MARGIN]
+        cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
+                             visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
         projection_field = np.max(cropped_image, axis=0)
         projection_field = projection_field / 255
 
-        if monitorparams.SAVE_PROJECTION_FIELD:
+        if monitoring.SAVE_PROJECTION_FIELD:
             # Saving projection field data to InfluxDB to visualize with Grafana
-            proj_field_vis = projection_field[0:-1:monitorparams.DOWNGRADING_FACTOR]
+            proj_field_vis = projection_field[0:-1:monitoring.DOWNGRADING_FACTOR]
 
             # take a timestamp for this measurement
             time = datetime.datetime.utcnow()
