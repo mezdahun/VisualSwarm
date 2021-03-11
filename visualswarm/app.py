@@ -142,13 +142,14 @@ def start_application(with_control=False):
         control_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} control parameter stream!')
 
-        logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
-        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
-        network.SetVariable("thymio-II", "motor.left.target", [0])
-        network.SetVariable("thymio-II", "motor.right.target", [0])
+        if with_control:
+            logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
+            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+            bus = dbus.SessionBus()
+            network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                     dbus_interface='ch.epfl.mobots.AsebaNetwork')
+            network.SetVariable("thymio-II", "motor.left.target", [0])
+            network.SetVariable("thymio-II", "motor.right.target", [0])
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
 
