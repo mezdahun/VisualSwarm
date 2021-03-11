@@ -6,25 +6,24 @@ setup(
     name='VisualSwarm',
     description='Implementation of a minimal vision algorithm published by Bastien & Romanczuk (2020) on a Raspberry '
                 'PI for movement control of Thymio II robots.',
-    version='0.0.1',
+    version='0.1.0',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
     packages=find_packages(exclude=['tests']),
     package_data={'visualswarm': ['data/*']},
     python_requires=">=3.7",
     install_requires=[
-        'opencv-python>=4.4.0.46',
+        'opencv-python==4.4.0.46',
         'numpy==1.20.1',
-        'picamera>=1.13',
-        'pandas',
-        'influxdb',
-        'scipy',
-        'psutil',
-        'pycairo',
-        'PyGObject',
-        'dbus-python',
+        'picamera==1.13',
+        'pandas==1.2.0',
+        'influxdb==5.3.1',
+        'scipy==1.6.0',
+        'psutil==5.8.0',
+        'pycairo==1.20.0',
+        'PyGObject==3.38.0',
+        'dbus-python==1.2.16',
         'typing-extensions==3.7.4.3'
-
     ],
     extras_require={
         'test': [
