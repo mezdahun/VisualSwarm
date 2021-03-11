@@ -21,7 +21,8 @@ setup(
         'psutil',
         'pycairo',
         'PyGObject',
-        'dbus-python'
+        'dbus-python',
+        'typing-extensions==3.7.4.3'
 
     ],
     extras_require={
