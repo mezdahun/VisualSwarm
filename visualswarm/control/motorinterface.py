@@ -17,6 +17,7 @@ def asebamedulla_health():
     is_robot_healthy = network.GetVariable("thymio-II", "prox.horizontal", reply_handler=lambda v: True,
                                            error_handler=lambda e: False)
 
+    print(is_robot_healthy)
     return is_robot_healthy
 
 
