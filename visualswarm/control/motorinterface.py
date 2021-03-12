@@ -32,7 +32,7 @@ def asebamedulla_init():
     logger.info(f'{bcolors.OKBLUE}CONNECT{bcolors.ENDC} via asebamedulla on {control.THYMIO_DEVICE_PORT}')
     info = os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")
     time.sleep(5)
-    # network, connection_health = asebamedulla_health()
+
     # if not connection_health:
     #     logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
     #     asebamedulla_end()

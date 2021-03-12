@@ -1,8 +1,10 @@
 import dbus
 import dbus.mainloop.glib
+import logging
 
 from gi.repository import GLib
 from visualswarm.control import motorinterface
+from visualswarm.contrib import logparams
 
 import tempfile
 import random
@@ -10,6 +12,19 @@ import random
 # Create a global variable or Queue for GetVariable values
 # to get and store Thymio sensor values
 proxSensorsVal = [0, 0, 0, 0, 0]
+
+# using main logger
+logger = logging.getLogger('visualswarm.app')
+bcolors = logparams.BColors
+
+
+def handle_GetVariable_reply(r):
+    global proxSensorsVal
+    proxSensorsVal = r
+
+
+def handle_GetVariable_error(e):
+    raise Exception(str(e))
 
 
 def test_motor_control(network):
@@ -50,6 +65,7 @@ def control_thymio(control_stream, with_control=False):
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
         if motorinterface.asebamedulla_health(network):
+            logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
             while True:
                 (v, psi) = control_stream.get()
 
@@ -59,25 +75,5 @@ def control_thymio(control_stream, with_control=False):
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])
         else:
+            logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
             raise Exception('asebamedulla connection not healthy!')
-
-
-def handle_GetVariable_reply(r):
-    global proxSensorsVal
-    proxSensorsVal = r
-
-
-def handle_GetVariable_error(e):
-    raise Exception(str(e))
-
-
-def execute_control_thymio(control_stream, network, loop):
-    # print in the terminal the name of each Aseba Node
-    # gobject.threads_init()
-    # print(network.GetNodesList())
-
-    # # GObject loop
-    # loop = GLib.MainLoop()
-    # call the callback of test_motor_control in every iteration
-    GLib.timeout_add(100, control_thymio, control_stream, network)  # every 0.1 sec
-    loop.run()
