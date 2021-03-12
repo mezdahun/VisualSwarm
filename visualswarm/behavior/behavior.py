@@ -9,7 +9,7 @@ import numpy as np
 
 import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import monitoring, control
+from visualswarm.contrib import monitoring
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 

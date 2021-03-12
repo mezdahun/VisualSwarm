@@ -2,7 +2,6 @@ import dbus
 import dbus.mainloop.glib
 import logging
 
-from gi.repository import GLib
 from visualswarm.control import motorinterface
 from visualswarm.contrib import logparams
 

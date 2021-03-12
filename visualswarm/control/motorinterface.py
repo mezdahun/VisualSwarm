@@ -1,6 +1,4 @@
 import os
-import dbus
-import dbus.mainloop.glib
 import logging
 
 from dbus.exceptions import DBusException
@@ -30,20 +28,12 @@ def asebamedulla_init():
         Returns: None
     """
     logger.info(f'{bcolors.OKBLUE}CONNECT{bcolors.ENDC} via asebamedulla on {control.THYMIO_DEVICE_PORT}')
-    info = os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")
+    os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")  # nosec
     time.sleep(5)
-
-    # if not connection_health:
-    #     logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
-    #     asebamedulla_end()
-    #     raise Exception('Connection could not be established with robot!')
-    # else:
-    #     logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
-    #     return network
 
 
 def asebamedulla_end():
     """Killing all established asebamedulla processes"""
     logger.info(f'{bcolors.OKBLUE}CLOSE{bcolors.ENDC} connection via asebamedulla')
-    os.system("pkill -f asebamedulla")
-    logger.info(f'{bcolors.OKGREEN}✓ CLOSE CONNECTION SUCCESSFUL{bcolors.ENDC}via asebamedulla')
+    os.system("pkill -f asebamedulla")  # nosec
+    logger.info(f'{bcolors.OKGREEN}✓ CLOSE CONNECTION SUCCESSFUL{bcolors.ENDC} via asebamedulla')
