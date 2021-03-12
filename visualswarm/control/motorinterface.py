@@ -8,4 +8,4 @@ def asebamedulla_init():
         Vars: visualswarm.control.THYMIO_DEVICE_PORT: serial port on which the robot is available for the Pi
         Returns: None
     """
-    subprocess.run(['asebamedulla', f'"ser:device={control.THYMIO_DEVICE_PORT}"'])
+    subprocess.run(['asebamedulla', f'ser:device={control.THYMIO_DEVICE_PORT}'])
