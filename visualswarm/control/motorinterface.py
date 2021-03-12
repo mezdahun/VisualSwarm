@@ -3,9 +3,22 @@ import dbus
 import dbus.mainloop.glib
 from visualswarm.contrib import control
 
+is_robot_healthy = False
+
+def healthy_response(v):
+    global is_robot_healthy
+    is_robot_healthy = True
+
+
+def unhealthy_response(e):
+    global is_robot_healthy
+    is_robot_healthy = False
+
 
 def asebamedulla_health():
     """Checking health of the established connection by requesting robot health"""
+    global is_robot_healthy
+
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SessionBus()
 
@@ -14,8 +27,8 @@ def asebamedulla_health():
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
     # Check Thymio's health
-    is_robot_healthy = network.GetVariable("thymio-II", "prox.horizontal", reply_handler=lambda v: True,
-                                           error_handler=lambda e: False)
+    network.GetVariable("thymio-II", "prox.horizontal", reply_handler=healthy_response,
+                        error_handler=unhealthy_response)
 
     print(is_robot_healthy)
     return is_robot_healthy
