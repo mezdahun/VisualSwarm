@@ -21,18 +21,22 @@ def unhealthy_response(e):
 
 def asebamedulla_health():
     """Checking health of the established connection by requesting robot health"""
-    global is_robot_healthy
-
+    # init the dbus main loop
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    bus = dbus.SessionBus()
 
-    # Create Aseba network
-    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
+    # get stub of the aseba network
+    bus = dbus.SessionBus()
+    asebaNetworkObject = bus.get_object('ch.epfl.mobots.Aseba', '/')
+
+    # prepare interface
+    asebaNetwork = dbus.Interface(
+        asebaNetworkObject,
+        dbus_interface='ch.epfl.mobots.AsebaNetwork'
+    )
 
     # Check Thymio's health
     test_var = None
-    test_var = network.GetVariable("thymio-II", "acc", timeout=5)
+    test_var = asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
 
     if test_var is not None:
         return True
@@ -48,6 +52,7 @@ def asebamedulla_init():
     """
     os.system(f"asebamedulla ser:device={control.THYMIO_DEVICE_PORT}")
     sleep(5)
+    print('checking for health')
     if not asebamedulla_health():
         raise Exception('Connection can not be established with robot!')
     else:
