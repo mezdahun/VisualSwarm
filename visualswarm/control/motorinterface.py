@@ -31,9 +31,9 @@ def asebamedulla_health():
         )
 
         asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
-        return True
+        return asebaNetwork, True
     except DBusException:
-        return False
+        return None, False
 
 
 def asebamedulla_init():
