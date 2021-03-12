@@ -39,6 +39,10 @@ def start_application(with_control=False):
 
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
 
+    # connect to Thymio
+    if with_control:
+        motorinterface.asebamedulla_init()
+
     # Creating Queues
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
@@ -150,6 +154,7 @@ def start_application(with_control=False):
                                      dbus_interface='ch.epfl.mobots.AsebaNetwork')
             network.SetVariable("thymio-II", "motor.left.target", [0])
             network.SetVariable("thymio-II", "motor.right.target", [0])
+            motorinterface.asebamedulla_end()
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
 
