@@ -12,28 +12,15 @@ logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
 
 
-def asebamedulla_health():
+def asebamedulla_health(network):
     """Checking health of the established connection by requesting robot health"""
     logger.info(f'{bcolors.OKBLUE}HEALTHCHECK{bcolors.ENDC} asebamedulla connection')
     # Check Thymio's health
     try:
-        # init the dbus main loop
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-
-        # get stub of the aseba network
-        bus = dbus.SessionBus()
-        asebaNetworkObject = bus.get_object('ch.epfl.mobots.Aseba', '/')
-
-        # prepare interface
-        asebaNetwork = dbus.Interface(
-            asebaNetworkObject,
-            dbus_interface='ch.epfl.mobots.AsebaNetwork'
-        )
-
-        asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
-        return asebaNetwork, True
+        network.GetVariable("thymio-II", "acc", timeout=5)
+        return True
     except DBusException:
-        return None, False
+        return False
 
 
 def asebamedulla_init():

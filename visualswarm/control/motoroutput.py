@@ -2,6 +2,7 @@ import dbus
 import dbus.mainloop.glib
 
 from gi.repository import GLib
+from visualswarm.control import motorinterface
 
 import tempfile
 import random
@@ -48,14 +49,17 @@ def control_thymio(control_stream, with_control=False):
         # Create Aseba network
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
-        while True:
-            (v, psi) = control_stream.get()
+        if motorinterface.asebamedulla_health(network):
+            while True:
+                (v, psi) = control_stream.get()
 
-            v_left = v * (1 + psi) / 2 * 100
-            v_right = v * (1 - psi) / 2 * 100
+                v_left = v * (1 + psi) / 2 * 100
+                v_right = v * (1 - psi) / 2 * 100
 
-            network.SetVariable("thymio-II", "motor.left.target", [v_left])
-            network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                network.SetVariable("thymio-II", "motor.right.target", [v_right])
+        else:
+            raise Exception('asebamedulla connection not healthy!')
 
 
 def handle_GetVariable_reply(r):
