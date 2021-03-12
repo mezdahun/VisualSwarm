@@ -1,6 +1,7 @@
 import os
 import dbus
 import dbus.mainloop.glib
+from dbus.exceptions import DBusException
 import time
 from visualswarm.contrib import control
 
@@ -36,7 +37,10 @@ def asebamedulla_health():
 
     # Check Thymio's health
     test_var = None
-    test_var = asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
+    try:
+        test_var = asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
+    except DBusException:
+        return False
 
     if test_var is not None:
         return True
@@ -51,7 +55,7 @@ def asebamedulla_init():
         Returns: None
     """
     os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")
-    time.sleep(4.5)
+    time.sleep(5)
     print('checking for health')
     if not asebamedulla_health():
         raise Exception('Connection can not be established with robot!')
