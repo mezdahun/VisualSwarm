@@ -37,8 +37,7 @@ def asebamedulla_health():
 
     # Check Thymio's health
     try:
-        test_var = asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
-        print(test_var)
+        asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
         return True
     except DBusException:
         return False
