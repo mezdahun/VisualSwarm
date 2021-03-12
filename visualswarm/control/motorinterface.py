@@ -51,7 +51,7 @@ def asebamedulla_init():
         Returns: None
     """
     os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")
-    time.sleep(2.5)
+    time.sleep(4.5)
     print('checking for health')
     if not asebamedulla_health():
         raise Exception('Connection can not be established with robot!')
