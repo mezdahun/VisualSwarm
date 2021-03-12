@@ -12,7 +12,7 @@ from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, vision
 from visualswarm.behavior import behavior
-from visualswarm.control import motoroutput
+from visualswarm.control import motorinterface, motoroutput
 
 import dbus.mainloop.glib
 
@@ -155,4 +155,5 @@ def start_application(with_control=False):
 
 
 def start_application_with_control():
+    motorinterface.asebamedulla_init()
     start_application(with_control=True)

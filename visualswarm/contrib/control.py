@@ -2,5 +2,5 @@
 @author: mezdahun
 @description: Motor Control related parameters
 """
-
-ENABLE_MOTOR_CONTROL = True
+# Serial port on which the Thymio is available
+THYMIO_DEVICE_PORT = "/dev/ttyACM0"
