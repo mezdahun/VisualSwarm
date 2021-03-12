@@ -17,7 +17,7 @@ from visualswarm import env
 logger = logging.getLogger('visualswarm.app')
 
 
-def VPF_to_behavior(VPF_stream, control_stream):
+def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
     """
     Process to extract final visual projection field from high level visual input.
         Args:
@@ -25,6 +25,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
             control_stream (multiprocessing Queue): stream to push calculated control parameters
         Returns:
             -shall not return-
+            :param with_control:
     """
     measurement_name = "control_parameters"
     ifclient = ifdb.create_ifclient()
@@ -64,7 +65,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        if control.ENABLE_MOTOR_CONTROL:
+        if with_control:
             control_stream.put((v, dpsi))
 
         # To test infinite loops

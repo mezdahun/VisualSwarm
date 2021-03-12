@@ -36,21 +36,26 @@ def test_motor_control(network):
     return True
 
 
-def control_thymio(control_stream):
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    bus = dbus.SessionBus()
+def control_thymio(control_stream, with_control=False):
+    if not with_control:
+        # simply consuming the input stream so that we don't fill up memory
+        while True:
+            (v, psi) = control_stream.get()
+    else:
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SessionBus()
 
-    # Create Aseba network
-    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
-    while True:
-        (v, psi) = control_stream.get()
+        # Create Aseba network
+        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
+        while True:
+            (v, psi) = control_stream.get()
 
-        v_left = v * (1 + psi) / 2 * 100
-        v_right = v * (1 - psi) / 2 * 100
+            v_left = v * (1 + psi) / 2 * 100
+            v_right = v * (1 - psi) / 2 * 100
 
-        network.SetVariable("thymio-II", "motor.left.target", [v_left])
-        network.SetVariable("thymio-II", "motor.right.target", [v_right])
+            network.SetVariable("thymio-II", "motor.left.target", [v_left])
+            network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
 
 def handle_GetVariable_reply(r):
