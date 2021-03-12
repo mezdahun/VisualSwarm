@@ -5,13 +5,16 @@ from visualswarm.contrib import control
 
 is_robot_healthy = False
 
+
 def healthy_response(v):
     global is_robot_healthy
+    print("called healthy callback")
     is_robot_healthy = True
 
 
 def unhealthy_response(e):
     global is_robot_healthy
+    print("called unhealthy callback")
     is_robot_healthy = False
 
 
