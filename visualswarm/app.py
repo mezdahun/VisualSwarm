@@ -41,7 +41,7 @@ def start_application(with_control=False):
 
     # connect to Thymio
     if with_control:
-        motorinterface.asebamedulla_init()
+        network = motorinterface.asebamedulla_init()
 
     # Creating Queues
     raw_vision_stream = Queue()
@@ -75,7 +75,7 @@ def start_application(with_control=False):
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream, with_control))
-    motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, with_control))
+    motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, with_control, network))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
 
     try:

@@ -36,18 +36,18 @@ def test_motor_control(network):
     return True
 
 
-def control_thymio(control_stream, with_control=False):
+def control_thymio(control_stream, with_control=False, network=None):
     if not with_control:
         # simply consuming the input stream so that we don't fill up memory
         while True:
             (v, psi) = control_stream.get()
     else:
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
-
-        # Create Aseba network
-        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
+        # dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        # bus = dbus.SessionBus()
+        #
+        # # Create Aseba network
+        # network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+        #                          dbus_interface='ch.epfl.mobots.AsebaNetwork')
         while True:
             (v, psi) = control_stream.get()
 
