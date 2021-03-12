@@ -39,13 +39,10 @@ def asebamedulla_health():
     test_var = None
     try:
         test_var = asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
+        return True
     except DBusException:
         return False
 
-    if test_var is not None:
-        return True
-    else:
-        return False
 
 
 def asebamedulla_init():
@@ -54,7 +51,8 @@ def asebamedulla_init():
         Vars: visualswarm.control.THYMIO_DEVICE_PORT: serial port on which the robot is available for the Pi
         Returns: None
     """
-    os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")
+    info = os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")
+    print(info)
     time.sleep(5)
     print('checking for health')
     if not asebamedulla_health():
