@@ -30,11 +30,13 @@ def asebamedulla_health():
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
     # Check Thymio's health
-    network.GetVariable("thymio-II", "prox.horizontal", reply_handler=healthy_response,
-                        error_handler=unhealthy_response)
+    test_var = None
+    test_var = network.GetVariable("thymio-II", "acc", timeout=5)
 
-    print(is_robot_healthy)
-    return is_robot_healthy
+    if test_var is not None:
+        return True
+    else:
+        return False
 
 
 def asebamedulla_init():
