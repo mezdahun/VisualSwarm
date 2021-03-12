@@ -75,4 +75,5 @@ def control_thymio(control_stream, with_control=False):
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])
         else:
             logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
+            motorinterface.asebamedulla_end()
             raise Exception('asebamedulla connection not healthy!')
