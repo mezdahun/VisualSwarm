@@ -40,8 +40,8 @@ def start_application(with_control=False):
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
 
     # connect to Thymio
-    # if with_control:
-    #     motorinterface.asebamedulla_init()
+    if with_control:
+        motorinterface.asebamedulla_init()
 
     # Creating Queues
     raw_vision_stream = Queue()
