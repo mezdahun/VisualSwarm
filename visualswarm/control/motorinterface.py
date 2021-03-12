@@ -1,6 +1,7 @@
 import os
 import dbus
 import dbus.mainloop.glib
+from time import sleep
 from visualswarm.contrib import control
 
 is_robot_healthy = False
@@ -45,9 +46,12 @@ def asebamedulla_init():
         Vars: visualswarm.control.THYMIO_DEVICE_PORT: serial port on which the robot is available for the Pi
         Returns: None
     """
-    os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &) && sleep 1")
+    os.system(f"asebamedulla ser:device={control.THYMIO_DEVICE_PORT}")
+    sleep(5)
     if not asebamedulla_health():
         raise Exception('Connection can not be established with robot!')
+    else:
+        print("Connection via asebamedulla is healthy!")
 
 
 def asebamedulla_end():
