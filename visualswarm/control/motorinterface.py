@@ -36,13 +36,11 @@ def asebamedulla_health():
     )
 
     # Check Thymio's health
-    test_var = None
     try:
-        test_var = asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
+        asebaNetwork.GetVariable("thymio-II", "acc", timeout=5)
         return True
     except DBusException:
         return False
-
 
 
 def asebamedulla_init():
@@ -52,7 +50,6 @@ def asebamedulla_init():
         Returns: None
     """
     info = os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")
-    print(info)
     time.sleep(5)
     print('checking for health')
     if not asebamedulla_health():
