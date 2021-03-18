@@ -26,7 +26,6 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
             control_stream (multiprocessing Queue): stream to push calculated control parameters
         Returns:
             -shall not return-
-            :param with_control:
     """
     measurement_name = "control_parameters"
     ifclient = ifdb.create_ifclient()
