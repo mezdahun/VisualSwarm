@@ -73,18 +73,18 @@ def control_thymio(control_stream, with_control=False):
                 # v_left_current = network.GetVariable("thymio-II", "motor.left.target")
                 # v_right_current = network.GetVariable("thymio-II", "motor.right.target")
 
-                v_left = v * (1 + dpsi) / 2 * 100
-                v_right = v * (1 - dpsi) / 2 * 100
+                v_left = v * (1 + dpsi) / 2 * 10
+                v_right = v * (1 - dpsi) / 2 * 10
 
-                v_left_perc = v_left / (abs(v_left) + abs(v_right))
-                v_right_perc = v_right / (abs(v_left) + abs(v_right))
-
-                try:
-                    v_left = int(v_left_perc*v_max_motor)
-                    v_right = int(v_right_perc*v_max_motor)
-                except ValueError:
-                    v_left = 0
-                    v_right = 0
+                # v_left_perc = v_left / (abs(v_left) + abs(v_right))
+                # v_right_perc = v_right / (abs(v_left) + abs(v_right))
+                #
+                # try:
+                #     v_left = int(v_left_perc*v_max_motor)
+                #     v_right = int(v_right_perc*v_max_motor)
+                # except ValueError:
+                #     v_left = 0
+                #     v_right = 0
 
                 # v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
                 # v_left = v_left_current + v_left_change
