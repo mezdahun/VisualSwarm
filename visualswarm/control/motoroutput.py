@@ -76,6 +76,9 @@ def control_thymio(control_stream, with_control=False):
                 v_left = v * (1 + dpsi) / 2
                 v_right = v * (1 - dpsi) / 2
 
+                v_left_perc = v_left / (v_left + v_right)
+                v_right_perc = v_right/ (v_left + v_right)
+
                 # v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
                 # v_left = v_left_current + v_left_change
                 # if abs(v_left) >= v_max_motor:
@@ -86,8 +89,8 @@ def control_thymio(control_stream, with_control=False):
                 # if abs(v_right) >= v_max_motor:
                 #     v_right = sign(v_right) * v_max_motor
 
-                network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                network.SetVariable("thymio-II", "motor.left.target", [v_left_perc*v_max_motor])
+                network.SetVariable("thymio-II", "motor.right.target", [v_right_perc*v_max_motor])
                 logger.info(f"left: {v_left} \t right: {v_right}")
         else:
             logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
