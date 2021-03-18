@@ -81,6 +81,7 @@ def control_thymio(control_stream, with_control=False):
 
                 v_left = int(v_left_perc*v_max_motor)
                 v_right = int(v_right_perc*v_max_motor)
+                logger.info(v_left)
 
                 # v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
                 # v_left = v_left_current + v_left_change
