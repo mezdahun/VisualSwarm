@@ -70,7 +70,7 @@ def control_thymio(control_stream, with_control=False):
                 (dv_norm, dpsi) = control_stream.get()
 
                 v_left_current = network.GetVariable("thymio-II", "motor.left.target")
-                v_right_current = network.SetVariable("thymio-II", "motor.right.target")
+                v_right_current = network.GetVariable("thymio-II", "motor.right.target")
 
                 # v_left = v * (1 + dpsi) / 2 * 100
                 # v_right = v * (1 - dpsi) / 2 * 100
