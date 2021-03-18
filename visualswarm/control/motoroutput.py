@@ -4,6 +4,7 @@ import logging
 
 from visualswarm.control import motorinterface
 from visualswarm.contrib import logparams, control
+from visualswarm import env
 
 # import tempfile
 # import random
@@ -50,6 +51,10 @@ def control_thymio(control_stream, with_control=False):
         # simply consuming the input stream so that we don't fill up memory
         while True:
             (v, dpsi) = control_stream.get()
+
+            # To test infinite loops
+            if env.EXIT_CONDITION:
+                break
     else:
         # Initializing DBus
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -75,6 +80,10 @@ def control_thymio(control_stream, with_control=False):
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
                 logger.info(f"left: {v_left} \t right: {v_right}")
+
+                # To test infinite loops
+                if env.EXIT_CONDITION:
+                    break
         else:
             logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
             motorinterface.asebamedulla_end()
