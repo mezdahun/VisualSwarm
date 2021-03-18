@@ -1,6 +1,7 @@
 import dbus
 import dbus.mainloop.glib
 import logging
+from numpy import sign
 
 from visualswarm.control import motorinterface
 from visualswarm.contrib import logparams
@@ -15,9 +16,6 @@ proxSensorsVal = [0, 0, 0, 0, 0]
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
-
-
-def sign(x): return (x > 0) - (x < 0)
 
 
 def handle_GetVariable_reply(r):
