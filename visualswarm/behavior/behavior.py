@@ -4,6 +4,7 @@
 """
 import datetime
 import logging
+from math import floor
 
 import numpy as np
 
@@ -33,11 +34,18 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
     v = 0
     psi = 0
 
+    (projection_field, capture_timestamp) = VPF_stream.get()
+    phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
+                      len(projection_field))
+
+    # calculating theoretically max value for velocity change for normalization
+    max_VPF = np.zeros(len(projection_field))
+    max_VPF[floor(len(projection_field) / 2)] = 1
+    dv_max, dpsi_max = statevarcomp.compute_state_variables(v, phi, max_VPF)
+    print(dv_max, dpsi_max)
+
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
-        if phi is None:
-            phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
-                              len(projection_field))
 
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
         v += dv
