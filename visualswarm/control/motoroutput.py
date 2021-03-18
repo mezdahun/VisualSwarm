@@ -17,6 +17,9 @@ logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
 
 
+def sign(x): return (x > 0) - (x < 0)
+
+
 def handle_GetVariable_reply(r):
     global proxSensorsVal
     proxSensorsVal = r
@@ -77,13 +80,13 @@ def control_thymio(control_stream, with_control=False):
 
                 v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
                 v_left = v_left_current + v_left_change
-                if v_left >= v_max_motor:
-                    v_left = v_max_motor
+                if abs(v_left) >= v_max_motor:
+                    v_left = sign(v_left) * v_max_motor
 
                 v_right_change = dv_norm * v_max_motor * (1 - dpsi) / 2
                 v_right = v_right_current + v_right_change
-                if v_right >= v_max_motor:
-                    v_right = v_max_motor
+                if abs(v_right) >= v_max_motor:
+                    v_right = sign(v_right) * v_max_motor
 
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])
