@@ -68,23 +68,23 @@ def control_thymio(control_stream, with_control=False):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
             while True:
                 v_max_motor = 500
-                (dv_norm, dpsi) = control_stream.get()
+                (v, dpsi) = control_stream.get()
 
                 v_left_current = network.GetVariable("thymio-II", "motor.left.target")
                 v_right_current = network.GetVariable("thymio-II", "motor.right.target")
 
-                # v_left = v * (1 + dpsi) / 2 * 100
-                # v_right = v * (1 - dpsi) / 2 * 100
+                v_left = v * (1 + dpsi) / 2 * 100
+                v_right = v * (1 - dpsi) / 2 * 100
 
-                v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
-                v_left = v_left_current + v_left_change
-                if abs(v_left) >= v_max_motor:
-                    v_left = sign(v_left) * v_max_motor
-
-                v_right_change = dv_norm * v_max_motor * (1 - dpsi) / 2
-                v_right = v_right_current + v_right_change
-                if abs(v_right) >= v_max_motor:
-                    v_right = sign(v_right) * v_max_motor
+                # v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
+                # v_left = v_left_current + v_left_change
+                # if abs(v_left) >= v_max_motor:
+                #     v_left = sign(v_left) * v_max_motor
+                #
+                # v_right_change = dv_norm * v_max_motor * (1 - dpsi) / 2
+                # v_right = v_right_current + v_right_change
+                # if abs(v_right) >= v_max_motor:
+                #     v_right = sign(v_right) * v_max_motor
 
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])

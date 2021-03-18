@@ -74,7 +74,7 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
             ifclient.write_points(body, time_precision='ms')
 
         if with_control:
-            control_stream.put((dv_norm, dpsi))
+            control_stream.put((v, dpsi))
 
         # To test infinite loops
         if env.EXIT_CONDITION:
