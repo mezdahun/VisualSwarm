@@ -4,7 +4,7 @@ import logging
 from numpy import sign
 
 from visualswarm.control import motorinterface
-from visualswarm.contrib import logparams
+from visualswarm.contrib import logparams, control
 
 import tempfile
 import random
@@ -56,48 +56,31 @@ def control_thymio(control_stream, with_control=False):
     if not with_control:
         # simply consuming the input stream so that we don't fill up memory
         while True:
-            (v, psi) = control_stream.get()
+            (v, dpsi) = control_stream.get()
     else:
+        # Initializing DBus
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SessionBus()
 
         # Create Aseba network
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
+
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
+
             while True:
-                v_max_motor = 500
+                # fetching state variables
                 (v, dpsi) = control_stream.get()
 
-                # v_left_current = network.GetVariable("thymio-II", "motor.left.target")
-                # v_right_current = network.GetVariable("thymio-II", "motor.right.target")
+                # distributing v according dpsi to the differential system
+                v_left = v * (1 + dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
+                v_right = v * (1 - dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
 
-                v_left = v * (1 + dpsi) / 2 * 100
-                v_right = v * (1 - dpsi) / 2 * 100
-
-                # v_left_perc = v_left / (abs(v_left) + abs(v_right))
-                # v_right_perc = v_right / (abs(v_left) + abs(v_right))
-                #
-                # try:
-                #     v_left = int(v_left_perc*v_max_motor)
-                #     v_right = int(v_right_perc*v_max_motor)
-                # except ValueError:
-                #     v_left = 0
-                #     v_right = 0
-
-                # v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
-                # v_left = v_left_current + v_left_change
-                # if abs(v_left) >= v_max_motor:
-                #     v_left = sign(v_left) * v_max_motor
-                #
-                # v_right_change = dv_norm * v_max_motor * (1 - dpsi) / 2
-                # v_right = v_right_current + v_right_change
-                # if abs(v_right) >= v_max_motor:
-                #     v_right = sign(v_right) * v_max_motor
-
+                # sending motor values to robot
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])
+
                 logger.info(f"left: {v_left} \t right: {v_right}")
         else:
             logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
