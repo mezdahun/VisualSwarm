@@ -62,6 +62,7 @@ class AppTest(TestCase):
                     # Case 2/B visualization but not interactive
                     mockProcess.reset_mock()
                     mockQueue.reset_mock()
+                    mock_asebamedulla_init.reset_mock()
                     with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', True):
                         num_queues = 5
                         mp = mockProcess.return_value
