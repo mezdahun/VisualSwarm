@@ -42,7 +42,7 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
     max_VPF = np.zeros(len(projection_field))
     max_VPF[floor(len(projection_field) / 2)] = 1
     dv_max, dpsi_max = statevarcomp.compute_state_variables(v, phi, max_VPF)
-    print(dv_max, dpsi_max)
+    logger.info(f"Theoretical MAX: {dv_max}, {dpsi_max}")
 
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
