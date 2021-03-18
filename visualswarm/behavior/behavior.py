@@ -4,12 +4,13 @@
 """
 import datetime
 import logging
+from math import floor
 
 import numpy as np
 
 import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import monitoring, control
+from visualswarm.contrib import monitoring
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
@@ -17,7 +18,7 @@ from visualswarm import env
 logger = logging.getLogger('visualswarm.app')
 
 
-def VPF_to_behavior(VPF_stream, control_stream):
+def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
     """
     Process to extract final visual projection field from high level visual input.
         Args:
@@ -30,18 +31,23 @@ def VPF_to_behavior(VPF_stream, control_stream):
     ifclient = ifdb.create_ifclient()
     phi = None
     v = 0
-    psi = 0
+
+    (projection_field, capture_timestamp) = VPF_stream.get()
+    phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
+                      len(projection_field))
+
+    # calculating theoretically max value for velocity change for normalization
+    max_VPF = np.zeros(len(projection_field))
+    max_VPF[floor(len(projection_field) / 2)] = 1
+    dv_max, dpsi_max = statevarcomp.compute_state_variables(v, phi, max_VPF)
 
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
-        if phi is None:
-            phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
-                              len(projection_field))
 
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
         v += dv
-        psi += dpsi
-        psi = psi % (2 * np.pi)
+        # psi += dpsi
+        # psi = psi % (2 * np.pi)
 
         if monitoring.SAVE_CONTROL_PARAMS:
 
@@ -64,7 +70,7 @@ def VPF_to_behavior(VPF_stream, control_stream):
 
             ifclient.write_points(body, time_precision='ms')
 
-        if control.ENABLE_MOTOR_CONTROL:
+        if with_control:
             control_stream.put((v, dpsi))
 
         # To test infinite loops

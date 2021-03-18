@@ -12,7 +12,7 @@ from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, vision
 from visualswarm.behavior import behavior
-from visualswarm.control import motoroutput
+from visualswarm.control import motorinterface, motoroutput
 
 import dbus.mainloop.glib
 
@@ -38,6 +38,10 @@ def start_application(with_control=False):
         ifclient.create_database(env.INFLUX_DB_NAME)
 
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
+
+    # connect to Thymio
+    if with_control:
+        motorinterface.asebamedulla_init()
 
     # Creating Queues
     raw_vision_stream = Queue()
@@ -70,9 +74,8 @@ def start_application(with_control=False):
         visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
-    behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,))
-    if with_control:
-        motor_control = Process(target=motoroutput.control_thymio, args=(control_stream,))
+    behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream, with_control))
+    motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, with_control))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
 
     try:
@@ -85,8 +88,7 @@ def start_application(with_control=False):
         visualizer.start()
         VPF_extractor.start()
         behavior_proc.start()
-        if with_control:
-            motor_control.start()
+        motor_control.start()
         system_monitor_proc.start()
 
         # Wait for subprocesses in main process to terminate
@@ -96,8 +98,7 @@ def start_application(with_control=False):
         raw_vision.join()
         VPF_extractor.join()
         behavior_proc.join()
-        if with_control:
-            motor_control.join()
+        motor_control.join()
         system_monitor_proc.join()
 
     except KeyboardInterrupt:
@@ -107,10 +108,9 @@ def start_application(with_control=False):
         system_monitor_proc.terminate()
         system_monitor_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
-        if with_control:
-            motor_control.terminate()
-            motor_control.join()
-            logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} motor control process and joined!')
+        motor_control.terminate()
+        motor_control.join()
+        logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} motor control process and joined!')
         behavior_proc.terminate()
         behavior_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} control parameter calculations!')
@@ -150,6 +150,7 @@ def start_application(with_control=False):
                                      dbus_interface='ch.epfl.mobots.AsebaNetwork')
             network.SetVariable("thymio-II", "motor.left.target", [0])
             network.SetVariable("thymio-II", "motor.right.target", [0])
+            motorinterface.asebamedulla_end()
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
 
