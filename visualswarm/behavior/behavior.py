@@ -48,7 +48,7 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
         (projection_field, capture_timestamp) = VPF_stream.get()
 
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-        logger.info(dv)
+        logger.info(dv/dv_max)
         v += dv
         psi += dpsi
         psi = psi % (2 * np.pi)
