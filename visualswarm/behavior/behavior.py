@@ -31,7 +31,6 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
     ifclient = ifdb.create_ifclient()
     phi = None
     v = 0
-    psi = 0
 
     (projection_field, capture_timestamp) = VPF_stream.get()
     phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
@@ -46,10 +45,9 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
         (projection_field, capture_timestamp) = VPF_stream.get()
 
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-        dv_norm = dv/dv_max
         v += dv
-        psi += dpsi
-        psi = psi % (2 * np.pi)
+        # psi += dpsi
+        # psi = psi % (2 * np.pi)
 
         if monitoring.SAVE_CONTROL_PARAMS:
 

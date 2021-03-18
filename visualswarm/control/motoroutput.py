@@ -1,13 +1,12 @@
 import dbus
 import dbus.mainloop.glib
 import logging
-from numpy import sign
 
 from visualswarm.control import motorinterface
 from visualswarm.contrib import logparams, control
 
-import tempfile
-import random
+# import tempfile
+# import random
 
 # using main logger
 logger = logging.getLogger('visualswarm.app')

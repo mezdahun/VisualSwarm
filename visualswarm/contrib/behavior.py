@@ -14,4 +14,3 @@ ALP2 = 0
 BET0 = 0.3  # overall responsiveness of heading change (turning "speed")
 BET1 = 0.015
 BET2 = 0
-
