@@ -42,13 +42,12 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
     max_VPF = np.zeros(len(projection_field))
     max_VPF[floor(len(projection_field) / 2)] = 1
     dv_max, dpsi_max = statevarcomp.compute_state_variables(v, phi, max_VPF)
-    logger.info(f"Theoretical MAX: {dv_max}, {dpsi_max}")
 
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
 
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-        logger.info(dv/dv_max)
+        dv_norm = dv/dv_max
         v += dv
         psi += dpsi
         psi = psi % (2 * np.pi)
@@ -75,7 +74,7 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
             ifclient.write_points(body, time_precision='ms')
 
         if with_control:
-            control_stream.put((v, dpsi))
+            control_stream.put((dv_norm, dpsi))
 
         # To test infinite loops
         if env.EXIT_CONDITION:

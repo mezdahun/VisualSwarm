@@ -66,13 +66,28 @@ def control_thymio(control_stream, with_control=False):
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
             while True:
-                (v, psi) = control_stream.get()
+                v_max_motor = 500
+                (dv_norm, dpsi) = control_stream.get()
 
-                v_left = v * (1 + psi) / 2 * 100
-                v_right = v * (1 - psi) / 2 * 100
+                v_left_current = network.GetVariable("thymio-II", "motor.left.target")
+                v_right_current = network.SetVariable("thymio-II", "motor.right.target")
+
+                # v_left = v * (1 + dpsi) / 2 * 100
+                # v_right = v * (1 - dpsi) / 2 * 100
+
+                v_left_change = dv_norm * v_max_motor * (1 + dpsi) / 2
+                v_left = v_left_current + v_left_change
+                if v_left >= v_max_motor:
+                    v_left = v_max_motor
+
+                v_right_change = dv_norm * v_max_motor * (1 - dpsi) / 2
+                v_right = v_right_current + v_right_change
+                if v_right >= v_max_motor:
+                    v_right = v_max_motor
 
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                logger.info(f"left: {v_left} \t right: {v_right}")
         else:
             logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
             motorinterface.asebamedulla_end()
