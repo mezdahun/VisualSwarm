@@ -70,13 +70,12 @@ def control_thymio(control_stream, with_control=False):
             while True:
                 # fetching state variables
                 (v, dpsi) = control_stream.get()
-                v = v * control.MOTOR_SCALE_CORRECTION
 
                 # distributing v according dpsi to the differential system
                 # v_left = v * (1 + dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
                 # v_right = v * (1 - dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
-                v_left = v - control.B * dpsi
-                v_right = v + control.B * dpsi
+                v_left = (v - control.B * dpsi) * control.MOTOR_SCALE_CORRECTION
+                v_right = (v + control.B * dpsi) * control.MOTOR_SCALE_CORRECTION
 
                 # sending motor values to robot
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
