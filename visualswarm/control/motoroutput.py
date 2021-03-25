@@ -6,6 +6,7 @@ from visualswarm.control import motorinterface
 from visualswarm.contrib import logparams, control
 from visualswarm import env
 
+import numpy as np
 # import tempfile
 # import random
 
@@ -70,12 +71,13 @@ def control_thymio(control_stream, with_control=False):
             while True:
                 # fetching state variables
                 (v, dpsi) = control_stream.get()
+                v = v * control.MOTOR_SCALE_CORRECTION
 
                 # distributing v according dpsi to the differential system
                 # v_left = v * (1 + dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
                 # v_right = v * (1 - dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
-                v_left = (v - control.B * dpsi) * control.MOTOR_SCALE_CORRECTION
-                v_right = (v + control.B * dpsi) * control.MOTOR_SCALE_CORRECTION
+                v_left = v * (1 - dpsi/(2*np.pi))
+                v_right = v * (1 + dpsi/(2*np.pi))
 
                 # sending motor values to robot
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
