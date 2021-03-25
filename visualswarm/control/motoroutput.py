@@ -76,8 +76,8 @@ def control_thymio(control_stream, with_control=False):
                 # distributing v according dpsi to the differential system
                 # v_left = v * (1 + dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
                 # v_right = v * (1 - dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
-                v_left = v * (1 - dpsi/(2*np.pi))
-                v_right = v * (1 + dpsi/(2*np.pi))
+                v_left = v * (1 - dpsi/np.pi)
+                v_right = v * (1 + dpsi/np.pi)
 
                 # sending motor values to robot
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
