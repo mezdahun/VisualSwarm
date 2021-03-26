@@ -79,6 +79,8 @@ def control_thymio(control_stream, with_control=False):
                 v_left = v * (1 - dpsi/np.pi)
                 v_right = v * (1 + dpsi/np.pi)
 
+                # TODO: if larger than 500 we need to proportionally downscale velocities
+
                 # sending motor values to robot
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
                 network.SetVariable("thymio-II", "motor.right.target", [v_right])
