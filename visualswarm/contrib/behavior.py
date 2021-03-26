@@ -11,6 +11,6 @@ ALP1 = 0.015  # ~ 1 / equilibrium distance
 ALP2 = 0
 
 # Heading Vector Parameters
-BET0 = 0.5  # overall responsiveness of heading change (turning "speed")
+BET0 = 0.4  # overall responsiveness of heading change (turning "speed")
 BET1 = 0.015
 BET2 = 0
