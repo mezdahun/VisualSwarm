@@ -10,3 +10,6 @@ MOTOR_SCALE_CORRECTION = 75
 
 # Distance between 2 contact points of wheel and ground in m
 B = 0.11
+
+# Maximum motor speed of thymio2
+MAX_MOTOR_SPEED = 500

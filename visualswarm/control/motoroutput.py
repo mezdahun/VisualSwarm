@@ -38,6 +38,35 @@ bcolors = logparams.BColors
 #         network.LoadScripts(aesl.name)
 #     return True
 
+def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
+    """
+    Process to limit the motor speed into the available physical domain of the robot.
+        Args:
+            v_left (float): motor velocity to hard limit on left engine
+            v_right (float): motor velocity to hard limit on right engine
+        Returns:
+            [v_left_lim, v_right_lim]: limited motor values
+    """
+    # preserving signs
+    sign_v_left = np.sign(v_left)
+    sign_v_right = np.sign(v_right)
+
+    if np.abs(v_left) > np.abs(v_right):
+        v_right_prop = np.abs(v_right) / (np.abs(v_right) + np.abs(v_left))
+        v_left_lim = sign_v_left * control.MAX_MOTOR_SPEED
+        v_right_lim = sign_v_right * v_left_lim * v_right_prop
+
+    elif np.abs(v_left) == np.abs(v_right):
+        v_right_lim = sign_v_right * control.MAX_MOTOR_SPEED
+        v_left_lim = sign_v_left * control.MAX_MOTOR_SPEED
+
+    else:
+        v_left_prop = np.abs(v_left) / (np.abs(v_right) + np.abs(v_left))
+        v_right_lim = sign_v_right * control.MAX_MOTOR_SPEED
+        v_left_lim = sign_v_left * v_right_lim * v_left_prop
+
+    return [v_left_lim, v_right_lim]
+
 
 def control_thymio(control_stream, with_control=False):
     """
@@ -80,6 +109,9 @@ def control_thymio(control_stream, with_control=False):
                 v_right = v * (1 + dpsi/np.pi)
 
                 # TODO: if larger than 500 we need to proportionally downscale velocities
+                if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
+                    logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
+                    [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
                 # sending motor values to robot
                 network.SetVariable("thymio-II", "motor.left.target", [v_left])
