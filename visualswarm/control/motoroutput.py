@@ -126,7 +126,7 @@ def control_thymio(control_stream, with_control=False):
                 # distributing desired forward speed according to dpsi
                 [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
-                # TODO: if larger than 500 we need to proportionally downscale velocities
+                # hard limit motor velocities but keep their ratio for desired movement
                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
                     logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
                     [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
