@@ -68,6 +68,28 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     return [v_left_lim, v_right_lim]
 
 
+def distribute_overall_speed(v: float, dpsi: float) -> list:
+    """
+    distributing desired forward speed to motor velocities according to the change in the heading angle dpsi.
+        Args:
+            v (float): desired forward speed of the agent
+            dpsi (float): change in the heading angle of the agent
+        Returns:
+            [v_left, v_right]: motor velocity values of the agent
+    """
+    # Matching simulation scale with reality
+    v = v * control.MOTOR_SCALE_CORRECTION
+
+    # Calculating proportional heading angle change
+    dpsi_p = dpsi / np.pi
+
+    # Distributing velocity
+    v_left = v * (1 - dpsi_p)
+    v_right = v * (1 + dpsi_p)
+
+    return [v_left, v_right]
+
+
 def control_thymio(control_stream, with_control=False):
     """
     Process to translate state variables to motor velocities and send to Thymio2 robot via DBUS.
@@ -100,13 +122,9 @@ def control_thymio(control_stream, with_control=False):
             while True:
                 # fetching state variables
                 (v, dpsi) = control_stream.get()
-                v = v * control.MOTOR_SCALE_CORRECTION
 
-                # distributing v according dpsi to the differential system
-                # v_left = v * (1 + dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
-                # v_right = v * (1 - dpsi) / 2 * control.MOTOR_SCALE_CORRECTION
-                v_left = v * (1 - dpsi/np.pi)
-                v_right = v * (1 + dpsi/np.pi)
+                # distributing desired forward speed according to dpsi
+                [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
                 # TODO: if larger than 500 we need to proportionally downscale velocities
                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
