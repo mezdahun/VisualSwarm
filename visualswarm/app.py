@@ -46,6 +46,7 @@ def start_application(with_control=False):
     # Creating Queues
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
+    motor_control_mode_stream = Queue()
 
     if vision.SHOW_VISION_STREAMS:
         # showing raw and processed camera stream
