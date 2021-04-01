@@ -118,6 +118,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
     else:
         # Initialize timestamp
         last_explore_change = datetime.now()
+        last_behave_change = datetime.now()
 
         # Initializing DBus
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -149,19 +150,19 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
                     logger.info(f"left: {v_left} \t right: {v_right}")
+                    last_behave_change = datetime.now()
 
                 elif movement_mode == "EXPLORE":
-                    time_delta = (last_explore_change - datetime.now()).total_seconds()
-                    logger.info(time_delta)
-                    if abs(time_delta) > 0.5:
-                        # light_up_led(network, 20, 20, 20)
-                        [v_left, v_right] = step_random_walk()
-                        logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
-                        # sending motor values to robot
-                        network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                        network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                        # light_up_led(network, 0, 0, 0)
-                        last_explore_change = datetime.now()
+                    if abs((last_behave_change - datetime.now()).total_seconds()) > 5:
+                        if abs((last_explore_change - datetime.now()).total_seconds()) > 0.5:
+                            # light_up_led(network, 20, 20, 20)
+                            [v_left, v_right] = step_random_walk()
+                            logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
+                            # sending motor values to robot
+                            network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                            network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                            # light_up_led(network, 0, 0, 0)
+                            last_explore_change = datetime.now()
 
                 else:
                     logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
