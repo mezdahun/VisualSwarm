@@ -155,6 +155,7 @@ def start_application(with_control=False):
                                      dbus_interface='ch.epfl.mobots.AsebaNetwork')
             network.SetVariable("thymio-II", "motor.left.target", [0])
             network.SetVariable("thymio-II", "motor.right.target", [0])
+            motoroutput.light_up_led(network, 0, 0, 0)
             motorinterface.asebamedulla_end()
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
