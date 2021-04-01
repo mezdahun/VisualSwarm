@@ -159,11 +159,11 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     last_behave_change = datetime.now()
 
                 elif movement_mode == "EXPLORE":
+                    if prev_movement_mode == "BEHAVE":
+                        logger.info('EXPLORE!')
+                        light_up_led(network, 0, 20, 0)
                     if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_EXPLORE:
                         if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
-                            if prev_movement_mode == "BEHAVE":
-                                logger.info('EXPLORE!')
-                                light_up_led(network, 0, 20, 0)
                             [v_left, v_right] = step_random_walk()
                             logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
                             # sending motor values to robot
