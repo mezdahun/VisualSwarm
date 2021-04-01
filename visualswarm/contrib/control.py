@@ -16,10 +16,10 @@ MAX_MOTOR_SPEED = 500
 
 # Exploration
 # Fixed speed during random walk exploration
-V_EXP_RW = 12
+V_EXP_RW = 6
 
 # Possible absolute angle change in a given timestep during exploration (in radian)
-DPSI_MAX_EXP = 0.75
+DPSI_MAX_EXP = 1.5
 
 # Random drawing precision
 DPSI_DRAW_PRECISION = 0.01
