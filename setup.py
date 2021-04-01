@@ -29,7 +29,6 @@ setup(
         'test': [
             'bandit',
             'flake8',
-            'isort',
             'pytest',
             'pytest-cov',
             'safety',
