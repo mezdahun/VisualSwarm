@@ -41,6 +41,11 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
 
+        if np.mean(projection_field) == 0:
+            movement_mode = "EXPLORE"
+        else:
+            movement_mode = "BEHAVE"
+
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
         # TODO normalize with framerate
         v += dv
@@ -68,6 +73,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
         if with_control:
             control_stream.put((v, dpsi))
+            motor_control_mode_stream.put(movement_mode)
 
         # To test infinite loops
         if env.EXIT_CONDITION:

@@ -63,3 +63,4 @@ class MoveCompTest(TestCase):
                         # Case 3: motor output turned off
                         behavior.VPF_to_behavior(VPF_stream, control_stream, movement_mode_stream, True)
                         control_stream.put.assert_called_once()
+                        movement_mode_stream.put.assert_called_once()
