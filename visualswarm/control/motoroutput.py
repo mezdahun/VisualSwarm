@@ -107,6 +107,9 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             -shall not return-
     """
     prev_movement_mode = "BEHAVE"
+    (expR, expG, expB) = control.EXPLORE_STATUS_RGB
+    (behR, behG, behB) = control.BEHAVE_STATUS_RGB
+
     if not with_control:
         # simply consuming the input stream so that we don't fill up memory
         while True:
@@ -139,11 +142,13 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
 
                 if movement_mode == "BEHAVE":
 
+                    # Switch between modes, change mode status LED
                     if prev_movement_mode == "EXPLORE":
-                        logger.info('BEHAVE!')
-                        light_up_led(network, 0, 0, 0)
+                        light_up_led(network, behR, behG, behB)
 
+                    # Persistent change in movement mode
                     if abs((last_explore_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
+                        # Behavior according to Romanczuk and Bastien 2020
                         # distributing desired forward speed according to dpsi
                         [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
@@ -156,20 +161,29 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                         network.SetVariable("thymio-II", "motor.left.target", [v_left])
                         network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
-                        logger.info(f"left: {v_left} \t right: {v_right}")
+                        logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
+                        # last time we changed velocity according to BEHAVIOR REGIME
                         last_behave_change = datetime.now()
 
                 elif movement_mode == "EXPLORE":
+
+                    # Switch between modes, change mode status LED
                     if prev_movement_mode == "BEHAVE":
-                        logger.info('EXPLORE!')
-                        light_up_led(network, 20, 20, 20)
+                        light_up_led(network, expR, expG, expB)
+
+                    # Persistent change in modes
                     if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
+                        # Enforcing specific dt in Random Walk Process
                         if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
+                            # Exploration according to Random Walk Process
                             [v_left, v_right] = step_random_walk()
-                            logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
+                            logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
+
                             # sending motor values to robot
                             network.SetVariable("thymio-II", "motor.left.target", [v_left])
                             network.SetVariable("thymio-II", "motor.right.target", [v_right])
+
+                            # last time we changed velocity according to EXPLORE REGIME
                             last_explore_change = datetime.now()
 
                 else:

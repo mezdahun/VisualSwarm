@@ -14,9 +14,13 @@ B = 0.11
 # Maximum motor speed of thymio2
 MAX_MOTOR_SPEED = 500
 
-# Exploration
+# Exploration and Movement Regimes
 # waiting some time before exploration if no input (sec)
 WAIT_BEFORE_SWITCH_MOVEMENT = 1
+
+# Status LEDs
+EXPLORE_STATUS_RGB = (20, 20, 20)
+BEHAVE_STATUS_RGB = (0, 0, 0)
 
 # Random walk time step to change direction (sec)
 RW_DT = 1
