@@ -40,7 +40,7 @@ class MoveCompTest(TestCase):
                         with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', False):
                             behavior.VPF_to_behavior(VPF_stream, control_stream, movement_mode_stream, False)
                             fake_create_client.assert_called_once()
-                            self.assertEqual(fake_control_params.call_count, 2)
+                            self.assertEqual(fake_control_params.call_count, 1)
 
                         # resetting mocks
                         fake_create_client.reset_mock()
@@ -57,7 +57,7 @@ class MoveCompTest(TestCase):
                         with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', True):
                             behavior.VPF_to_behavior(VPF_stream, control_stream, movement_mode_stream, False)
                             fake_create_client.assert_called_once()
-                            self.assertEqual(fake_control_params.call_count, 2)
+                            self.assertEqual(fake_control_params.call_count, 1)
                             fake_ifclient.write_points.assert_called_once()
 
                         # Case 3: motor output turned off
