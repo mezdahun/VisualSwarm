@@ -19,7 +19,7 @@ MAX_MOTOR_SPEED = 500
 V_EXP_RW = 12
 
 # Possible absolute angle change in a given timestep during exploration (in radian)
-DPSI_MAX_EXP = 0.25
+DPSI_MAX_EXP = 0.75
 
 # Random drawing precision
 DPSI_DRAW_PRECISION = 0.01
