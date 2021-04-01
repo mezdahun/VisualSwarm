@@ -143,7 +143,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                         logger.info('BEHAVE!')
                         light_up_led(network, 0, 0, 0)
 
-                    if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_EXPLORE:
+                    if abs((last_explore_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
                         # distributing desired forward speed according to dpsi
                         [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
@@ -163,7 +163,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     if prev_movement_mode == "BEHAVE":
                         logger.info('EXPLORE!')
                         light_up_led(network, 20, 20, 20)
-                    if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_EXPLORE:
+                    if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
                         if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
                             [v_left, v_right] = step_random_walk()
                             logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')

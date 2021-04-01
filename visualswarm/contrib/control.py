@@ -16,7 +16,7 @@ MAX_MOTOR_SPEED = 500
 
 # Exploration
 # waiting some time before exploration if no input (sec)
-WAIT_BEFORE_EXPLORE = 1
+WAIT_BEFORE_SWITCH_MOVEMENT = 1
 
 # Random walk time step to change direction (sec)
 RW_DT = 1
