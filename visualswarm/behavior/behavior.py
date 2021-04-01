@@ -18,12 +18,15 @@ from visualswarm import env
 logger = logging.getLogger('visualswarm.app')
 
 
-def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
+def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_control=False):
     """
     Process to extract final visual projection field from high level visual input.
         Args:
             VPF_stream (multiprocessing Queue): stream to receive visual projection field
             control_stream (multiprocessing Queue): stream to push calculated control parameters
+            motor_control_mode_stream (multiprocessing Queue): stream to determine which movement regime the agent
+                should follow
+            with_control (boolean): if true, the output of the algorithm is sent to the movement processes.
         Returns:
             -shall not return-
     """
