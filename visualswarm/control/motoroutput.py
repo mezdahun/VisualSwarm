@@ -147,7 +147,9 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                         light_up_led(network, behR, behG, behB)
 
                     # Persistent change in movement mode
-                    if abs((last_explore_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
+                    is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
+                                    control.WAIT_BEFORE_SWITCH_MOVEMENT
+                    if is_persistent or env.EXIT_CONDITION:
                         # Behavior according to Romanczuk and Bastien 2020
                         # distributing desired forward speed according to dpsi
                         [v_left, v_right] = distribute_overall_speed(v, dpsi)
