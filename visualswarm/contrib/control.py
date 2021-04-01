@@ -13,3 +13,13 @@ B = 0.11
 
 # Maximum motor speed of thymio2
 MAX_MOTOR_SPEED = 500
+
+# Exploration
+# Fixed speed during random walk exploration
+V_EXP_RW = 300
+
+# Possible absolute angle change in a given timestep during exploration (in radian)
+DPSI_MAX_EXP = 0.25
+
+# Random drawing precision
+DPSI_DRAW_PRECISION = 0.01

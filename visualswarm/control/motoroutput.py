@@ -38,6 +38,19 @@ bcolors = logparams.BColors
 #         network.LoadScripts(aesl.name)
 #     return True
 
+def step_random_walk() -> list:
+    """
+    Method to get motor velocity values according to a preconfigured random walk (RW) process
+        Args:
+            No args, configured via contrib.control
+        Returns:
+            [v_left_lim, v_right_lim]: RW motor values
+    """
+    dpsi = np.random.uniform(-control.DPSI_MAX_EXP, control.DPSI_MAX_EXP, 1 / control.DPSI_DRAW_PRECISION)
+    [v_left, v_right] = distribute_overall_speed(control.V_EXP_RW, dpsi)
+    return [v_left, v_right]
+
+
 def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     """
     Process to limit the motor speed into the available physical domain of the robot.
@@ -142,7 +155,13 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     logger.info(f"left: {v_left} \t right: {v_right}")
 
                 elif movement_mode == "EXPLORE":
-                    pass
+                    network.SetVariable("thymio-II", "leds.top", (20, 20, 20))
+                    [v_left, v_right] = step_random_walk()
+                    # sending motor values to robot
+                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                    network.SetVariable("thymio-II", "leds.top", (0, 0, 0))
+
                 else:
                     logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
                     raise KeyboardInterrupt
