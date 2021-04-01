@@ -153,7 +153,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                 elif movement_mode == "EXPLORE":
                     time_delta = (last_explore_change - datetime.now()).total_seconds()
                     logger.info(time_delta)
-                    if abs(time_delta) > 3:
+                    if abs(time_delta) > 0.5:
                         # light_up_led(network, 20, 20, 20)
                         [v_left, v_right] = step_random_walk()
                         logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
@@ -161,6 +161,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                         network.SetVariable("thymio-II", "motor.left.target", [v_left])
                         network.SetVariable("thymio-II", "motor.right.target", [v_right])
                         # light_up_led(network, 0, 0, 0)
+                        last_explore_change = datetime.now()
 
                 else:
                     logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
