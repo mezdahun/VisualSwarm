@@ -176,6 +176,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     raise KeyboardInterrupt
 
                 prev_movement_mode = movement_mode
+                logger.info(prev_movement_mode)
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
