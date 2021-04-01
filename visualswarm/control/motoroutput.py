@@ -90,11 +90,12 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     return [v_left, v_right]
 
 
-def control_thymio(control_stream, with_control=False):
+def control_thymio(control_stream, motor_control_mode_stream, with_control=False):
     """
     Process to translate state variables to motor velocities and send to Thymio2 robot via DBUS.
         Args:
             control_stream (multiprocessing Queue): stream to push calculated control parameters
+            motor_control_mode_stream (multiprocessing Queue): stream to get movement type/mode.
             with_control (boolean): sends motor command to robot if true. Only consumes input stream if false.
         Returns:
             -shall not return-
@@ -103,6 +104,7 @@ def control_thymio(control_stream, with_control=False):
         # simply consuming the input stream so that we don't fill up memory
         while True:
             (v, dpsi) = control_stream.get()
+            movement_mode = motor_control_mode_stream.get()
 
             # To test infinite loops
             if env.EXIT_CONDITION:
@@ -122,20 +124,28 @@ def control_thymio(control_stream, with_control=False):
             while True:
                 # fetching state variables
                 (v, dpsi) = control_stream.get()
+                movement_mode = motor_control_mode_stream.get()
 
-                # distributing desired forward speed according to dpsi
-                [v_left, v_right] = distribute_overall_speed(v, dpsi)
+                if movement_mode == "BEHAVE":
+                    # distributing desired forward speed according to dpsi
+                    [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
-                # hard limit motor velocities but keep their ratio for desired movement
-                if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
-                    logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
-                    [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
+                    # hard limit motor velocities but keep their ratio for desired movement
+                    if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
+                        logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
+                        [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
-                # sending motor values to robot
-                network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                    # sending motor values to robot
+                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
-                logger.info(f"left: {v_left} \t right: {v_right}")
+                    logger.info(f"left: {v_left} \t right: {v_right}")
+
+                elif movement_mode == "EXPLORE":
+                    pass
+                else:
+                    logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
+                    raise KeyboardInterrupt
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
