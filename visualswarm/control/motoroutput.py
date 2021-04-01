@@ -148,6 +148,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
 
                 elif movement_mode == "EXPLORE":
                     # light_up_led(network, 20, 20, 20)
+                    logger.info('EXPLORE')
                     [v_left, v_right] = step_random_walk()
                     # sending motor values to robot
                     network.SetVariable("thymio-II", "motor.left.target", [v_left])
