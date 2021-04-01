@@ -20,6 +20,3 @@ V_EXP_RW = 6
 
 # Possible absolute angle change in a given timestep during exploration (in radian)
 DPSI_MAX_EXP = 1.5
-
-# Random drawing precision
-DPSI_DRAW_PRECISION = 0.01

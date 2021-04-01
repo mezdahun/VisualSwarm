@@ -8,6 +8,7 @@ from visualswarm import env
 
 import numpy as np
 import tempfile
+from datetime import datetime
 # import random
 
 # using main logger
@@ -115,6 +116,9 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             if env.EXIT_CONDITION:
                 break
     else:
+        # Initialize timestamp
+        last_explore_change = datetime.now()
+
         # Initializing DBus
         dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
         bus = dbus.SessionBus()
@@ -147,13 +151,14 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     logger.info(f"left: {v_left} \t right: {v_right}")
 
                 elif movement_mode == "EXPLORE":
-                    # light_up_led(network, 20, 20, 20)
-                    [v_left, v_right] = step_random_walk()
-                    logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
-                    # sending motor values to robot
-                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                    # light_up_led(network, 0, 0, 0)
+                    if (last_explore_change - datetime.now()).total_seconds() > 0.5:
+                        # light_up_led(network, 20, 20, 20)
+                        [v_left, v_right] = step_random_walk()
+                        logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
+                        # sending motor values to robot
+                        network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                        network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                        # light_up_led(network, 0, 0, 0)
 
                 else:
                     logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
