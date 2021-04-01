@@ -7,7 +7,7 @@ from visualswarm.contrib import logparams, control
 from visualswarm import env
 
 import numpy as np
-# import tempfile
+import tempfile
 # import random
 
 # using main logger
@@ -15,28 +15,20 @@ logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
 
 
-# def test_motor_control(network):
-#     # get the values of the sensors
-#     proxSensorsVal = network.GetVariable("thymio-II", "prox.horizontal")
-#
-#     # print the proximity sensors value in the terminal
-#     print(proxSensorsVal[0], proxSensorsVal[1], proxSensorsVal[2], proxSensorsVal[3], proxSensorsVal[4])
-#
-#     with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
-#         aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
-#         node_id = 1
-#         name = 'thymio-II'
-#         aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
-#         # add code to handle incoming events
-#         R = random.randint(0, 32)  # nosec
-#         G = random.randint(0, 32)  # nosec
-#         B = random.randint(0, 32)  # nosec
-#         aesl.write(f'call leds.top({R},{G},{B})\n')
-#         aesl.write('</node>\n')
-#         aesl.write('</network>\n')
-#         aesl.seek(0)
-#         network.LoadScripts(aesl.name)
-#     return True
+def light_up_led(network, R, G, B):
+
+    with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
+        aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
+        node_id = 1
+        name = 'thymio-II'
+        aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
+        aesl.write(f'call leds.top({R},{G},{B})\n')
+        aesl.write('</node>\n')
+        aesl.write('</network>\n')
+        aesl.seek(0)
+        network.LoadScripts(aesl.name)
+    return True
+
 
 def step_random_walk() -> list:
     """
@@ -155,12 +147,12 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     logger.info(f"left: {v_left} \t right: {v_right}")
 
                 elif movement_mode == "EXPLORE":
-                    network.SetVariable("thymio-II", "leds.top", (20, 20, 20))
+                    light_up_led(network, 20, 20, 20)
                     [v_left, v_right] = step_random_walk()
                     # sending motor values to robot
                     network.SetVariable("thymio-II", "motor.left.target", [v_left])
                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                    network.SetVariable("thymio-II", "leds.top", (0, 0, 0))
+                    light_up_led(network, 0, 0, 0)
 
                 else:
                     logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
