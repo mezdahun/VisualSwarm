@@ -42,9 +42,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         (projection_field, capture_timestamp) = VPF_stream.get()
 
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
+        # TODO normalize with framerate
         v += dv
-        # psi += dpsi
-        # psi = psi % (2 * np.pi)
 
         if monitoring.SAVE_CONTROL_PARAMS:
 
