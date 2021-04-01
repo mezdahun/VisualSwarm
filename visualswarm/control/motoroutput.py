@@ -143,20 +143,21 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                         logger.info('BEHAVE!')
                         light_up_led(network, 0, 0, 0)
 
-                    # distributing desired forward speed according to dpsi
-                    [v_left, v_right] = distribute_overall_speed(v, dpsi)
+                    if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_EXPLORE:
+                        # distributing desired forward speed according to dpsi
+                        [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
-                    # hard limit motor velocities but keep their ratio for desired movement
-                    if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
-                        logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
-                        [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
+                        # hard limit motor velocities but keep their ratio for desired movement
+                        if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
+                            logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
+                            [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
-                    # sending motor values to robot
-                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                        # sending motor values to robot
+                        network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                        network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
-                    logger.info(f"left: {v_left} \t right: {v_right}")
-                    last_behave_change = datetime.now()
+                        logger.info(f"left: {v_left} \t right: {v_right}")
+                        last_behave_change = datetime.now()
 
                 elif movement_mode == "EXPLORE":
                     if prev_movement_mode == "BEHAVE":
