@@ -18,4 +18,3 @@ INFLUX_PORT = os.getenv('INFLUX_HOST', '8086')
 
 # testing parameters
 EXIT_CONDITION = False
-
