@@ -153,7 +153,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                 elif movement_mode == "EXPLORE":
                     time_delta = (last_explore_change - datetime.now()).total_seconds()
                     logger.info(time_delta)
-                    if abs(time_delta) > 0.5:
+                    if abs(time_delta) > 3:
                         # light_up_led(network, 20, 20, 20)
                         [v_left, v_right] = step_random_walk()
                         logger.info(f'EXPLORE left: {v_left} \t right: {v_right}')
