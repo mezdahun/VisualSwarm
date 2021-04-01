@@ -147,12 +147,12 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                     logger.info(f"left: {v_left} \t right: {v_right}")
 
                 elif movement_mode == "EXPLORE":
-                    light_up_led(network, 20, 20, 20)
+                    # light_up_led(network, 20, 20, 20)
                     [v_left, v_right] = step_random_walk()
                     # sending motor values to robot
                     network.SetVariable("thymio-II", "motor.left.target", [v_left])
                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                    light_up_led(network, 0, 0, 0)
+                    # light_up_led(network, 0, 0, 0)
 
                 else:
                     logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
