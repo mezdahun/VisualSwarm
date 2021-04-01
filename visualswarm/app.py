@@ -46,7 +46,6 @@ def start_application(with_control=False):
     # Creating Queues
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
-    motor_control_mode_stream = Queue()
 
     if vision.SHOW_VISION_STREAMS:
         # showing raw and processed camera stream
@@ -64,6 +63,7 @@ def start_application(with_control=False):
 
     VPF_stream = Queue()
     control_stream = Queue()
+    motor_control_mode_stream = Queue()
 
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
@@ -142,6 +142,8 @@ def start_application(with_control=False):
             logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} configuration stream!')
         control_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} control parameter stream!')
+        motor_control_mode_stream.close()
+        logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} movement mode stream!')
 
         if with_control:
             logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
