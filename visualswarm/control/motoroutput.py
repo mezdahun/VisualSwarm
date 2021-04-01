@@ -38,7 +38,7 @@ def step_random_walk() -> list:
         Returns:
             [v_left_lim, v_right_lim]: RW motor values
     """
-    dpsi = np.random.uniform(-control.DPSI_MAX_EXP, control.DPSI_MAX_EXP, int(1 / control.DPSI_DRAW_PRECISION))
+    dpsi = np.random.uniform(-control.DPSI_MAX_EXP, control.DPSI_MAX_EXP, 1)
     [v_left, v_right] = distribute_overall_speed(control.V_EXP_RW, dpsi)
     return [v_left, v_right]
 
