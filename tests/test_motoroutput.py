@@ -93,3 +93,12 @@ class MotorInterfaceTest(TestCase):
             self.assertEqual(tempfile_mock.__enter__.return_value.write.call_count, 5)
             tempfile_mock.__enter__.return_value.seek.assert_called_once()
             network_mock.LoadScripts.assert_called_once()
+
+    @mock.patch('visualswarm.control.motoroutput.distribute_overall_speed', return_value=(None, None))
+    @mock.patch('numpy.random.uniform', return_value=1)
+    def test_step_random_walk(self, mock_random, mock_distribute):
+        with mock.patch('visualswarm.contrib.control.DPSI_MAX_EXP', 5):
+            with mock.patch('visualswarm.contrib.control.V_EXP_RW', 10):
+                [_, _] = motoroutput.step_random_walk()
+                mock_random.assert_called_once_with(-5, 5, 1)
+                mock_distribute.assert_called_once_with(10, 1)
