@@ -35,3 +35,11 @@ V_EXP_RW = 6
 
 ## Possible absolute angle change in a given timestep during RW exploration (in radian)
 DPSI_MAX_EXP = 1.5
+
+
+# ROTATION
+## Motor speed (per motor) during rotation (rotation speed)
+ROT_MOTOR_SPEED = 200
+
+# Rotation direction, possible values: 'Left', 'Right', 'Random'
+ROT_DIRECTION = 'Random'
