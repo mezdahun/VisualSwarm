@@ -105,3 +105,31 @@ class MotorInterfaceTest(TestCase):
                 [_, _] = motoroutput.step_random_walk()
                 mock_random.assert_called_once_with(-5, 5, 1)
                 mock_distribute.assert_called_once_with(10, 1)
+
+    def test_hardlimit_motor_speed(self):
+        with mock.patch('visualswarm.contrib.control.MAX_MOTOR_SPEED', 1):
+            # preserving signs
+            v_l, v_r = 2, 2
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [1, 1])
+            v_l, v_r = 2, -2
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [1, -1])
+            v_l, v_r = -2, 2
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [-1, 1])
+            v_l, v_r = -2, -2
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [-1, -1])
+
+            # preserving ratios
+            v_l, v_r = 1, 2
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [0.5, 1])
+            v_l, v_r = 2, 1
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [1, 0.5])
+
+            # handling zeros
+            v_l, v_r = 0, 2
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [0, 1])
+            v_l, v_r = 0, -2
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [0, -1])
+            v_l, v_r = 2, 0
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [1, 0])
+            v_l, v_r = -2, 0
+            self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [-1, 0])

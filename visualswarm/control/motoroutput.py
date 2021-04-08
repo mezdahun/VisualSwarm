@@ -88,24 +88,31 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
             [v_left_lim, v_right_lim]: limited motor values
     """
     # preserving signs
-    sign_v_left = np.sign(v_left)
-    sign_v_right = np.sign(v_right)
+    if v_left != 0 and v_right != 0:
+        sign_v_left = np.sign(v_left)
+        sign_v_right = np.sign(v_right)
 
-    if np.abs(v_left) > np.abs(v_right):
-        v_right_prop = np.abs(v_right) / np.abs(v_left)
-        v_left_lim = sign_v_left * control.MAX_MOTOR_SPEED
-        v_right_lim = sign_v_right * v_left_lim * v_right_prop
+        if np.abs(v_left) > np.abs(v_right):
+            v_right_prop = np.abs(v_right) / np.abs(v_left)
+            v_left_lim = sign_v_left * control.MAX_MOTOR_SPEED
+            v_right_lim = sign_v_right * v_left_lim * v_right_prop
 
-    elif np.abs(v_left) == np.abs(v_right):
-        v_right_lim = sign_v_right * control.MAX_MOTOR_SPEED
-        v_left_lim = sign_v_left * control.MAX_MOTOR_SPEED
+        elif np.abs(v_left) == np.abs(v_right):
+            v_right_lim = sign_v_right * control.MAX_MOTOR_SPEED
+            v_left_lim = sign_v_left * control.MAX_MOTOR_SPEED
 
+        else:
+            v_left_prop = np.abs(v_left) / np.abs(v_right)
+            v_right_lim = sign_v_right * control.MAX_MOTOR_SPEED
+            v_left_lim = sign_v_left * v_right_lim * v_left_prop
     else:
-        v_left_prop = np.abs(v_left) / np.abs(v_right)
-        v_right_lim = sign_v_right * control.MAX_MOTOR_SPEED
-        v_left_lim = sign_v_left * v_right_lim * v_left_prop
+        if v_left == 0:
+            v_left_lim, v_right_lim = 0, np.sign(v_right) * control.MAX_MOTOR_SPEED
+        else:
+            v_left_lim, v_right_lim = np.sign(v_left) * control.MAX_MOTOR_SPEED, 0
 
     return [v_left_lim, v_right_lim]
+
 
 
 def distribute_overall_speed(v: float, dpsi: float) -> list:
