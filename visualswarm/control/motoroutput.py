@@ -17,7 +17,14 @@ bcolors = logparams.BColors
 
 
 def light_up_led(network, R, G, B):
-
+    """
+    Method to indicate movement mode by lighting up top LEDS on robot
+        Args:
+            network: DBUS network to reach Thymio2
+            R, G, B: color configuration of led, min: (0, 0, 0), max: (32, 32, 32)
+        Returns:
+            None
+    """
     with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
         aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
         node_id = 1
@@ -28,7 +35,6 @@ def light_up_led(network, R, G, B):
         aesl.write('</network>\n')
         aesl.seek(0)
         network.LoadScripts(aesl.name)
-    return True
 
 
 def step_random_walk() -> list:
