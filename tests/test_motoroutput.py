@@ -67,6 +67,18 @@ class MotorInterfaceTest(TestCase):
                         motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
                         mock_rotate.assert_called_once()
 
+                # RANDOM WALK
+                with mock.patch('visualswarm.contrib.control.EXP_MOVE_TYPE', 'RandomWalk'):
+                    with mock.patch('visualswarm.control.motoroutput.step_random_walk') as mock_rw:
+                        mock_rw.return_value = [0, 0]
+                        motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                        mock_rw.assert_called_once()
+
+                # UNKNOWN
+                with mock.patch('visualswarm.contrib.control.EXP_MOVE_TYPE', 'Invalid'):
+                    with self.assertRaises(KeyboardInterrupt):
+                        motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+
             # Case 1/c: unknown movement mode
             movement_mode_stream = mock.MagicMock()
             movement_mode_stream.get.return_value = "UNKNOWN"
