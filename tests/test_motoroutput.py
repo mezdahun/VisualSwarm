@@ -74,6 +74,9 @@ class MotorInterfaceTest(TestCase):
                     [v_l, v_r] = motoroutput.rotate()
                     mock_choice.assert_called_once()
                     self.assertEqual([v_l, v_r], [-100, 100])
+            with self.assertRaises(KeyboardInterrupt):
+                with mock.patch('visualswarm.contrib.control.ROT_DIRECTION', 'UNKNOWN'):
+                    [v_l, v_r] = motoroutput.rotate()
 
     def test_light_up_led(self):
         tempfile_mock = mock.MagicMock()
