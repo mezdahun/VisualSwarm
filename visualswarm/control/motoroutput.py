@@ -48,6 +48,30 @@ def step_random_walk() -> list:
     return [v_left, v_right]
 
 
+def rotate() -> list:
+    """
+    Method to get motor velocity values according to a preconfigured rotation (ROT) process
+        Args:
+            No args, configured via contrib.control
+        Returns:
+            [v_left, v_right]: ROT motor values
+    """
+    if control.ROT_DIRECTION == 'Left':
+        right_sign = 1
+    elif control.ROT_DIRECTION == 'Right':
+        right_sign = -1
+    elif control.ROT_DIRECTION == 'Random':
+        right_sign = np.random.choice([1,-1],1)[0]
+    else:
+        logger.error(f"Wrong configuration value control.ROT_DIRECTION=\"{control.ROT_DIRECTION}\"! Abort!")
+        raise KeyboardInterrupt
+    left_sign = -1 * right_sign
+
+    v_left = left_sign * control.ROT_MOTOR_SPEED
+    v_right = right_sign * control.ROT_MOTOR_SPEED
+    return [v_left, v_right]
+
+
 def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     """
     Process to limit the motor speed into the available physical domain of the robot.
