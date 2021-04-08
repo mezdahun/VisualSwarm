@@ -42,4 +42,4 @@ DPSI_MAX_EXP = 1.5
 ROT_MOTOR_SPEED = 200
 
 # Rotation direction, possible values: 'Left', 'Right', 'Random'
-ROT_DIRECTION = 'Right'
+ROT_DIRECTION = 'Random'
