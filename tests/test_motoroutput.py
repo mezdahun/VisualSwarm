@@ -9,7 +9,10 @@ class MotorInterfaceTest(TestCase):
     @mock.patch('dbus.mainloop.glib.DBusGMainLoop', return_value=None)
     @mock.patch('dbus.SessionBus')
     @mock.patch('dbus.Interface')
-    def test_control_thymio(self, mock_network_init, mock_dbus_sessionbus, mock_dbus_init):
+    @mock.patch('visualswarm.control.motoroutput.distribute_overall_speed', return_value=(10, 10))
+    @mock.patch('visualswarm.control.motoroutput.hardlimit_motor_speed', return_value=(1, 1))
+    def test_control_thymio(self, mock_hard_limit, mock_distribute, mock_network_init, mock_dbus_sessionbus,
+                            mock_dbus_init):
         mock_network = mock.MagicMock(return_value=None)
         mock_network.SetVariable.return_value = None
         mock_network_init.return_value = mock_network
@@ -33,15 +36,23 @@ class MotorInterfaceTest(TestCase):
             control_stream.get.reset_mock()
             movement_mode_stream.get.reset_mock()
             mock_health.reset_mock()
-            # Case 1/b : with control
-            motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
-            mock_dbus_init.assert_called_once_with(set_as_default=True)
-            mock_dbus_sessionbus.assert_called_once()
-            mock_network_init.assert_called_once()
-            mock_health.assert_called_once()
-            control_stream.get.assert_called_once()
-            movement_mode_stream.get.assert_called_once()
-            self.assertEqual(mock_network.SetVariable.call_count, 2)
+
+            # Case 1/b : with control and normal output velcoity values
+            with mock.patch('visualswarm.contrib.control.MAX_MOTOR_SPEED', 12):
+                motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                mock_dbus_init.assert_called_once_with(set_as_default=True)
+                mock_dbus_sessionbus.assert_called_once()
+                mock_network_init.assert_called_once()
+                mock_health.assert_called_once()
+                control_stream.get.assert_called_once()
+                movement_mode_stream.get.assert_called_once()
+                mock_distribute.assert_called_once()
+                self.assertEqual(mock_network.SetVariable.call_count, 2)
+
+            # Case 1/c : with control and too large output velcoity values
+            with mock.patch('visualswarm.contrib.control.MAX_MOTOR_SPEED', 5):
+                motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                mock_hard_limit.assert_called_once()
 
             # Case 1/c: unknown movement mode
             movement_mode_stream = mock.MagicMock()

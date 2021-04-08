@@ -114,7 +114,6 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     return [v_left_lim, v_right_lim]
 
 
-
 def distribute_overall_speed(v: float, dpsi: float) -> list:
     """
     distributing desired forward speed to motor velocities according to the change in the heading angle dpsi.
