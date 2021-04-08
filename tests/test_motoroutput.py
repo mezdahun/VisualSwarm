@@ -61,3 +61,35 @@ class MotorInterfaceTest(TestCase):
 
                 with self.assertRaises(Exception):
                     motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+
+    def test_rotate(self):
+        with mock.patch('visualswarm.contrib.control.ROT_MOTOR_SPEED', 100):
+            with mock.patch('visualswarm.contrib.control.ROT_DIRECTION', 'Left'):
+                self.assertEqual(motoroutput.rotate(), [-100, 100])
+            with mock.patch('visualswarm.contrib.control.ROT_DIRECTION', 'Right'):
+                self.assertEqual(motoroutput.rotate(), [100, -100])
+            with mock.patch('visualswarm.contrib.control.ROT_DIRECTION', 'Random'):
+                with mock.patch('numpy.random.choice') as mock_choice:
+                    mock_choice.return_value = [1]  # positive right motor (left rotation)
+                    [v_l, v_r] = motoroutput.rotate()
+                    mock_choice.assert_called_once()
+                    self.assertEqual([v_l, v_r], [-100, 100])
+
+    def test_light_up_led(self):
+        tempfile_mock = mock.MagicMock()
+        tempfile_mock.__enter__.return_value = mock.MagicMock()
+        tempfile_mock.__enter__.return_value.write.return_value = None
+        tempfile_mock.__enter__.return_value.seek.return_value = None
+        tempfile_mock.__enter__.return_value.name = 'temp'
+
+        network_mock = mock.MagicMock()
+        network_mock.LoadScripts.return_value = None
+
+        with mock.patch('tempfile.NamedTemporaryFile') as tempfile_mock_fn:
+            tempfile_mock_fn.return_value = tempfile_mock
+            motoroutput.light_up_led(network_mock, 0, 0, 0)
+            tempfile_mock_fn.assert_called_once()
+            tempfile_mock.__enter__.assert_called_once()  # enter context manager
+            self.assertEqual(tempfile_mock.__enter__.return_value.write.call_count, 5)
+            tempfile_mock.__enter__.return_value.seek.assert_called_once()
+            network_mock.LoadScripts.assert_called_once()
