@@ -1,10 +1,13 @@
 from unittest import TestCase, mock
 
+from freezegun import freeze_time
+
 from visualswarm.control import motoroutput
 
 
 class MotorInterfaceTest(TestCase):
 
+    @freeze_time("Jan 15th, 2020", auto_tick_seconds=15)
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     @mock.patch('dbus.mainloop.glib.DBusGMainLoop', return_value=None)
     @mock.patch('dbus.SessionBus')
@@ -53,6 +56,16 @@ class MotorInterfaceTest(TestCase):
             with mock.patch('visualswarm.contrib.control.MAX_MOTOR_SPEED', 5):
                 motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
                 mock_hard_limit.assert_called_once()
+
+            # Case 1/d: with control but exploration
+            movement_mode_stream.get.return_value = "EXPLORE"
+            with mock.patch('visualswarm.contrib.control.WAIT_BEFORE_SWITCH_MOVEMENT', 15 - 1):
+                # ROTATION
+                with mock.patch('visualswarm.contrib.control.EXP_MOVE_TYPE', 'Rotation'):
+                    with mock.patch('visualswarm.control.motoroutput.rotate') as mock_rotate:
+                        mock_rotate.return_value = [0, 0]
+                        motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                        mock_rotate.assert_called_once()
 
             # Case 1/c: unknown movement mode
             movement_mode_stream = mock.MagicMock()
