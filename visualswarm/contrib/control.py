@@ -16,7 +16,7 @@ MAX_MOTOR_SPEED = 500
 
 # Exploration and Movement Regimes
 # Exploration mode, possible values: 'RandomWalk', 'Rotation', 'NoExploration'
-EXP_MOVE_TYPE = 'RandomWalk'
+EXP_MOVE_TYPE = 'Rotation'
 
 # waiting some time before exploration if no input (sec)
 WAIT_BEFORE_SWITCH_MOVEMENT = 1
