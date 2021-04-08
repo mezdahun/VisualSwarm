@@ -37,10 +37,14 @@ def step_random_walk() -> list:
         Args:
             No args, configured via contrib.control
         Returns:
-            [v_left_lim, v_right_lim]: RW motor values
+            [v_left, v_right]: RW motor values
     """
+    # drawing random change in heading angle from uniform dist
     dpsi = np.random.uniform(-control.DPSI_MAX_EXP, control.DPSI_MAX_EXP, 1)
+
+    # distributing desired forward velocity according to drwan change in h.a.
     [v_left, v_right] = distribute_overall_speed(control.V_EXP_RW, dpsi)
+
     return [v_left, v_right]
 
 
