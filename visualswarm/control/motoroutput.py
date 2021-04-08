@@ -67,7 +67,7 @@ def rotate() -> list:
     elif control.ROT_DIRECTION == 'Right':
         right_sign = -1
     elif control.ROT_DIRECTION == 'Random':
-        right_sign = np.random.choice([1,-1],1)[0]
+        right_sign = np.random.choice([1, -1], 1)[0]
     else:
         logger.error(f"Wrong configuration value control.ROT_DIRECTION=\"{control.ROT_DIRECTION}\"! Abort!")
         raise KeyboardInterrupt
