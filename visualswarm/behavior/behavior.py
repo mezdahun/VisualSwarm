@@ -46,12 +46,13 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             movement_mode = "EXPLORE"
         else:
             movement_mode = "BEHAVE"
-
-        dt = (t_prev - datetime.datetime.now()).total_seconds()
+        t_now = datetime.datetime.now()
+        dt = (t_prev - t_now).total_seconds()
         logger.info(f'dt: {dt}, f: {1/dt}')
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
         # TODO normalize with framerate
         v += dv
+        t_prev = t_now
 
         if monitoring.SAVE_CONTROL_PARAMS:
 
