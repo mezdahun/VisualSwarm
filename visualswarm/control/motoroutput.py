@@ -287,7 +287,7 @@ def emergency_behavior():
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
     while True:
-        if abs(t-datetime.now()).total_seconds > 0.5:
+        if abs(t-datetime.now()).total_seconds() > 0.5:
             prox_val = network.GetVariable("thymio-II", "prox.horizontal")
             logger.info(prox_val)
             t =datetime.now()
