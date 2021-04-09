@@ -317,5 +317,5 @@ def emergency_behavior():
 
     from gi.repository import GObject
     GObject.threads_init()
-    loop = GObject.MainLoop()
+    loop = GObject.MainLoop.new(None, False)
     loop.run()
