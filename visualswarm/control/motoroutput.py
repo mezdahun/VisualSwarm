@@ -270,6 +270,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     # EMERGENCY
                     network.SetVariable("thymio-II", "motor.left.target", [0])
                     network.SetVariable("thymio-II", "motor.right.target", [0])
+                    last_behave_change = datetime.now()
+                    last_explore_change = datetime.now()
 
                 prev_movement_mode = movement_mode
 
