@@ -266,12 +266,12 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                         logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
                         raise KeyboardInterrupt
 
-                    prev_movement_mode = movement_mode
-
                 else:
                     # EMERGENCY
                     network.SetVariable("thymio-II", "motor.left.target", [0])
                     network.SetVariable("thymio-II", "motor.right.target", [0])
+
+                prev_movement_mode = movement_mode
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
