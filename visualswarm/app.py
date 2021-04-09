@@ -16,9 +16,9 @@ from visualswarm.control import motorinterface, motoroutput
 
 import dbus.mainloop.glib
 
-from gi.repository import GObject
+from gi.repository import GLib
 
-GObject.threads_init()
+GLib.threads_init()
 
 # setup logging
 logging.basicConfig()
