@@ -291,6 +291,7 @@ def emergency_behavior():
             prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
             idx = np.where(prox_val>2000)
             if len(idx) > 0:
+                logger.info(idx)
                 logger.info('EMERGENCY')
                 logger.info(prox_val)
             t =datetime.now()
