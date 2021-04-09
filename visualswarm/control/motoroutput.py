@@ -130,8 +130,8 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     dpsi_p = dpsi / np.pi
 
     # Distributing velocity
-    v_left = v * (1 - dpsi_p)
-    v_right = v * (1 + dpsi_p)
+    v_left = v * (1 + dpsi_p)
+    v_right = v * (1 - dpsi_p)
 
     return [v_left, v_right]
 
