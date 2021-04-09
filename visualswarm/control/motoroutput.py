@@ -180,8 +180,8 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
 
         # Initializing DBus
         # if bus is None:
-        #     dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        dbus.mainloop.glib.threads_init()
+        dbus.mainloop.glib.DBusGMainLoop()
         bus = dbus.SessionBus()
 
         # Create Aseba network
@@ -303,14 +303,14 @@ def emergency_behavior():
     global bus
 
     # Initializing DBus
-    if bus is None:
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
+    dbus.mainloop.glib.threads_init()
+    dbus.mainloop.glib.DBusGMainLoop()
+    bus = dbus.SessionBus()
 
     # Create Aseba network
-    if network is None:
-        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
+    # if network is None:
+    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
     with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t', delete=False) as aesl:
         aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
