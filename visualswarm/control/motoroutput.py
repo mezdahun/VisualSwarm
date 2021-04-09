@@ -170,7 +170,6 @@ def avoid_obstacle(network):
     network.SetVariable("thymio-II", "motor.left.target", [-100])
     network.SetVariable("thymio-II", "motor.right.target", [-100])
     sleep(2)
-    light_up_led(network, 0, 0, 0)
     logger.info('Done Emergency!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
@@ -296,6 +295,10 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     empty_queue(motor_control_mode_stream)
                     empty_queue(emergency_stream)
                     emergency_mode = False
+                    if movement_mode == "EXPLORE":
+                        light_up_led(network, expR, expG, expB)
+                    elif movement_mode == "BEHAVE":
+                        light_up_led(network, behR, behG, behB)
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
