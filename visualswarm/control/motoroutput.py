@@ -18,11 +18,11 @@ sleep(10)
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
 
-# Initializing DBus
-bus = None
-
-# Create Aseba network
-network = None
+# # Initializing DBus
+# bus = None
+#
+# # Create Aseba network
+# network = None
 
 def light_up_led(network, R, G, B):
     """
@@ -158,8 +158,8 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         Returns:
             -shall not return-
     """
-    global network
-    global bus
+    # global network
+    # global bus
     prev_movement_mode = "BEHAVE"
     (expR, expG, expB) = control.EXPLORE_STATUS_RGB
     (behR, behG, behB) = control.BEHAVE_STATUS_RGB
@@ -179,15 +179,44 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         last_behave_change = datetime.now()
 
         # Initializing DBus
-        if bus is None:
-            dbus.mainloop.glib.threads_init()
-            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-            bus = dbus.SessionBus()
+        # if bus is None:
+        #     dbus.mainloop.glib.threads_init()
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SessionBus()
 
         # Create Aseba network
-        if network is None:
-            network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                     dbus_interface='ch.epfl.mobots.AsebaNetwork')
+        # if network is None:
+        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
+
+        with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t', delete=False) as aesl:
+            aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
+            # declare global events and ...
+            aesl.write('<event size="0" name="fwd.button.backward"/>\n')
+            aesl.write('<event size="0" name="become.yellow"/>\n')
+            aesl.write('<event size="0" name="fwd.timer0"/>\n')
+            thymio = "thymio-II"
+            aesl.write('<node nodeId="1" name="' + thymio + '">\n')
+            # ...forward some local events as outgoing global ones
+            aesl.write('onevent button.forward\n    emit fwd.button.backward\n')
+            aesl.write('onevent timer0\n    emit fwd.timer0\n')
+            # add code to handle incoming events
+            aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
+            aesl.write('</node>\n')
+            aesl.write('</network>\n')
+            aesl.seek(0)
+
+        network.LoadScripts(aesl.name)
+
+        eventfilter = network.CreateEventFilter()
+        events = dbus.Interface(
+            bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
+            dbus_interface='ch.epfl.mobots.EventFilter')
+
+        network.SetVariable(thymio, "timer.period", [1000, 0])
+        events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
+        events.ListenEventName('fwd.button.backward')
+        events.connect_to_signal('Event', prox_emergency_callback)
 
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
