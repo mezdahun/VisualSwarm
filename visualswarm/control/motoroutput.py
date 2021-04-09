@@ -136,6 +136,10 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     return [v_left, v_right]
 
 
+def prox_emergency_callback(*args):
+    logger.warning('EMERGENCY-EMERGENCY-EMERGENCY!!!!')
+
+
 def control_thymio(control_stream, motor_control_mode_stream, with_control=False):
     """
     Process to translate state variables to motor velocities and send to Thymio2 robot via DBUS.
@@ -171,6 +175,45 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         # Create Aseba network
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
+
+        with tempfile.NamedTemporaryFile(suffix='.aesl', delete=False) as aesl:
+            aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
+            # declare global events and ...
+            aesl.write('<event size="7" name="prox.emergency"/>\n')
+            node_id = 1
+            name = 'thymio-II'
+            aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
+            # ...forward some local events as outgoing global ones
+            aesl.write('onevent prox')
+            aesl.write('    if prox.horizontal[0] > 1000 then')
+            aesl.write('        emit prox.emergency')
+            aesl.write('    elseif prox.horizontal[1] > 1000')
+            aesl.write('        emit prox.emergency')
+            aesl.write('    elseif prox.horizontal[2] > 1000')
+            aesl.write('        emit prox.emergency')
+            aesl.write('    elseif prox.horizontal[3] > 1000')
+            aesl.write('        emit prox.emergency')
+            aesl.write('    elseif prox.horizontal[4] > 1000')
+            aesl.write('        emit prox.emergency')
+            aesl.write('    elseif prox.horizontal[5] > 1000')
+            aesl.write('        emit prox.emergency')
+            aesl.write('    elseif prox.horizontal[6] > 1000')
+            aesl.write('        emit prox.emergency')
+            # aesl.write('onevent timer0\n    emit fwd.timer0\n')
+            # # add code to handle incoming events
+            # aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
+            aesl.write('</node>\n')
+            aesl.write('</network>\n')
+            network.LoadScripts(aesl.name)
+
+        # Create an event filter and catch events
+        eventfilter = network.CreateEventFilter()
+        events = dbus.Interface(
+            bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
+            dbus_interface='ch.epfl.mobots.EventFilter')
+
+        events.ListenEventName('fwd.button.backward')
+        events.connect_to_signal('Event', prox_emergency_callback)
 
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
