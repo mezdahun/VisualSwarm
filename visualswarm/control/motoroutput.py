@@ -13,7 +13,6 @@ from datetime import datetime
 from time import sleep
 
 
-sleep(10)
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
