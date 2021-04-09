@@ -302,20 +302,17 @@ def emergency_behavior():
 
     network.LoadScripts(aesl.name)
 
-    # Create an event filter and catch events
-    eventfilter = network.CreateEventFilter()
-    events = dbus.Interface(
-        bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
-        dbus_interface='ch.epfl.mobots.EventFilter')
+    # # Create an event filter and catch events
+    # eventfilter = network.CreateEventFilter()
+    # events = dbus.Interface(
+    #     bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
+    #     dbus_interface='ch.epfl.mobots.EventFilter')
+    #
+    # network.SetVariable(thymio, "timer.period", [1000, 0])
+    # events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
+    # events.ListenEventName('fwd.button.backward')
+    # events.connect_to_signal('Event', prox_emergency_callback)
 
-    network.SetVariable(thymio, "timer.period", [1000, 0])
-    events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
-    events.ListenEventName('fwd.button.backward')
-    events.connect_to_signal('Event', prox_emergency_callback)
-
-    from gi.repository import GLib
-    loop = GLib.MainLoop()
-    sleep(10)
     while True:
         # Create an event filter and catch events
         eventfilter = network.CreateEventFilter()
@@ -327,4 +324,6 @@ def emergency_behavior():
         events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
         events.ListenEventName('fwd.button.backward')
         events.connect_to_signal('Event', prox_emergency_callback)
+        from gi.repository import GLib
+        loop = GLib.MainLoop()
         loop.run()
