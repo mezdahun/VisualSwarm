@@ -179,13 +179,13 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
             aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
             # declare global events and ...
-            aesl.write('<event size="7" name="prox.emergency"/>\n')
+            aesl.write('<event size="0" name="prox.emergency"/>\n')
             node_id = 1
             name = 'thymio-II'
             aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
             # ...forward some local events as outgoing global ones
             aesl.write('onevent prox\n')
-            aesl.write('when prox.horizontal[0] > 1000 do')
+            aesl.write('  if prox.horizontal[0] > 1000 then\n')
             aesl.write('    emit prox.emergency\n')
             # aesl.write('    elseif (prox.horizontal[1] > 1000) then')
             # aesl.write('        emit prox.emergency')
@@ -199,7 +199,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             # aesl.write('        emit prox.emergency')
             # aesl.write('    elseif (prox.horizontal[6] > 1000) then')
             # aesl.write('        emit prox.emergency')
-            # aesl.write('end')
+            aesl.write('  end\n')
             # aesl.write('onevent timer0\n    emit fwd.timer0\n')
             # # add code to handle incoming events
             # aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
