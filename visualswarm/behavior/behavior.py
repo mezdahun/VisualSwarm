@@ -33,6 +33,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
     ifclient = ifdb.create_ifclient()
     phi = None
     v = 0
+    t_prev = datetime.datetime.now()
 
     (projection_field, capture_timestamp) = VPF_stream.get()
     phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
@@ -46,6 +47,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         else:
             movement_mode = "BEHAVE"
 
+        dt = (t_prev - datetime.datetime.now()).total_seconds()
+        logger.info(f'dt: {dt}, f: {1/dt}')
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
         # TODO normalize with framerate
         v += dv
