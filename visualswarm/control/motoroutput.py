@@ -203,7 +203,6 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 movement_mode = motor_control_mode_stream.get()
                 emergency_mode = emergency_stream.get()
 
-                # if not emergency_mode:
                 if movement_mode == "BEHAVE":
 
                     # Switch between modes, change mode status LED
@@ -266,13 +265,6 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
                     raise KeyboardInterrupt
 
-                # else:
-                #     # EMERGENCY
-                #     network.SetVariable("thymio-II", "motor.left.target", [0])
-                #     network.SetVariable("thymio-II", "motor.right.target", [0])
-                #     last_behave_change = datetime.now()
-                #     last_explore_change = datetime.now()
-
                 prev_movement_mode = movement_mode
 
                 # To test infinite loops
@@ -296,7 +288,7 @@ def emergency_behavior(emergency_stream):
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
     while True:
-        if abs(t-datetime.now()).total_seconds() > 0.2:
+        if abs(t-datetime.now()).total_seconds() > 0.5:
             prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
             idx = np.where(prox_val>2000)[0]
             if len(idx) > 0:
