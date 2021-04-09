@@ -6,7 +6,7 @@ setup(
     name='VisualSwarm',
     description='Implementation of a minimal vision algorithm published by Bastien & Romanczuk (2020) on a Raspberry '
                 'PI for movement control of Thymio II robots.',
-    version='0.1.0',
+    version='0.1.2',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
     packages=find_packages(exclude=['tests']),
