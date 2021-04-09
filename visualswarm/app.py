@@ -32,10 +32,6 @@ def health():
 
 def start_application(with_control=False):
     """Start the visual stream of the Pi"""
-    from gi.repository import GLib
-
-    GLib.threads_init()
-    dbus.mainloop.glib.threads_init()
     # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:
         logger.info(f'{bcolors.OKGREEN}CLEAN InfluxDB{bcolors.ENDC} upon start as requested')
@@ -70,6 +66,7 @@ def start_application(with_control=False):
     VPF_stream = Queue()
     control_stream = Queue()
     motor_control_mode_stream = Queue()
+    emergency_stream = Queue()
 
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
@@ -84,9 +81,9 @@ def start_application(with_control=False):
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
                                                                    motor_control_mode_stream, with_control))
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, motor_control_mode_stream,
-                                                                     with_control))
+                                                                     emergency_stream, with_control))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
-    emergency_proc = Process(target=motoroutput.emergency_behavior)
+    emergency_proc = Process(target=motoroutput.emergency_behavior, args=(emergency_stream))
 
     try:
         # Start subprocesses
