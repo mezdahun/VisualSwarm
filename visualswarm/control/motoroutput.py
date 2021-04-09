@@ -225,8 +225,8 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
 
         from gi.repository import GLib
         loop = GLib.MainLoop()
-        GLib.timeout_add(100, first_function)
-        GLib.timeout_add(100, second_function)
+        GLib.idle_add(first_function)
+        GLib.idle_add(second_function)
         loop.run()
 
         # if motorinterface.asebamedulla_health(network):
