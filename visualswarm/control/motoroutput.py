@@ -153,7 +153,7 @@ def first_function():
 def second_function():
     logger.info("second")
 
-def control_thymio(control_stream, motor_control_mode_stream, with_control=False):
+def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
     """
     Process to translate state variables to motor velocities and send to Thymio2 robot via DBUS.
         Args:
@@ -200,6 +200,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
                 # fetching state variables
                 (v, dpsi) = control_stream.get()
                 movement_mode = motor_control_mode_stream.get()
+                emergency_mode = emergency_stream.get()
 
                 if movement_mode == "BEHAVE":
 
@@ -273,7 +274,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             motorinterface.asebamedulla_end()
             raise Exception('asebamedulla connection not healthy!')
 
-def emergency_behavior():
+def emergency_behavior(emergency_stream):
     # Initializing DBus
     dbus.mainloop.glib.threads_init()
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -292,7 +293,10 @@ def emergency_behavior():
             if len(idx) > 0:
                 logger.info(idx)
                 logger.info('EMERGENCY')
+                emergency_stream.put(True)
                 logger.info(prox_val)
+            else:
+                emergency_stream.put(False)
             t =datetime.now()
 
     # from gi.repository import GLib
