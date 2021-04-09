@@ -16,10 +16,6 @@ from visualswarm.control import motorinterface, motoroutput
 
 import dbus.mainloop.glib
 
-from gi.repository import GLib
-
-GLib.threads_init()
-
 # setup logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -34,6 +30,9 @@ def health():
 
 def start_application(with_control=False):
     """Start the visual stream of the Pi"""
+    from gi.repository import GObject
+
+    GObject.threads_init()
     # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:
         logger.info(f'{bcolors.OKGREEN}CLEAN InfluxDB{bcolors.ENDC} upon start as requested')
