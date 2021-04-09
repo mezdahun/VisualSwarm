@@ -16,6 +16,8 @@ from visualswarm.control import motorinterface, motoroutput
 
 import dbus.mainloop.glib
 
+dbus.mainloop.glib.threads_init()
+
 # setup logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -33,6 +35,7 @@ def start_application(with_control=False):
     from gi.repository import GObject
 
     GObject.threads_init()
+    dbus.mainloop.glib.threads_init()
     # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:
         logger.info(f'{bcolors.OKGREEN}CLEAN InfluxDB{bcolors.ENDC} upon start as requested')
