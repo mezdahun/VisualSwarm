@@ -149,10 +149,10 @@ def prox_emergency_callback(*args):
 
 
 def first_function():
-    print("first")
+    logger.info("first")
 
 def second_function():
-    print("second")
+    logger.info("second")
 
 def control_thymio(control_stream, motor_control_mode_stream, with_control=False):
     """
