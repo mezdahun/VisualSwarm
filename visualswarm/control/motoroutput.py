@@ -179,13 +179,13 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
             aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
             # declare global events and ...
-            aesl.write('<event size="0" name="prox.emergency"/>\n')
+            aesl.write('<event size="0" name="emergency"/>\n')
             node_id = 1
             name = 'thymio-II'
             aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
             # ...forward some local events as outgoing global ones
             aesl.write('onevent prox\n')
-            aesl.write('  if prox.horizontal[0] > 1000 then\n')
+            aesl.write('  if prox.horizontal[0] > 10 then\n')
             aesl.write('    emit prox.emergency\n')
             # aesl.write('    elseif (prox.horizontal[1] > 1000) then')
             # aesl.write('        emit prox.emergency')
@@ -214,7 +214,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
             dbus_interface='ch.epfl.mobots.EventFilter')
 
-        events.ListenEventName('prox.emergency')
+        events.ListenEventName('emergency')
         events.connect_to_signal('Event', prox_emergency_callback)
 
         if motorinterface.asebamedulla_health(network):
