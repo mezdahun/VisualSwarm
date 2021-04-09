@@ -164,9 +164,6 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
     (expR, expG, expB) = control.EXPLORE_STATUS_RGB
     (behR, behG, behB) = control.BEHAVE_STATUS_RGB
 
-    from gi.repository import GObject
-    GObject.threads_init()
-
     if not with_control:
         # simply consuming the input stream so that we don't fill up memory
         while True:
@@ -316,6 +313,5 @@ def emergency_behavior():
     events.connect_to_signal('Event', prox_emergency_callback)
 
     from gi.repository import GObject
-    GObject.threads_init()
-    loop = GObject.MainLoop.new(None, False)
+    loop = GObject.MainLoop()
     loop.run()
