@@ -154,6 +154,20 @@ def first_function():
 def second_function():
     logger.info("second")
 
+
+def empty_queue(queue2empty):
+    while not queue2empty.empty():
+        try:
+            queue2empty.get_nowait()
+        except Empty:
+            return True
+    return True
+
+def avoid_obstacle(network):
+    network.SetVariable("thymio-II", "motor.left.target", [-10])
+    network.SetVariable("thymio-II", "motor.right.target", [-10])
+    sleep(2)
+
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
     """
     Process to translate state variables to motor velocities and send to Thymio2 robot via DBUS.
@@ -272,9 +286,10 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     prev_movement_mode = movement_mode
 
                 else:
-                    # sending motor values to robot
-                    network.SetVariable("thymio-II", "motor.left.target", [0])
-                    network.SetVariable("thymio-II", "motor.right.target", [0])
+                    avoid_obstacle(network)
+                    empty_queue(control_stream)
+                    empty_queue(motor_control_mode_stream)
+                    empty_queue(emergency_stream)
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
