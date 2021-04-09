@@ -30,15 +30,17 @@ class MoveCompTest(TestCase):
                         capture_timestamp = datetime.datetime(2000, 1, 1)
                         VPF_stream.get.return_value = (p_field, capture_timestamp)
 
-                        # Mocking output stream
+                        # Mocking output streams
                         control_stream = mock.MagicMock()
                         control_stream.put.return_value = None
+                        movement_mode_stream = mock.MagicMock()
+                        movement_mode_stream.put.return_value = None
 
                         # Case 1: no save control params
                         with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', False):
-                            behavior.VPF_to_behavior(VPF_stream, control_stream, False)
+                            behavior.VPF_to_behavior(VPF_stream, control_stream, movement_mode_stream, False)
                             fake_create_client.assert_called_once()
-                            self.assertEqual(fake_control_params.call_count, 2)
+                            self.assertEqual(fake_control_params.call_count, 1)
 
                         # resetting mocks
                         fake_create_client.reset_mock()
@@ -53,11 +55,12 @@ class MoveCompTest(TestCase):
 
                         # Case 2: save control params to ifdb
                         with mock.patch('visualswarm.contrib.monitoring.SAVE_CONTROL_PARAMS', True):
-                            behavior.VPF_to_behavior(VPF_stream, control_stream, False)
+                            behavior.VPF_to_behavior(VPF_stream, control_stream, movement_mode_stream, False)
                             fake_create_client.assert_called_once()
-                            self.assertEqual(fake_control_params.call_count, 2)
+                            self.assertEqual(fake_control_params.call_count, 1)
                             fake_ifclient.write_points.assert_called_once()
 
                         # Case 3: motor output turned off
-                        behavior.VPF_to_behavior(VPF_stream, control_stream, True)
+                        behavior.VPF_to_behavior(VPF_stream, control_stream, movement_mode_stream, True)
                         control_stream.put.assert_called_once()
+                        movement_mode_stream.put.assert_called_once()

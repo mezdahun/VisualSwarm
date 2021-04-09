@@ -4,7 +4,6 @@
 """
 import datetime
 import logging
-from math import floor
 
 import numpy as np
 
@@ -18,12 +17,15 @@ from visualswarm import env
 logger = logging.getLogger('visualswarm.app')
 
 
-def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
+def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_control=False):
     """
     Process to extract final visual projection field from high level visual input.
         Args:
             VPF_stream (multiprocessing Queue): stream to receive visual projection field
             control_stream (multiprocessing Queue): stream to push calculated control parameters
+            motor_control_mode_stream (multiprocessing Queue): stream to determine which movement regime the agent
+                should follow
+            with_control (boolean): if true, the output of the algorithm is sent to the movement processes.
         Returns:
             -shall not return-
     """
@@ -31,23 +33,27 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
     ifclient = ifdb.create_ifclient()
     phi = None
     v = 0
+    t_prev = datetime.datetime.now()
 
     (projection_field, capture_timestamp) = VPF_stream.get()
     phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
                       len(projection_field))
 
-    # calculating theoretically max value for velocity change for normalization
-    max_VPF = np.zeros(len(projection_field))
-    max_VPF[floor(len(projection_field) / 2)] = 1
-    dv_max, dpsi_max = statevarcomp.compute_state_variables(v, phi, max_VPF)
-
     while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
 
+        if np.mean(projection_field) == 0:
+            movement_mode = "EXPLORE"
+        else:
+            movement_mode = "BEHAVE"
+
+        t_now = datetime.datetime.now()
+        dt = (t_now - t_prev).total_seconds()  # to normalize
+
         dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-        v += dv
-        # psi += dpsi
-        # psi = psi % (2 * np.pi)
+        v += dv * dt
+
+        t_prev = t_now
 
         if monitoring.SAVE_CONTROL_PARAMS:
 
@@ -72,6 +78,7 @@ def VPF_to_behavior(VPF_stream, control_stream, with_control=False):
 
         if with_control:
             control_stream.put((v, dpsi))
+            motor_control_mode_stream.put(movement_mode)
 
         # To test infinite loops
         if env.EXIT_CONDITION:
