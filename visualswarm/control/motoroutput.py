@@ -176,7 +176,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
-        with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
+        with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t', delete=False) as aesl:
             aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
             # declare global events and ...
             aesl.write('<event size="0" name="emergency"/>\n')
@@ -206,7 +206,8 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             aesl.write('</node>\n')
             aesl.write('</network>\n')
             aesl.seek(0)
-            network.LoadScripts(aesl.name)
+
+        network.LoadScripts(aesl.name)
 
         # Create an event filter and catch events
         eventfilter = network.CreateEventFilter()
@@ -215,7 +216,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             dbus_interface='ch.epfl.mobots.EventFilter')
 
         events.ListenEventName('emergency')
-        events.connect_to_signal('emergency', prox_emergency_callback)
+        events.connect_to_signal('Event', prox_emergency_callback)
 
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
