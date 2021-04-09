@@ -315,4 +315,5 @@ def emergency_behavior():
 
     from gi.repository import GLib
     loop = GLib.MainLoop()
+    sleep(10)
     loop.run()
