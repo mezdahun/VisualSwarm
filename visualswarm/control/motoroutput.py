@@ -178,10 +178,12 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         last_explore_change = datetime.now()
         last_behave_change = datetime.now()
 
+        from gi.repository import GLib
+        loop = GLib.MainLoop()
+
         # Initializing DBus
-        # if bus is None:
         dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop()
+        dbus.mainloop.glib.DBusGMainLoop(mainloop=loop)
         bus = dbus.SessionBus()
 
         # Create Aseba network
@@ -299,12 +301,14 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             raise Exception('asebamedulla connection not healthy!')
 
 def emergency_behavior():
-    global network
-    global bus
+
+    from gi.repository import GLib
+    loop = GLib.MainLoop()
+
 
     # Initializing DBus
     dbus.mainloop.glib.threads_init()
-    dbus.mainloop.glib.DBusGMainLoop()
+    dbus.mainloop.glib.DBusGMainLoop(mainloop=loop)
     bus = dbus.SessionBus()
 
     # Create Aseba network
@@ -353,6 +357,3 @@ def emergency_behavior():
         events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
         events.ListenEventName('fwd.button.backward')
         events.connect_to_signal('Event', prox_emergency_callback)
-        from gi.repository import GLib
-        loop = GLib.MainLoop()
-        loop.run()
