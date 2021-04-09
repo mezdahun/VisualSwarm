@@ -184,7 +184,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             name = 'thymio-II'
             aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
             # ...forward some local events as outgoing global ones
-            aesl.write('onevent prox\n')
+            aesl.write('onevent button.forward\n')
             # aesl.write('if prox.horizontal[0] > 10 then\n')
             aesl.write('emit emergency\n')
             # aesl.write('    elseif (prox.horizontal[1] > 1000) then')
