@@ -293,6 +293,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     empty_queue(control_stream)
                     empty_queue(motor_control_mode_stream)
                     empty_queue(emergency_stream)
+                    emergency_mode = False
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
