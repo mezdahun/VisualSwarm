@@ -215,7 +215,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             dbus_interface='ch.epfl.mobots.EventFilter')
 
         events.ListenEventName('emergency')
-        events.connect_to_signal('Event', prox_emergency_callback)
+        events.connect_to_signal('emergency', prox_emergency_callback)
 
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
