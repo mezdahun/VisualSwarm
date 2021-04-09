@@ -176,40 +176,6 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
-        with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t', delete=False) as aesl:
-            aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
-            # declare global events and ...
-            aesl.write('<event size="0" name="fwd.button.backward"/>\n')
-            aesl.write('<event size="0" name="become.yellow"/>\n')
-            aesl.write('<event size="0" name="fwd.timer0"/>\n')
-            thymio = "thymio-II"
-            aesl.write('<node nodeId="1" name="' + thymio + '">\n')
-            # ...forward some local events as outgoing global ones
-            aesl.write('onevent button.forward\n    emit fwd.button.backward\n')
-            aesl.write('onevent timer0\n    emit fwd.timer0\n')
-            # add code to handle incoming events
-            aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
-            aesl.write('</node>\n')
-            aesl.write('</network>\n')
-            aesl.seek(0)
-
-        network.LoadScripts(aesl.name)
-
-        # Create an event filter and catch events
-        eventfilter = network.CreateEventFilter()
-        events = dbus.Interface(
-            bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
-            dbus_interface='ch.epfl.mobots.EventFilter')
-
-        network.SetVariable(thymio, "timer.period", [1000, 0])
-        events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
-        events.ListenEventName('fwd.button.backward')
-        events.connect_to_signal('Event', prox_emergency_callback)
-
-        from gi.repository import GObject
-        loop = GObject.MainLoop()
-        loop.run()
-
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
 
@@ -289,3 +255,46 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
             motorinterface.asebamedulla_end()
             raise Exception('asebamedulla connection not healthy!')
+
+def emergency_behavior():
+    # Initializing DBus
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SessionBus()
+
+    # Create Aseba network
+    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
+
+    with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t', delete=False) as aesl:
+        aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
+        # declare global events and ...
+        aesl.write('<event size="0" name="fwd.button.backward"/>\n')
+        aesl.write('<event size="0" name="become.yellow"/>\n')
+        aesl.write('<event size="0" name="fwd.timer0"/>\n')
+        thymio = "thymio-II"
+        aesl.write('<node nodeId="1" name="' + thymio + '">\n')
+        # ...forward some local events as outgoing global ones
+        aesl.write('onevent button.forward\n    emit fwd.button.backward\n')
+        aesl.write('onevent timer0\n    emit fwd.timer0\n')
+        # add code to handle incoming events
+        aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
+        aesl.write('</node>\n')
+        aesl.write('</network>\n')
+        aesl.seek(0)
+
+    network.LoadScripts(aesl.name)
+
+    # Create an event filter and catch events
+    eventfilter = network.CreateEventFilter()
+    events = dbus.Interface(
+        bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
+        dbus_interface='ch.epfl.mobots.EventFilter')
+
+    network.SetVariable(thymio, "timer.period", [1000, 0])
+    events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
+    events.ListenEventName('fwd.button.backward')
+    events.connect_to_signal('Event', prox_emergency_callback)
+
+    from gi.repository import GObject
+    loop = GObject.MainLoop()
+    loop.run()

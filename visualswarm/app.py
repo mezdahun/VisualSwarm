@@ -80,6 +80,7 @@ def start_application(with_control=False):
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, motor_control_mode_stream,
                                                                      with_control))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
+    emergency_proc = Process(target=motoroutput.emergency_behavior)
 
     try:
         # Start subprocesses
@@ -93,6 +94,7 @@ def start_application(with_control=False):
         behavior_proc.start()
         motor_control.start()
         system_monitor_proc.start()
+        emergency_proc.start()
 
         # Wait for subprocesses in main process to terminate
         visualizer.join()
@@ -103,11 +105,14 @@ def start_application(with_control=False):
         behavior_proc.join()
         motor_control.join()
         system_monitor_proc.join()
+        emergency_proc.join()
 
     except KeyboardInterrupt:
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
+        emergency_proc.terminate()
+        emergency_proc.join()
         system_monitor_proc.terminate()
         system_monitor_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
