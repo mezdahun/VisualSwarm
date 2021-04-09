@@ -206,69 +206,75 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 except Empty:
                     pass
 
-                if movement_mode == "BEHAVE":
+                if not emergency_mode:
+                    if movement_mode == "BEHAVE":
 
-                    # Switch between modes, change mode status LED
-                    if prev_movement_mode == "EXPLORE":
-                        light_up_led(network, behR, behG, behB)
+                        # Switch between modes, change mode status LED
+                        if prev_movement_mode == "EXPLORE":
+                            light_up_led(network, behR, behG, behB)
 
-                    # Persistent change in movement mode
-                    is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
-                                    control.WAIT_BEFORE_SWITCH_MOVEMENT
-                    if is_persistent or env.EXIT_CONDITION:
-                        # Behavior according to Romanczuk and Bastien 2020
-                        # distributing desired forward speed according to dpsi
-                        [v_left, v_right] = distribute_overall_speed(v, dpsi)
+                        # Persistent change in movement mode
+                        is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
+                                        control.WAIT_BEFORE_SWITCH_MOVEMENT
+                        if is_persistent or env.EXIT_CONDITION:
+                            # Behavior according to Romanczuk and Bastien 2020
+                            # distributing desired forward speed according to dpsi
+                            [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
-                        # hard limit motor velocities but keep their ratio for desired movement
-                        if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
-                            logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
-                            [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
-
-                        # sending motor values to robot
-                        network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                        network.SetVariable("thymio-II", "motor.right.target", [v_right])
-
-                        logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
-                        # last time we changed velocity according to BEHAVIOR REGIME
-                        last_behave_change = datetime.now()
-
-                elif movement_mode == "EXPLORE":
-
-                    # Switch between modes, change mode status LED
-                    if prev_movement_mode == "BEHAVE":
-                        light_up_led(network, expR, expG, expB)
-
-                    # Persistent change in modes
-                    if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
-                        # Enforcing specific dt in Random Walk Process
-                        if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
-
-                            if control.EXP_MOVE_TYPE == 'RandomWalk':
-                                # Exploration according to Random Walk Process
-                                [v_left, v_right] = step_random_walk()
-                            elif control.EXP_MOVE_TYPE == 'Rotation':
-                                # Exploration according to simple rotation movement
-                                [v_left, v_right] = rotate()
-                            else:
-                                # Unknown exploration regime in configuration
-                                logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
-                                raise KeyboardInterrupt
-
-                            logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
+                            # hard limit motor velocities but keep their ratio for desired movement
+                            if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
+                                logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
+                                [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
                             # sending motor values to robot
                             network.SetVariable("thymio-II", "motor.left.target", [v_left])
                             network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
-                            # last time we changed velocity according to EXPLORE REGIME
-                            last_explore_change = datetime.now()
+                            logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
+                            # last time we changed velocity according to BEHAVIOR REGIME
+                            last_behave_change = datetime.now()
+
+                    elif movement_mode == "EXPLORE":
+
+                        # Switch between modes, change mode status LED
+                        if prev_movement_mode == "BEHAVE":
+                            light_up_led(network, expR, expG, expB)
+
+                        # Persistent change in modes
+                        if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
+                            # Enforcing specific dt in Random Walk Process
+                            if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
+
+                                if control.EXP_MOVE_TYPE == 'RandomWalk':
+                                    # Exploration according to Random Walk Process
+                                    [v_left, v_right] = step_random_walk()
+                                elif control.EXP_MOVE_TYPE == 'Rotation':
+                                    # Exploration according to simple rotation movement
+                                    [v_left, v_right] = rotate()
+                                else:
+                                    # Unknown exploration regime in configuration
+                                    logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
+                                    raise KeyboardInterrupt
+
+                                logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
+
+                                # sending motor values to robot
+                                network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                network.SetVariable("thymio-II", "motor.right.target", [v_right])
+
+                                # last time we changed velocity according to EXPLORE REGIME
+                                last_explore_change = datetime.now()
+
+                    else:
+                        logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
+                        raise KeyboardInterrupt
+
+                    prev_movement_mode = movement_mode
 
                 else:
-                    logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
-                    raise KeyboardInterrupt
-
-                prev_movement_mode = movement_mode
+                    # sending motor values to robot
+                    network.SetVariable("thymio-II", "motor.left.target", [0])
+                    network.SetVariable("thymio-II", "motor.right.target", [0])
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
