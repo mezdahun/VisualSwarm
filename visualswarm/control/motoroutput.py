@@ -11,6 +11,7 @@ import tempfile
 from datetime import datetime
 # import random
 from time import sleep
+from queue import Empty
 
 
 # using main logger
@@ -200,7 +201,10 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 # fetching state variables
                 (v, dpsi) = control_stream.get()
                 movement_mode = motor_control_mode_stream.get()
-                emergency_mode = emergency_stream.get()
+                try:
+                    emergency_mode = emergency_stream.get_nowait()
+                except Empty:
+                    pass
 
                 if movement_mode == "BEHAVE":
 
