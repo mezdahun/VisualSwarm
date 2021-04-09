@@ -206,6 +206,10 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         events.ListenEventName('fwd.button.backward')
         events.connect_to_signal('Event', prox_emergency_callback)
 
+        import gobject
+        loop = gobject.MainLoop()
+        loop.run()
+
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
 
