@@ -214,7 +214,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
             dbus_interface='ch.epfl.mobots.EventFilter')
 
-        events.ListenEventName('fwd.button.backward')
+        events.ListenEventName('prox.emergency')
         events.connect_to_signal('Event', prox_emergency_callback)
 
         if motorinterface.asebamedulla_health(network):
