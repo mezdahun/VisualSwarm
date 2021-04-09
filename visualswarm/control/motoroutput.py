@@ -156,7 +156,9 @@ def second_function():
 
 
 def empty_queue(queue2empty):
+    logger.info('emptying queue')
     while not queue2empty.empty():
+        logger.info(queue2empty.qsize())
         try:
             queue2empty.get_nowait()
         except Empty:
