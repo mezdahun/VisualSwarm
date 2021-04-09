@@ -193,6 +193,14 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             aesl.write('</network>\n')
             aesl.seek(0)
 
+        network.LoadScripts(aesl.name)
+
+        # Create an event filter and catch events
+        eventfilter = network.CreateEventFilter()
+        events = dbus.Interface(
+            bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
+            dbus_interface='ch.epfl.mobots.EventFilter')
+
         network.SetVariable(thymio, "timer.period", [1000, 0])
         events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
         events.ListenEventName('fwd.button.backward')
