@@ -206,7 +206,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         events.ListenEventName('fwd.button.backward')
         events.connect_to_signal('Event', prox_emergency_callback)
 
-        from gi.repositopry import GObject
+        from gi.repository import GObject
         loop = GObject.MainLoop()
         loop.run()
 
