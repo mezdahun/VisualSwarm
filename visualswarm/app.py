@@ -32,9 +32,9 @@ def health():
 
 def start_application(with_control=False):
     """Start the visual stream of the Pi"""
-    from gi.repository import GObject
+    from gi.repository import GLib
 
-    GObject.threads_init()
+    GLib.threads_init()
     dbus.mainloop.glib.threads_init()
     # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:

@@ -180,6 +180,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
 
         # Initializing DBus
         if bus is None:
+            dbus.mainloop.glib.threads_init()
             dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
             bus = dbus.SessionBus()
 
@@ -312,6 +313,6 @@ def emergency_behavior():
     events.ListenEventName('fwd.button.backward')
     events.connect_to_signal('Event', prox_emergency_callback)
 
-    from gi.repository import GObject
-    loop = GObject.MainLoop()
+    from gi.repository import GLib
+    loop = GLib.MainLoop()
     loop.run()
