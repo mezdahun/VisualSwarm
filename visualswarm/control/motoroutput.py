@@ -176,7 +176,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
-        with tempfile.NamedTemporaryFile(suffix='.aesl', delete=False) as aesl:
+        with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
             aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
             # declare global events and ...
             aesl.write('<event size="7" name="prox.emergency"/>\n')
@@ -204,6 +204,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             # aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
             aesl.write('</node>\n')
             aesl.write('</network>\n')
+            aesl.seek(0)
             network.LoadScripts(aesl.name)
 
         # Create an event filter and catch events
