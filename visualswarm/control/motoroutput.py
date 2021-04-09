@@ -185,8 +185,8 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
             # ...forward some local events as outgoing global ones
             aesl.write('onevent prox\n')
-            aesl.write('  if prox.horizontal[0] > 10 then\n')
-            aesl.write('    emit emergency\n')
+            # aesl.write('if prox.horizontal[0] > 10 then\n')
+            aesl.write('emit emergency\n')
             # aesl.write('    elseif (prox.horizontal[1] > 1000) then')
             # aesl.write('        emit prox.emergency')
             # aesl.write('    elseif (prox.horizontal[2] > 1000) then')
@@ -199,7 +199,7 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             # aesl.write('        emit prox.emergency')
             # aesl.write('    elseif (prox.horizontal[6] > 1000) then')
             # aesl.write('        emit prox.emergency')
-            aesl.write('  end\n')
+            # aesl.write('end\n')
             # aesl.write('onevent timer0\n    emit fwd.timer0\n')
             # # add code to handle incoming events
             # aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
