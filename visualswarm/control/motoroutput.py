@@ -10,7 +10,10 @@ import numpy as np
 import tempfile
 from datetime import datetime
 # import random
+from time import sleep
 
+
+sleep(10)
 # using main logger
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
