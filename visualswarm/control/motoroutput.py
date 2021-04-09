@@ -164,9 +164,10 @@ def empty_queue(queue2empty):
     return True
 
 def avoid_obstacle(network):
-    network.SetVariable("thymio-II", "motor.left.target", [-10])
-    network.SetVariable("thymio-II", "motor.right.target", [-10])
+    network.SetVariable("thymio-II", "motor.left.target", [-100])
+    network.SetVariable("thymio-II", "motor.right.target", [-100])
     sleep(2)
+    logger.info('Done Emergency!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
     """
