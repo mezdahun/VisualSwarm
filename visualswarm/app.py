@@ -81,9 +81,9 @@ def start_application(with_control=False):
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
                                                                    motor_control_mode_stream, with_control))
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, motor_control_mode_stream,
-                                                                     emergency_stream, with_control))
+                                                                     with_control))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
-    emergency_proc = Process(target=motoroutput.emergency_behavior, args=(emergency_stream,))
+    emergency_proc = Process(target=motoroutput.emergency_behavior)
 
     try:
         # Start subprocesses
