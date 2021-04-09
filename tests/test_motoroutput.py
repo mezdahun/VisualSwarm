@@ -176,16 +176,16 @@ class MotorInterfaceTest(TestCase):
                 v = 100
 
                 dpsi = -1 / 2  # as if multiplied with pi
-                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [150, 50])
+                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [50, 150])
 
                 dpsi = 1 / 2  # as if multiplied with pi
-                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [50, 150])
+                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [150, 50])
 
                 dpsi = 0
                 self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [100, 100])
 
                 dpsi = -1  # as if multiplied with pi
-                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [200, 0])
+                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [0, 200])
 
                 dpsi = 1  # as if multiplied with pi
-                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [0, 200])
+                self.assertEqual(motoroutput.distribute_overall_speed(v, dpsi), [200, 0])
