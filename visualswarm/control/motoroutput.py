@@ -19,12 +19,10 @@ logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
 
 # Initializing DBus
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-bus = dbus.SessionBus()
+bus = None
 
 # Create Aseba network
-network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                         dbus_interface='ch.epfl.mobots.AsebaNetwork')
+network = None
 
 def light_up_led(network, R, G, B):
     """
@@ -160,6 +158,8 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         Returns:
             -shall not return-
     """
+    global network
+    global bus
     prev_movement_mode = "BEHAVE"
     (expR, expG, expB) = control.EXPLORE_STATUS_RGB
     (behR, behG, behB) = control.BEHAVE_STATUS_RGB
@@ -178,13 +178,15 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
         last_explore_change = datetime.now()
         last_behave_change = datetime.now()
 
-        # # Initializing DBus
-        # dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        # bus = dbus.SessionBus()
-        #
-        # # Create Aseba network
-        # network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-        #                          dbus_interface='ch.epfl.mobots.AsebaNetwork')
+        # Initializing DBus
+        if bus is None:
+            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+            bus = dbus.SessionBus()
+
+        # Create Aseba network
+        if network is None:
+            network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                     dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
         if motorinterface.asebamedulla_health(network):
             logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
@@ -267,13 +269,18 @@ def control_thymio(control_stream, motor_control_mode_stream, with_control=False
             raise Exception('asebamedulla connection not healthy!')
 
 def emergency_behavior():
-    # # Initializing DBus
-    # dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    # bus = dbus.SessionBus()
-    #
-    # # Create Aseba network
-    # network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-    #                          dbus_interface='ch.epfl.mobots.AsebaNetwork')
+    global network
+    global bus
+
+    # Initializing DBus
+    if bus is None:
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SessionBus()
+
+    # Create Aseba network
+    if network is None:
+        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
     with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t', delete=False) as aesl:
         aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
