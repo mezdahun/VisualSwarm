@@ -222,7 +222,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                 try:
                     (emergency_mode, proximity_values) = emergency_stream.get_nowait()
-                    logger.info(emergency_mode, proximity_values)
+                    logger.info(f"{emergency_mode}, prox: {proximity_values}")
                 except Empty:
                     pass
 
