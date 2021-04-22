@@ -220,8 +220,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
         network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                  dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
-        network.SetVariable("thymio-II", "motor.left.target", [100])
-        network.SetVariable("thymio-II", "motor.right.target", [100])
+        network.SetVariable("thymio-II", "motor.left.target", [-50])
+        network.SetVariable("thymio-II", "motor.right.target", [-50])
 
         sleep(3)
 
