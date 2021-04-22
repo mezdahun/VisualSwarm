@@ -164,6 +164,7 @@ def turn_robot(network, angle):
     turning_time = angle / phys_turning_rate
     logger.info(turning_time)
 
+    # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
     # sending motor values to robot
     network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
     network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
@@ -172,12 +173,37 @@ def turn_robot(network, angle):
     sleep(turning_time)
 
 
+def move_robot(direction, distance):
+
+    motor_speed = 50
+    if direction == "Forward":
+        multiplier = physconstraints.FWD_MULTIPLIER
+        movesign = 1
+    elif direction == "Backward":
+        multiplier = physconstraints.BWD_MULTIPLIER
+        movesign = -1
+    else:
+        logger.error(f'Unknown direction: {direction}')
+        raise KeyboardInterrupt
+
+    phys_speed = motor_speed * multiplier
+    movement_time = distance / phys_speed
+
+    # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
+    # sending motor values to robot
+    network.SetVariable("thymio-II", "motor.left.target", [movesign * motor_speed])
+    network.SetVariable("thymio-II", "motor.right.target", [movesign * motor_speed])
+
+    # keep the robot rotating for a fixed time according to physical environment
+    sleep(movement_time)
+
+
 
 def avoid_obstacle(network, proximity_values):
     light_up_led(network, 32, 0, 0)
     # turning_angle = angle_from_prox_vals(proximity_values)
     turn_robot(network, 90)
-    # move_robot('forward', 15)
+    move_robot('Forward', 300)
     logger.info('Obstacle Avoidance Protocol done!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
