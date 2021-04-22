@@ -155,7 +155,7 @@ def empty_queue(queue2empty):
     return True
 
 
-def turn_robot(angle):
+def turn_robot(network, angle):
     turning_motor_speed = 50
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     logger.info(phys_turning_rate)
@@ -174,7 +174,7 @@ def turn_robot(angle):
 def avoid_obstacle(network, proximity_values):
     light_up_led(network, 32, 0, 0)
     # turning_angle = angle_from_prox_vals(proximity_values)
-    turn_robot(90)
+    turn_robot(network, 90)
     # move_robot('forward', 15)
     logger.info('Done Emergency!')
 
