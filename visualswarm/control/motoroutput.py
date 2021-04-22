@@ -165,7 +165,7 @@ def empty_queue(queue2empty):
             return True
     return True
 
-def avoid_obstacle(network):
+def avoid_obstacle(network, proximity_values):
     light_up_led(network, 32, 0, 0)
     network.SetVariable("thymio-II", "motor.left.target", [-100])
     network.SetVariable("thymio-II", "motor.right.target", [-100])
@@ -219,8 +219,9 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 # fetching state variables
                 (v, dpsi) = control_stream.get()
                 movement_mode = motor_control_mode_stream.get()
+
                 try:
-                    emergency_mode = emergency_stream.get_nowait()
+                    emergency_mode, proximity_values = emergency_stream.get_nowait()
                 except Empty:
                     pass
 
@@ -289,12 +290,19 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                     prev_movement_mode = movement_mode
 
+                # Obstacle Avoidance Activated
                 else:
-                    avoid_obstacle(network)
+                    avoid_obstacle(network, proximity_values)
+
+                    # cleaning up queues polluted during emergency
                     empty_queue(control_stream)
                     empty_queue(motor_control_mode_stream)
                     empty_queue(emergency_stream)
+
+                    # turning off emergency mode after avoidance
                     emergency_mode = False
+
+                    # getting back to original movement regime and showing to user with LED
                     if movement_mode == "EXPLORE":
                         light_up_led(network, expR, expG, expB)
                     elif movement_mode == "BEHAVE":
@@ -327,10 +335,10 @@ def emergency_behavior(emergency_stream):
             if len(idx) > 0:
                 logger.info(idx)
                 logger.info('EMERGENCY')
-                emergency_stream.put(True)
+                emergency_stream.put(True, prox_val)
                 logger.info(prox_val)
             else:
-                emergency_stream.put(False)
+                emergency_stream.put(False, None)
             t =datetime.now()
 
     # from gi.repository import GLib
