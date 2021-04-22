@@ -197,16 +197,16 @@ def move_robot(network, direction, distance, emergency_stream):
 
     t = datetime.now()
 
+    recursive_obstacle = False
+    proximity_values = None
     while abs(t - datetime.now()).total_seconds() < movement_time:
         # sending motor values to robot
-        recursive_obstacle = False
-        proximity_values = None
         if not recursive_obstacle:
             network.SetVariable("thymio-II", "motor.left.target", [movesign * motor_speed])
             network.SetVariable("thymio-II", "motor.right.target", [movesign * motor_speed])
         else:
             avoid_obstacle(network, proximity_values, emergency_stream)
-        (emergency_mode, proximity_values) = emergency_stream.get()
+        (recursive_obstacle, proximity_values) = emergency_stream.get()
 
     # # keep the robot rotating for a fixed time according to physical environment
     # sleep(movement_time)
