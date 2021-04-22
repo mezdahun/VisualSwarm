@@ -3,7 +3,7 @@ import dbus.mainloop.glib
 import logging
 
 from visualswarm.control import motorinterface
-from visualswarm.contrib import logparams, control
+from visualswarm.contrib import logparams, control, physconstraints
 from visualswarm import env
 
 import numpy as np
@@ -144,17 +144,6 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     return [v_left, v_right]
 
 
-def prox_emergency_callback(*args):
-    logger.warning('EMERGENCY-EMERGENCY-EMERGENCY!!!!')
-
-
-def first_function():
-    logger.info("first")
-
-def second_function():
-    logger.info("second")
-
-
 def empty_queue(queue2empty):
     logger.info('emptying queue')
     while not queue2empty.empty():
@@ -165,11 +154,26 @@ def empty_queue(queue2empty):
             return True
     return True
 
-def avoid_obstacle(network):
+
+def turn_robot(angle):
+    turning_motor_speed = 50
+    phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
+    turning_time = angle / phys_turning_rate
+
+    # sending motor values to robot
+    network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
+    network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
+
+    # keep the robot rotating for a fixed time according to physical environment
+    time.sleep(turning_time)
+
+
+
+def avoid_obstacle(network, proximity_values):
     light_up_led(network, 32, 0, 0)
-    network.SetVariable("thymio-II", "motor.left.target", [-100])
-    network.SetVariable("thymio-II", "motor.right.target", [-100])
-    sleep(2)
+    # turning_angle = angle_from_prox_vals(proximity_values)
+    turn_robot(90)
+    # move_robot('forward', 15)
     logger.info('Done Emergency!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
@@ -290,7 +294,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     prev_movement_mode = movement_mode
 
                 else:
-                    avoid_obstacle(network)
+                    avoid_obstacle(network, proximity_values)
                     empty_queue(control_stream)
                     empty_queue(motor_control_mode_stream)
                     empty_queue(emergency_stream)
@@ -330,7 +334,7 @@ def emergency_behavior(emergency_stream):
                 emergency_stream.put((True, prox_val))
                 logger.info(prox_val)
             else:
-                emergency_stream.put((False, prox_val))
+                emergency_stream.put((False, None))
             t =datetime.now()
 
     # from gi.repository import GLib
