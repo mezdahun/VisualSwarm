@@ -221,7 +221,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 movement_mode = motor_control_mode_stream.get()
 
                 try:
-                    emergency_mode, proximity_values = emergency_stream.get_nowait()
+                    (emergency_mode, proximity_values) = emergency_stream.get_nowait()
                 except Empty:
                     pass
 
@@ -335,10 +335,10 @@ def emergency_behavior(emergency_stream):
             if len(idx) > 0:
                 logger.info(idx)
                 logger.info('EMERGENCY')
-                emergency_stream.put(True, prox_val)
+                emergency_stream.put((True, prox_val))
                 logger.info(prox_val)
             else:
-                emergency_stream.put(False, [])
+                emergency_stream.put((False, []))
             t =datetime.now()
 
     # from gi.repository import GLib
