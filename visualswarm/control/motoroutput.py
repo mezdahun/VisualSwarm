@@ -175,7 +175,7 @@ def turn_robot(network, angle):
 
 def move_robot(network, direction, distance):
 
-    motor_speed = 100
+    motor_speed = 50
     if direction == "Forward":
         multiplier = physconstraints.FWD_MULTIPLIER
         movesign = 1
