@@ -173,7 +173,7 @@ def turn_robot(network, angle):
     sleep(turning_time)
 
 
-def move_robot(direction, distance):
+def move_robot(network, direction, distance):
 
     motor_speed = 50
     if direction == "Forward":
@@ -203,7 +203,7 @@ def avoid_obstacle(network, proximity_values):
     light_up_led(network, 32, 0, 0)
     # turning_angle = angle_from_prox_vals(proximity_values)
     turn_robot(network, 90)
-    move_robot('Forward', 300)
+    move_robot(network, 'Forward', 300)
     logger.info('Obstacle Avoidance Protocol done!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
