@@ -338,7 +338,7 @@ def emergency_behavior(emergency_stream):
                 emergency_stream.put(True, prox_val)
                 logger.info(prox_val)
             else:
-                emergency_stream.put(False, None)
+                emergency_stream.put(False, [])
             t =datetime.now()
 
     # from gi.repository import GLib
