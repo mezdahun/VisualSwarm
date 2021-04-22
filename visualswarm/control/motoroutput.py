@@ -187,7 +187,9 @@ def move_robot(network, direction, distance):
         raise KeyboardInterrupt
 
     phys_speed = motor_speed * multiplier
+    logger.info(f"phys speed: {phys_speed} mm/sec")
     movement_time = distance / phys_speed
+    logger.info(f"movement time: {movement_time}")
 
     # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
     # sending motor values to robot
