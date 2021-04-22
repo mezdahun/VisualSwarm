@@ -39,7 +39,7 @@ DPSI_MAX_EXP = 1.5
 
 # ROTATION
 # Motor speed (per motor) during rotation (rotation speed)
-ROT_MOTOR_SPEED = 100
+ROT_MOTOR_SPEED = 3
 
 # Rotation direction, possible values: 'Left', 'Right', 'Random'
 ROT_DIRECTION = 'Left'
