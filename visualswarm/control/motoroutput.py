@@ -158,7 +158,9 @@ def empty_queue(queue2empty):
 def turn_robot(angle):
     turning_motor_speed = 50
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
+    logger.info(phys_turning_rate)
     turning_time = angle / phys_turning_rate
+    logger.info(turning_time)
 
     # sending motor values to robot
     network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
