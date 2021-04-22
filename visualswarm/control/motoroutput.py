@@ -175,7 +175,7 @@ def turn_robot(network, angle):
 
 def move_robot(network, direction, distance):
 
-    motor_speed = 50
+    motor_speed = 100
     if direction == "Forward":
         multiplier = physconstraints.FWD_MULTIPLIER
         movesign = 1
@@ -192,12 +192,16 @@ def move_robot(network, direction, distance):
     logger.info(f"movement time: {movement_time}")
 
     # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
-    # sending motor values to robot
-    network.SetVariable("thymio-II", "motor.left.target", [movesign * motor_speed])
-    network.SetVariable("thymio-II", "motor.right.target", [movesign * motor_speed])
 
-    # keep the robot rotating for a fixed time according to physical environment
-    sleep(movement_time)
+    t = datetime.now()
+
+    while abs(t - datetime.now()).total_seconds() > movement_time:
+        # sending motor values to robot
+        network.SetVariable("thymio-II", "motor.left.target", [movesign * motor_speed])
+        network.SetVariable("thymio-II", "motor.right.target", [movesign * motor_speed])
+
+    # # keep the robot rotating for a fixed time according to physical environment
+    # sleep(movement_time)
 
 
 
