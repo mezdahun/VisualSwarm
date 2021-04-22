@@ -145,17 +145,19 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
 
 
 def empty_queue(queue2empty):
-    logger.info('emptying queue')
+
     while not queue2empty.empty():
-        logger.info(queue2empty.qsize())
         try:
             queue2empty.get_nowait()
         except Empty:
+            logger.debug(f'Emptied queue: {queue2empty}')
             return True
+    logger.debug(f'Emptied queue: {queue2empty}')
     return True
 
 
 def turn_robot(network, angle):
+
     turning_motor_speed = 50
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     logger.info(phys_turning_rate)
@@ -176,7 +178,7 @@ def avoid_obstacle(network, proximity_values):
     # turning_angle = angle_from_prox_vals(proximity_values)
     turn_robot(network, 90)
     # move_robot('forward', 15)
-    logger.info('Done Emergency!')
+    logger.info('Obstacle Avoidance Protocol done!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
     """
