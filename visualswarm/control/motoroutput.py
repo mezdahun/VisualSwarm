@@ -224,7 +224,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     (emergency_mode, proximity_values) = emergency_stream.get_nowait()
                     logger.info(f"{emergency_mode}, prox: {proximity_values}")
                 except Empty:
-                    pass
+                    emergency_mode = False
+                    proximity_values = []
 
                 if not emergency_mode:
                     if movement_mode == "BEHAVE":
