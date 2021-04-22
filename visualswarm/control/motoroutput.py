@@ -191,7 +191,7 @@ def move_robot(network, direction, distance, emergency_stream):
     movement_time = distance / phys_speed
     logger.info(f"movement time: {movement_time}")
 
-    # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
+    # TODO: check if we are locked and return if yes
 
     empty_queue(emergency_stream)
 
@@ -205,11 +205,10 @@ def move_robot(network, direction, distance, emergency_stream):
             network.SetVariable("thymio-II", "motor.left.target", [movesign * motor_speed])
             network.SetVariable("thymio-II", "motor.right.target", [movesign * motor_speed])
         else:
+            # if we get into an obstacle during obstacle avoidance we need to recursively handle these new obstacles
+            # except if we get locked
             avoid_obstacle(network, proximity_values, emergency_stream)
         (recursive_obstacle, proximity_values) = emergency_stream.get()
-
-    # # keep the robot rotating for a fixed time according to physical environment
-    # sleep(movement_time)
 
 
 
