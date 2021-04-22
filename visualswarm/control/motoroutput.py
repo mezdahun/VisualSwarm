@@ -167,7 +167,7 @@ def turn_robot(angle):
     network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
 
     # keep the robot rotating for a fixed time according to physical environment
-    time.sleep(turning_time)
+    sleep(turning_time)
 
 
 
