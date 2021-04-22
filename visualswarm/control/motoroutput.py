@@ -195,7 +195,7 @@ def move_robot(network, direction, distance):
 
     t = datetime.now()
 
-    while abs(t - datetime.now()).total_seconds() > movement_time:
+    while abs(t - datetime.now()).total_seconds() < movement_time:
         # sending motor values to robot
         network.SetVariable("thymio-II", "motor.left.target", [movesign * motor_speed])
         network.SetVariable("thymio-II", "motor.right.target", [movesign * motor_speed])
