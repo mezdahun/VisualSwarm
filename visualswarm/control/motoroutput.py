@@ -254,11 +254,11 @@ def avoid_obstacle(network, prox_vals, emergency_stream):
         if np.all(prox_vals[5:7]>0):
             # only back sensors on, calculate proximity ratio and angle
             move_robot(network, 'Forward', 50, emergency_stream) # TODO: pass velocity, because we need to move fast here
-        elif prox_vals[6]>0:
+        elif prox_vals[5]>0:
             # only back right is on turn slightly left and move forward
             turn_robot(network, -45)
             move_robot(network, 'Forward', 10, emergency_stream)
-        elif prox_vals[7]>0:
+        elif prox_vals[6]>0:
             # only back left is on turn slightly right and move forward
             turn_robot(network, -45)
             move_robot(network, 'Forward', 10, emergency_stream)
