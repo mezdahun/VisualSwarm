@@ -156,7 +156,7 @@ def empty_queue(queue2empty):
     return True
 
 
-def turn_robot(network, angle):
+def turn_robot(network, angle, emergency_stream):
 
     turning_motor_speed = 50
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
@@ -164,13 +164,33 @@ def turn_robot(network, angle):
     turning_time = angle / phys_turning_rate
     logger.info(turning_time)
 
-    # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
-    # sending motor values to robot
-    network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
-    network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
+    empty_queue(emergency_stream)
 
-    # keep the robot rotating for a fixed time according to physical environment
-    sleep(np.abs(turning_time))
+    t = datetime.now()
+
+    recursive_obstacle = False
+    proximity_values = None
+    while abs(t - datetime.now()).total_seconds() < movement_time:
+        # sending motor values to robot
+        if not recursive_obstacle:
+            network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
+            network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
+        else:
+            # if we get into an obstacle during obstacle avoidance we need to recursively handle these new obstacles
+            # except if we get locked
+            logger.info('recursive turn...')
+            turn_avoid_obstacle(network, proximity_values, emergency_stream)
+        (recursive_obstacle, proximity_values) = emergency_stream.get()
+
+
+
+    # # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
+    # # sending motor values to robot
+    # network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
+    # network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
+    #
+    # # keep the robot rotating for a fixed time according to physical environment
+    # sleep(np.abs(turning_time))
 
 
 def move_robot(network, direction, distance, emergency_stream):
@@ -211,8 +231,7 @@ def move_robot(network, direction, distance, emergency_stream):
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def avoid_obstacle(network, prox_vals, emergency_stream):
-    light_up_led(network, 32, 0, 0)
+def turn_avoid_obstacle(network, prox_vals, emergency_stream):
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
     # 5 and/or 6 only
@@ -225,43 +244,49 @@ def avoid_obstacle(network, prox_vals, emergency_stream):
             logger.info(f'closest_sensor: {closest_sensor}')
             if closest_sensor == 0:
                 # 90 right try moving forward
-                turn_robot(network, 90)
-                move_robot(network, 'Forward', 10, emergency_stream)
+                turn_robot(network, 90, emergency_stream)
+                # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 1:
                 # 115 right then try moving forward
-                turn_robot(network, 115)
-                move_robot(network, 'Forward', 10, emergency_stream)
+                turn_robot(network, 115, emergency_stream)
+                # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 2:
                 # check if left or right sensors are nonzero, turn the other way 90+x and move forward
                 left_proximity = np.mean(prox_vals[0:2])
                 right_proximity = np.mean(prox_vals[3:5])
                 if left_proximity > right_proximity:
-                    turn_robot(network, 135)
-                    move_robot(network, 'Forward', 10, emergency_stream)
+                    turn_robot(network, 135, emergency_stream)
+                    # move_robot(network, 'Forward', 10, emergency_stream)
                 else:
-                    turn_robot(network, -135)
-                    move_robot(network, 'Forward', 10, emergency_stream)
+                    turn_robot(network, -135, emergency_stream)
+                    # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 3:
                 # 115 left, try moving forward
-                turn_robot(network, -115)
-                move_robot(network, 'Forward', 10, emergency_stream)
+                turn_robot(network, -115, emergency_stream)
+                # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 4:
                 # 90 left, try moving forward
-                turn_robot(network, -90)
-                move_robot(network, 'Forward', 10, emergency_stream)
+                turn_robot(network, -90, emergency_stream)
+                # move_robot(network, 'Forward', 10, emergency_stream)
 
     else: # none of the front sensors are on
         if np.all(prox_vals[5:7]>0):
             # only back sensors on, calculate proximity ratio and angle
-            move_robot(network, 'Forward', 50, emergency_stream) # TODO: pass velocity, because we need to move fast here
+            # move_robot(network, 'Forward', 50, emergency_stream) # TODO: pass velocity, because we need to move fast here
+            pass
         elif prox_vals[5]>0:
             # only back right is on turn slightly left and move forward
-            turn_robot(network, 45)
-            move_robot(network, 'Forward', 10, emergency_stream)
+            turn_robot(network, 45, emergency_stream)
+            # move_robot(network, 'Forward', 10, emergency_stream)
         elif prox_vals[6]>0:
             # only back left is on turn slightly right and move forward
-            turn_robot(network, -45)
-            move_robot(network, 'Forward', 10, emergency_stream)
+            turn_robot(network, -45, emergency_stream)
+
+
+def avoid_obstacle(network, prox_vals, emergency_stream):
+    light_up_led(network, 32, 0, 0)
+    turn_avoid_obstacle(network, prox_vals, emergency_stream)
+    move_robot(network, 'Forward', 10, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
