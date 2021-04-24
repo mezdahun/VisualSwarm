@@ -245,29 +245,29 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
             logger.info(f'closest_sensor: {closest_sensor}')
             if closest_sensor == 0:
                 # 90 right try moving forward
-                turn_robot(network, 10, emergency_stream)
+                turn_robot(network, 5, emergency_stream)
                 # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 1:
                 # 115 right then try moving forward
-                turn_robot(network, 10, emergency_stream)
+                turn_robot(network, 5, emergency_stream)
                 # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 2:
                 # check if left or right sensors are nonzero, turn the other way 90+x and move forward
                 left_proximity = np.mean(prox_vals[0:2])
                 right_proximity = np.mean(prox_vals[3:5])
                 if left_proximity > right_proximity:
-                    turn_robot(network, 10, emergency_stream)
+                    turn_robot(network, 5, emergency_stream)
                     # move_robot(network, 'Forward', 10, emergency_stream)
                 else:
-                    turn_robot(network, -10, emergency_stream)
+                    turn_robot(network, -5, emergency_stream)
                     # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 3:
                 # 115 left, try moving forward
-                turn_robot(network, -10, emergency_stream)
+                turn_robot(network, -5, emergency_stream)
                 # move_robot(network, 'Forward', 10, emergency_stream)
             elif closest_sensor == 4:
                 # 90 left, try moving forward
-                turn_robot(network, -10, emergency_stream)
+                turn_robot(network, -5, emergency_stream)
                 # move_robot(network, 'Forward', 10, emergency_stream)
 
     else: # none of the front sensors are on
@@ -277,17 +277,17 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
             pass
         elif prox_vals[5]>0:
             # only back right is on turn slightly left and move forward
-            turn_robot(network, 10, emergency_stream)
+            turn_robot(network, 5, emergency_stream)
             # move_robot(network, 'Forward', 10, emergency_stream)
         elif prox_vals[6]>0:
             # only back left is on turn slightly right and move forward
-            turn_robot(network, -10, emergency_stream)
+            turn_robot(network, -5, emergency_stream)
 
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
     light_up_led(network, 32, 0, 0)
     turn_avoid_obstacle(network, prox_vals, emergency_stream)
-    move_robot(network, 'Forward', 10, emergency_stream)
+    move_robot(network, 'Forward', 20, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
