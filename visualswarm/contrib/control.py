@@ -31,7 +31,7 @@ BEHAVE_STATUS_RGB = (0, 0, 0)
 RW_DT = 1
 
 # Fixed speed during random walk exploration
-V_EXP_RW = 0.02
+V_EXP_RW = 0.2
 
 # Possible absolute angle change in a given timestep during RW exploration (in radian)
 DPSI_MAX_EXP = 1.5
