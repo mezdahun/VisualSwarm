@@ -211,7 +211,7 @@ def move_robot(network, direction, distance, emergency_stream):
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def avoid_obstacle(network, proximity_values, emergency_stream):
+def avoid_obstacle(network, prox_vals, emergency_stream):
     light_up_led(network, 32, 0, 0)
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
