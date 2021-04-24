@@ -170,7 +170,7 @@ def turn_robot(network, angle, emergency_stream):
 
     recursive_obstacle = False
     proximity_values = None
-    while abs(t - datetime.now()).total_seconds() < movement_time:
+    while abs(t - datetime.now()).total_seconds() < turning_time:
         # sending motor values to robot
         if not recursive_obstacle:
             network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
