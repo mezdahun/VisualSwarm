@@ -233,11 +233,15 @@ def move_robot(network, direction, distance, emergency_stream):
 
 
 def turn_avoid_obstacle(network, prox_vals, emergency_stream):
+    # TODO parametrize deviation degree
+    # TODO think through if we need to check values larger zero or more
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
     # 5 and/or 6 only
     if np.any(prox_vals[0:5] > 0): # one or more of the front sensors are on
         if np.any(prox_vals[5:7]>0): # as well as the back sensors, we are locked
+            # TODO: does this really mean that the robot is locked? What if robot is followed?
+            # TODO: Behavior when locked
             logger.error(f'ROBOT LOCKED, proximity values: {prox_vals}')
             pass
         else: # act according to the closest point/sensor with maximal value
@@ -274,7 +278,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
         if np.all(prox_vals[5:7]>0):
             # only back sensors on, calculate proximity ratio and angle
             # move_robot(network, 'Forward', 50, emergency_stream) # TODO: pass velocity, because we need to move fast here
-            pass
+            pass # TODO: What if robot is followed? Do we need to interfere?
         elif prox_vals[5]>0:
             # only back right is on turn slightly left and move forward
             turn_robot(network, 5, emergency_stream)
@@ -286,6 +290,8 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
     light_up_led(network, 32, 0, 0)
+    # TODO: check proximity values and if obstacle is too close do backwards movement
+    # TODO: keep velocity that the robot had when enetered in obstacle avoidance mode
     turn_avoid_obstacle(network, prox_vals, emergency_stream)
     move_robot(network, 'Forward', 20, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
@@ -300,8 +306,6 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
         Returns:
             -shall not return-
     """
-    # global network
-    # global bus
     prev_movement_mode = "BEHAVE"
     (expR, expG, expB) = control.EXPLORE_STATUS_RGB
     (behR, behG, behB) = control.BEHAVE_STATUS_RGB
