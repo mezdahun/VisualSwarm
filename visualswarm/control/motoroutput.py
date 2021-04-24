@@ -211,12 +211,57 @@ def move_robot(network, direction, distance, emergency_stream):
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-
 def avoid_obstacle(network, proximity_values, emergency_stream):
     light_up_led(network, 32, 0, 0)
-    # turning_angle = angle_from_prox_vals(proximity_values)
-    turn_robot(network, 90)
-    move_robot(network, 'Forward', 300, emergency_stream)
+    if isinstance(prox_vals, list):
+        prox_vals = np.array(prox_vals)
+    # 5 and/or 6 only
+    if np.any(prox_vals[0:5] > 0): # one or more of the front sensors are on
+        if np.any(prox_vals[5:7]>0): # as well as the back sensors, we are locked
+            logger.error(f'ROBOT LOCKED, proximity values: {prox_vals}')
+            pass
+        else: # act according to the closest point/sensor with maximal value
+            closest_sensor = np.argmax(prox_vals[0:5])
+            logger.info(f'closest_sensor: {closest_sensor}')
+            if closest_sensor == 0:
+                # 90 right try moving forward
+                turn_robot(network, 90)
+                move_robot(network, 'Forward', 10, emergency_stream)
+            elif closest_sensor == 1:
+                # 115 right then try moving forward
+                turn_robot(network, 115)
+                move_robot(network, 'Forward', 10, emergency_stream)
+            elif closest_sensor == 2:
+                # check if left or right sensors are nonzero, turn the other way 90+x and move forward
+                left_proximity = np.mean(prox_vals[0:2])
+                right_proximity = np.mean(prox_vals[3:5])
+                if left_proximity > right_proximity:
+                    turn_robot(network, 135)
+                    move_robot(network, 'Forward', 10, emergency_stream)
+                else:
+                    turn_robot(network, -135)
+                    move_robot(network, 'Forward', 10, emergency_stream)
+            elif closest_sensor == 3:
+                # 115 left, try moving forward
+                turn_robot(network, -115)
+                move_robot(network, 'Forward', 10, emergency_stream)
+            elif closest_sensor == 4:
+                # 90 left, try moving forward
+                turn_robot(network, -90)
+                move_robot(network, 'Forward', 10, emergency_stream)
+
+    else: # none of the front sensors are on
+        if np.all(prox_vals[5:7]>0):
+            # only back sensors on, calculate proximity ratio and angle
+            move_robot(network, 'Forward', 50, emergency_stream) # TODO: pass velocity, because we need to move fast here
+        elif prox_val[6]>0:
+            # only back right is on turn slightly left and move forward
+            turn_robot(network, -45)
+            move_robot(network, 'Forward', 10, emergency_stream)
+        elif prox_val[7]>0:
+            # only back left is on turn slightly right and move forward
+            turn_robot(network, -45)
+            move_robot(network, 'Forward', 10, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
