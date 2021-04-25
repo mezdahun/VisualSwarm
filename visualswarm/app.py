@@ -5,6 +5,7 @@
 
 import logging
 from multiprocessing import Process, Queue
+import sys
 
 import visualswarm.contrib.vision
 from visualswarm import env
@@ -111,6 +112,9 @@ def start_application(with_control=False):
         emergency_proc.join()
 
     except KeyboardInterrupt:
+        # suppressing all error messages during graceful exit that come from intermingled queues
+        sys.stderr = object
+
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
@@ -154,6 +158,8 @@ def start_application(with_control=False):
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} control parameter stream!')
         motor_control_mode_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} movement mode stream!')
+        emergency_stream.close()
+        logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} emergency stream!')
 
         if with_control:
             logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
