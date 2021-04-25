@@ -372,6 +372,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         # check which direction we deviate from orthogonal to turn properly
         left_proximity = np.mean(prox_vals[0:2])
         right_proximity = np.mean(prox_vals[3:5])
+        logger.info(f'left: {left_proximity}, right: {right_proximity}')
         if left_proximity > right_proximity:
             turn_robot(network, turn_avoid_angle, emergency_stream)
         else:
