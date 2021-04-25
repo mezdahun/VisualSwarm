@@ -279,12 +279,12 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def speed_up_robot(network, additional_motor_speed, emergency_stream, protocol_time=1.0):
+def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream, protocol_time=1.0):
     """
     speeding up robot with a specified additional motor speed until back sensors are cleared.
         Args:
             network (dbus network): network on which we communicate with Thymio
-            additional_motor_speed (int): motor speed to add to current motor speeds
+            additional_motor_speed_multiplier (int): motor speed to multiply to current motor speeds with
             protocol_time (float): time in seconds to continue protocol with checking for proximity values.
             emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
                 sensor values
@@ -300,8 +300,11 @@ def speed_up_robot(network, additional_motor_speed, emergency_stream, protocol_t
     logger.info(v_left_curr)
     logger.info(v_right_curr)
 
-    v_left_target = np.sign(v_left_curr) * (np.abs(v_left_curr) + additional_motor_speed)
-    v_right_target = np.sign(v_right_curr) * (np.abs(v_right_curr) + additional_motor_speed)
+    # v_left_target = np.sign(v_left_curr) * (np.abs(v_left_curr) + additional_motor_speed)
+    # v_right_target = np.sign(v_right_curr) * (np.abs(v_right_curr) + additional_motor_speed)
+
+    v_left_target = additional_motor_speed_multiplier * v_left_curr
+    v_right_target = additional_motor_speed_multiplier * v_right_curr
 
     # from this point the method shows a lot of similarity with turn_robot, please check the comments there
     empty_queue(emergency_stream)
@@ -384,7 +387,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
     else:
         # both back sensors are signaling
         if np.all(prox_vals[5:7]>0):
-            return ("Speed up", 5)
+            return "Speed up", 1.5
 
         # only back left is signalling
         elif prox_vals[5]>0:
