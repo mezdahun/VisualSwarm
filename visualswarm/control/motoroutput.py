@@ -162,41 +162,56 @@ def empty_queue(queue2empty):
     return True
 
 
-def turn_robot(network, angle, emergency_stream):
-
-    turning_motor_speed = 50
+def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
+    """
+        turning robot with a specified speed to a particular physical angle according to the heuristics (multipliers)
+        defined in contrib.physconstraints
+            Args:
+                network (dbus network): network on which we communicate with Thymio
+                angle (float or int): physical angle in degrees to turn the robot with
+                emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
+                    sensor values
+                turning_motor_speed (int), optional: motor speed to turn the robot with
+            Returns:
+                None
+            Note: recursively calling turn_avoid_obstacle if obstacle is detected during turning as well as this
+                method is called from turn_avoid_obstacle. As a result the recursion is continued until the proximity
+                sensors are free.
+    """
+    # translating desired physical values into motor velocities
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
-    logger.info(phys_turning_rate)
-    turning_time = angle / phys_turning_rate
-    logger.info(turning_time)
+    turning_time = np.abs(angle / phys_turning_rate)
 
+    # emptying so far accumulated values from emergency stream before turning maneuver with monitoring
+    # otherwise updating from a FIFO stream would cause delay in proximity values and action
     empty_queue(emergency_stream)
 
     t = datetime.now()
 
+    # if we need to call the turning maneuver recursively
     recursive_obstacle = False
+
+    # current proximity values to act according to
     proximity_values = None
-    while abs(t - datetime.now()).total_seconds() < np.abs(turning_time):
-        # sending motor values to robot
+
+    # continue until we reach the desired angle
+    while abs(t - datetime.now()).total_seconds() < turning_time:
+
+        # call obstacle avoidance recursively if we get emergency signal from emergency_stream
         if not recursive_obstacle:
+            # the proximity sensors in this timestep are clear, we can just continue setting the turning motor speeds
             network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
             network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
         else:
-            # if we get into an obstacle during obstacle avoidance we need to recursively handle these new obstacles
-            # except if we get locked
-            logger.info('recursive turn...')
+            # if the defined angle of turn was not enough to clear the proximity sensors we retry to recursively
+            # call the turning maneuver according to the new proximity values. The frequency of this check is
+            # restricted by the frequency of new elements in the emergency_stream, as the get method will wait for the
+            # new element
+            logger.debug('Recursive turning maneuver during obstacle detection...')
             turn_avoid_obstacle(network, proximity_values, emergency_stream)
+
+        # update emergency status and proximity values from emergency stream with wait behavior (get).
         (recursive_obstacle, proximity_values) = emergency_stream.get()
-
-
-
-    # # TODO: write this into a loop until the time is down but continously monitor sensors and stop plus return when stuck
-    # # sending motor values to robot
-    # network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
-    # network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
-    #
-    # # keep the robot rotating for a fixed time according to physical environment
-    # sleep(np.abs(turning_time))
 
 
 def move_robot(network, direction, distance, emergency_stream):
