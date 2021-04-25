@@ -145,7 +145,13 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
 
 
 def empty_queue(queue2empty):
-
+    """
+        emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
+            Args:
+                queue2empty (multiprocessing.Queue): queue object to be emptied
+            Returns:
+                status: True if successful
+    """
     while not queue2empty.empty():
         try:
             queue2empty.get_nowait()
