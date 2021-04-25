@@ -279,6 +279,50 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
+def speed_up_robot(network, additional_motor_speed, emergency_stream, protocol_time=1.0):
+    """
+    speeding up robot with a specified additional motor speed until back sensors are cleared.
+        Args:
+            network (dbus network): network on which we communicate with Thymio
+            additional_motor_speed (int): motor speed to add to current motor speeds
+            protocol_time (float): time in seconds to continue protocol with checking for proximity values.
+            emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
+                sensor values
+        Returns:
+            None
+        Note: recursively calling avoid_obstacle if obstacle is detected during moving as well as this
+            method is called from avoid_obstacle after the turning maneuver. As a result the recursion is continued
+            until the proximity sensors are free, after which all recursively called avoid_obstacle methods will return.
+    """
+    # first getting current motor values
+    v_left_curr = network.GetVariable("thymio-II", "motor.left.target")
+    v_right_curr = network.GetVariable("thymio-II", "motor.right.target")
+    logger.info(v_left_curr)
+    logger.info(v_right_curr)
+
+    v_left_target = np.sign(v_left_curr) * (np.abs(v_left_curr) + additional_motor_speed)
+    v_right_target = np.sign(v_right_curr) * (np.abs(v_right_curr) + additional_motor_speed)
+
+    # from this point the method shows a lot of similarity with turn_robot, please check the comments there
+    empty_queue(emergency_stream)
+
+    recursive_obstacle = False
+    proximity_values = None
+
+    start_time = datetime.now()
+    while abs(start_time - datetime.now()).total_seconds() < protocol_time:
+
+        if not recursive_obstacle:
+            network.SetVariable("thymio-II", "motor.left.target", [v_left_target])
+            network.SetVariable("thymio-II", "motor.right.target", [v_right_target])
+
+        else:
+            # TODO: check if we are locked and return if yes
+            avoid_obstacle(network, proximity_values, emergency_stream)
+
+        (recursive_obstacle, proximity_values) = emergency_stream.get()
+
+
 def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None):
     """
     deciding on and starting turning maneuver during obstacle avoidance.
@@ -340,9 +384,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
     else:
         # both back sensors are signaling
         if np.all(prox_vals[5:7]>0):
-            # only back sensors on, calculate proximity ratio and angle
-            # move_robot(network, 'Forward', 50, emergency_stream) # TODO: pass velocity, because we need to move fast here
-            pass # TODO: What if robot is followed? Do we need to interfere?
+            return ("Speed up", 5)
 
         # only back left is signalling
         elif prox_vals[5]>0:
@@ -353,12 +395,22 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
             turn_robot(network, -turn_avoid_angle, emergency_stream)
 
 
+def run_additional_protocol(network, additional_protocol, emergency_stream):
+
+    protocol_name = additional_protocol[0]
+    if protocol_name == "Speed up":
+        speed_up_robot(network, additional_protocol[1], emergency_stream)
+
+
 def avoid_obstacle(network, prox_vals, emergency_stream):
     light_up_led(network, 32, 0, 0)
     # TODO: check proximity values and if obstacle is too close do backwards movement
     # TODO: keep velocity that the robot had when enetered in obstacle avoidance mode
-    turn_avoid_obstacle(network, prox_vals, emergency_stream)
-    move_robot(network, 'Forward', 20, emergency_stream)
+    additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream)
+    if additional_protocol is not None:
+        run_additional_protocol(network, additional_protocol, emergency_stream)
+    else:
+        move_robot(network, 'Forward', 20, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
 
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
