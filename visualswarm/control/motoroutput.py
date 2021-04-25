@@ -295,8 +295,8 @@ def speed_up_robot(network, additional_motor_speed, emergency_stream, protocol_t
             until the proximity sensors are free, after which all recursively called avoid_obstacle methods will return.
     """
     # first getting current motor values
-    v_left_curr = network.GetVariable("thymio-II", "motor.left.target")[0]
-    v_right_curr = network.GetVariable("thymio-II", "motor.right.target")[0]
+    v_left_curr = network.GetVariable("thymio-II", "motor.left.speed")[0]
+    v_right_curr = network.GetVariable("thymio-II", "motor.right.speed")[0]
     logger.info(v_left_curr)
     logger.info(v_right_curr)
 
