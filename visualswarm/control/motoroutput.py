@@ -279,7 +279,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def turn_avoid_obstacle(network, prox_vals, emergency_stream):
+def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None):
     """
     deciding on and starting turning maneuver during obstacle avoidance.
         Args:
@@ -288,12 +288,15 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
                 more info: http://wiki.thymio.org/en:thymioapi#toc2
             emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
                 sensor values
+            turn_avoid_angle: angle to turn from obstacle to try to avoid it
         Returns:
             None
         Note: there is a recursive mutual call between this function and turn_robot. The calls are going to continue
             until the proximity sensor values clear up fully.
     """
-    # TODO parametrize deviation degree
+    if turn_avoid_angle is None:
+        turn_avoid_angle = control.OBSTACLE_TURN_ANGLE
+
     # TODO think through if we need to check values larger zero or more
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
@@ -316,7 +319,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
 
             # left sensors on, avoid obstacle by turning right
             if closest_sensor in [0, 1]:
-                turn_robot(network, 5, emergency_stream)
+                turn_robot(network, turn_avoid_angle, emergency_stream)
 
             # middle sensor is on, close to orthogonal collision is expected
             elif closest_sensor == 2:
@@ -325,13 +328,13 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
                 left_proximity = np.mean(prox_vals[0:2])
                 right_proximity = np.mean(prox_vals[3:5])
                 if left_proximity > right_proximity:
-                    turn_robot(network, 5, emergency_stream)
+                    turn_robot(network, turn_avoid_angle, emergency_stream)
                 else:
-                    turn_robot(network, -5, emergency_stream)
+                    turn_robot(network, -turn_avoid_angle, emergency_stream)
 
             # right sensors on, avoid obstacle by turning left
             elif closest_sensor in [3, 4]:
-                turn_robot(network, -5, emergency_stream)
+                turn_robot(network, -turn_avoid_angle, emergency_stream)
 
     # none of the front sensors are on
     else:
@@ -343,11 +346,11 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
 
         # only back left is signalling
         elif prox_vals[5]>0:
-            turn_robot(network, 5, emergency_stream)
+            turn_robot(network, turn_avoid_angle, emergency_stream)
 
         # only back right is signalling
         elif prox_vals[6]>0:
-            turn_robot(network, -5, emergency_stream)
+            turn_robot(network, -turn_avoid_angle, emergency_stream)
 
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
