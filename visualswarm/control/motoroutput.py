@@ -554,6 +554,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
             motorinterface.asebamedulla_end()
             raise Exception('asebamedulla connection not healthy!')
 
+
 def emergency_behavior(emergency_stream):
     """
     Process to check for emergency signals via proximity sensors and transmit information to other processes
@@ -568,7 +569,6 @@ def emergency_behavior(emergency_stream):
     bus = dbus.SessionBus()
 
     # Create Aseba network
-    # if network is None:
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
@@ -576,6 +576,7 @@ def emergency_behavior(emergency_stream):
     while True:
         # enforcing checks on a regular basis
         if abs(t-datetime.now()).total_seconds() > control.EMERGENCY_CHECK_FREQ:
+
             # reading proximity values
             prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
 
@@ -584,4 +585,5 @@ def emergency_behavior(emergency_stream):
                 emergency_stream.put((True, prox_val))
             else:
                 emergency_stream.put((False, None))
+
             t =datetime.now()
