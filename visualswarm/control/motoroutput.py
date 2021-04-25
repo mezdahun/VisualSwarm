@@ -146,11 +146,11 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
 
 def empty_queue(queue2empty):
     """
-        emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
-            Args:
-                queue2empty (multiprocessing.Queue): queue object to be emptied
-            Returns:
-                status: True if successful
+    emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
+        Args:
+            queue2empty (multiprocessing.Queue): queue object to be emptied
+        Returns:
+            status: True if successful
     """
     while not queue2empty.empty():
         try:
@@ -164,19 +164,19 @@ def empty_queue(queue2empty):
 
 def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
     """
-        turning robot with a specified speed to a particular physical angle according to the heuristics (multipliers)
-        defined in contrib.physconstraints
-            Args:
-                network (dbus network): network on which we communicate with Thymio
-                angle (float or int): physical angle in degrees to turn the robot with
-                emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
-                    sensor values
-                turning_motor_speed (int), optional: motor speed to turn the robot with
-            Returns:
-                None
-            Note: recursively calling turn_avoid_obstacle if obstacle is detected during turning as well as this
-                method is called from turn_avoid_obstacle. As a result the recursion is continued until the proximity
-                sensors are free.
+    turning robot with a specified speed to a particular physical angle according to the heuristics (multipliers)
+    defined in contrib.physconstraints
+        Args:
+            network (dbus network): network on which we communicate with Thymio
+            angle (float or int): physical angle in degrees to turn the robot with
+            emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
+                sensor values
+            turning_motor_speed (int), optional: motor speed to turn the robot with
+        Returns:
+            None
+        Note: recursively calling turn_avoid_obstacle if obstacle is detected during turning as well as this
+            method is called from turn_avoid_obstacle. As a result the recursion is continued until the proximity
+            sensors are free.
     """
     # translating desired physical values into motor velocities
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
