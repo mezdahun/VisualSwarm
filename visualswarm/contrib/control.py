@@ -57,4 +57,4 @@ EMERGENCY_CHECK_FREQ = 5
 EMERGENCY_PROX_THRESHOLD = 3000
 
 # angle to turn away from obstacle during obstacle avoidance.
-OBSTACLE_TURN_ANGLE = 8
+OBSTACLE_TURN_ANGLE = 15
