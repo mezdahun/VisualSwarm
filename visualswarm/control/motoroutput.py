@@ -536,10 +536,15 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     prev_movement_mode = movement_mode
 
                 else:
+                    # triggering obstacle avoidance system
                     avoid_obstacle(network, proximity_values, emergency_stream)
+
+                    # emptying accumulated queues
                     empty_queue(control_stream)
                     empty_queue(motor_control_mode_stream)
                     empty_queue(emergency_stream)
+
+                    # turn off emergency mode and return to normal mode
                     emergency_mode = False
                     if movement_mode == "EXPLORE":
                         light_up_led(network, expR, expG, expB)
