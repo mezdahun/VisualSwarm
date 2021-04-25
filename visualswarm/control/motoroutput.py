@@ -182,6 +182,9 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     turning_time = np.abs(angle / phys_turning_rate)
 
+    logger.debug(f"phys turning rate: {phys_turning_rate} deg/sec")
+    logger.debug(f"turning time: {turning_time}")
+
     # emptying so far accumulated values from emergency stream before turning maneuver with monitoring
     # otherwise updating from a FIFO stream would cause delay in proximity values and action
     empty_queue(emergency_stream)
@@ -201,6 +204,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
             # the proximity sensors in this timestep are clear, we can just continue setting the turning motor speeds
             network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
             network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
+
         else:
             # if the defined angle of turn was not enough to clear the proximity sensors we retry to recursively
             # call the turning maneuver according to the new proximity values. The frequency of this check is
@@ -214,9 +218,30 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
 
 
 def move_robot(network, direction, distance, emergency_stream):
+    """
+    moving robot with a specified speed to a particular distance according to the heuristics (multipliers)
+    defined in contrib.physconstraints
+        Args:
+            network (dbus network): network on which we communicate with Thymio
+            direction (string): either "Forward" or "Backward"
+            distance (float or int): physical distance in mm to move the robot with
+            emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
+                sensor values
+            moving_motor_speed (int), optional: motor speed to move the robot with
+        Returns:
+            None
+        Note: recursively calling avoid_obstacle if obstacle is detected during moving as well as this
+            method is called from avoid_obstacle after the turning maneuver. As a result the recursion is continued
+            until the proximity sensors are free, after which all recursively called avoid_obstacle methods will return.
+    """
 
-    # TODO: raise error for negative distance
-    motor_speed = 50
+    if distance < 0:
+        logger.error(f'Negative distance in move_robot: {distance}'
+                     f'PLease control the robot direction with the "direction" parameter instead of the distance sign!')
+        raise KeyboardInterrupt
+
+    moving_motor_speed = 50
+
     if direction == "Forward":
         multiplier = physconstraints.FWD_MULTIPLIER
         movesign = 1
@@ -227,28 +252,30 @@ def move_robot(network, direction, distance, emergency_stream):
         logger.error(f'Unknown direction: {direction}')
         raise KeyboardInterrupt
 
-    phys_speed = motor_speed * multiplier
-    logger.info(f"phys speed: {phys_speed} mm/sec")
+    # calculating motor values from desired physical values and heuristics
+    phys_speed = moving_motor_speed * multiplier
     movement_time = distance / phys_speed
-    logger.info(f"movement time: {movement_time}")
 
-    # TODO: check if we are locked and return if yes
+    logger.debug(f"phys speed: {phys_speed} mm/sec")
+    logger.debug(f"movement time: {movement_time}")
 
+    # from this point the method shows a lot of similarity with turn_robot, please check the comments there
     empty_queue(emergency_stream)
-
-    t = datetime.now()
 
     recursive_obstacle = False
     proximity_values = None
-    while abs(t - datetime.now()).total_seconds() < movement_time:
-        # sending motor values to robot
+
+    start_time = datetime.now()
+    while abs(start_time - datetime.now()).total_seconds() < movement_time:
+
         if not recursive_obstacle:
-            network.SetVariable("thymio-II", "motor.left.target", [movesign * motor_speed])
-            network.SetVariable("thymio-II", "motor.right.target", [movesign * motor_speed])
+            network.SetVariable("thymio-II", "motor.left.target", [movesign * moving_motor_speed])
+            network.SetVariable("thymio-II", "motor.right.target", [movesign * moving_motor_speed])
+
         else:
-            # if we get into an obstacle during obstacle avoidance we need to recursively handle these new obstacles
-            # except if we get locked
+            # TODO: check if we are locked and return if yes
             avoid_obstacle(network, proximity_values, emergency_stream)
+
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
