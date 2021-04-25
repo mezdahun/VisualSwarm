@@ -217,7 +217,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def move_robot(network, direction, distance, emergency_stream):
+def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50):
     """
     moving robot with a specified speed to a particular distance according to the heuristics (multipliers)
     defined in contrib.physconstraints
@@ -239,8 +239,6 @@ def move_robot(network, direction, distance, emergency_stream):
         logger.error(f'Negative distance in move_robot: {distance}'
                      f'PLease control the robot direction with the "direction" parameter instead of the distance sign!')
         raise KeyboardInterrupt
-
-    moving_motor_speed = 50
 
     if direction == "Forward":
         multiplier = physconstraints.FWD_MULTIPLIER
