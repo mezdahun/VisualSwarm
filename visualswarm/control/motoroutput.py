@@ -385,10 +385,8 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         if np.abs(left_proximity-right_proximity) < 500:
             # keep rotational direction and keep rotating
             logger.warning("SYMMETRIC OBSTACLES!!!")
-            move_robot(network, 'Backward', 30, emergency_stream, blind_mode=True)
-            turn_robot(network, 90, emergency_stream)
-            return ("End avoidance")
-        if left_proximity > right_proximity:
+            turn_robot(network, 90, emergency_stream, blind_mode=True)
+        elif left_proximity > right_proximity:
             turn_robot(network, turn_avoid_angle, emergency_stream)
         else:
             turn_robot(network, -turn_avoid_angle, emergency_stream)
