@@ -280,6 +280,18 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
 
 
 def turn_avoid_obstacle(network, prox_vals, emergency_stream):
+    """
+    deciding on and starting turning maneuver during obstacle avoidance.
+        Args:
+            network (dbus network): network on which we communicate with Thymio
+            prox_vals (list or np.array): len 7 array with the proximity sensor values of the Thymio
+            emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
+                sensor values
+        Returns:
+            None
+        Note: there is a recursive mutual call between this function and turn_robot. The calls are going to continue
+            until the proximity sensor values clear up fully.
+    """
     # TODO parametrize deviation degree
     # TODO think through if we need to check values larger zero or more
     if isinstance(prox_vals, list):
