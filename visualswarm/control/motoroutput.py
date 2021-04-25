@@ -186,8 +186,6 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
     # otherwise updating from a FIFO stream would cause delay in proximity values and action
     empty_queue(emergency_stream)
 
-    t = datetime.now()
-
     # if we need to call the turning maneuver recursively
     recursive_obstacle = False
 
@@ -195,7 +193,8 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
     proximity_values = None
 
     # continue until we reach the desired angle
-    while abs(t - datetime.now()).total_seconds() < turning_time:
+    start_time = datetime.now()
+    while abs(start_time - datetime.now()).total_seconds() < turning_time:
 
         # call obstacle avoidance recursively if we get emergency signal from emergency_stream
         if not recursive_obstacle:
