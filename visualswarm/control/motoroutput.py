@@ -555,82 +555,33 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
             raise Exception('asebamedulla connection not healthy!')
 
 def emergency_behavior(emergency_stream):
+    """
+    Process to check for emergency signals via proximity sensors and transmit information to other processes
+        Args:
+            emergency_stream (multiprocessing Queue): stream to push emergency status and sensor values
+        Returns:
+            -shall not return-
+    """
     # Initializing DBus
     dbus.mainloop.glib.threads_init()
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SessionBus()
 
-    t = datetime.now()
-
     # Create Aseba network
     # if network is None:
     network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                              dbus_interface='ch.epfl.mobots.AsebaNetwork')
+
+    t = datetime.now()
     while True:
-        if abs(t-datetime.now()).total_seconds() > 0.25:
+        # enforcing checks on a regular basis
+        if abs(t-datetime.now()).total_seconds() > control.EMERGENCY_CHECK_FREQ:
+            # reading proximity values
             prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
-            idx = np.where(prox_val[0:5]>2000)[0]
-            if len(idx) > 0:
-                logger.info(idx)
-                logger.info('EMERGENCY')
+
+            if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
+                logger.info('Triggered Obstacle Avoidance!')
                 emergency_stream.put((True, prox_val))
-                logger.info(prox_val)
             else:
                 emergency_stream.put((False, None))
             t =datetime.now()
-
-    # from gi.repository import GLib
-    # loop = GLib.MainLoop()
-    #
-    #
-    # # Initializing DBus
-    # dbus.mainloop.glib.threads_init()
-    # dbus.mainloop.glib.DBusGMainLoop(mainloop=loop)
-    # bus = dbus.SessionBus()
-    #
-    # # Create Aseba network
-    # # if network is None:
-    # network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-    #                          dbus_interface='ch.epfl.mobots.AsebaNetwork')
-    #
-    # with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t', delete=False) as aesl:
-    #     aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
-    #     # declare global events and ...
-    #     aesl.write('<event size="0" name="fwd.button.backward"/>\n')
-    #     aesl.write('<event size="0" name="become.yellow"/>\n')
-    #     aesl.write('<event size="0" name="fwd.timer0"/>\n')
-    #     thymio = "thymio-II"
-    #     aesl.write('<node nodeId="1" name="' + thymio + '">\n')
-    #     # ...forward some local events as outgoing global ones
-    #     aesl.write('onevent button.forward\n    emit fwd.button.backward\n')
-    #     aesl.write('onevent timer0\n    emit fwd.timer0\n')
-    #     # add code to handle incoming events
-    #     aesl.write('onevent become.yellow\n    call leds.top(31,31,0)\n')
-    #     aesl.write('</node>\n')
-    #     aesl.write('</network>\n')
-    #     aesl.seek(0)
-    #
-    # network.LoadScripts(aesl.name)
-    #
-    # # # Create an event filter and catch events
-    # # eventfilter = network.CreateEventFilter()
-    # # events = dbus.Interface(
-    # #     bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
-    # #     dbus_interface='ch.epfl.mobots.EventFilter')
-    # #
-    # # network.SetVariable(thymio, "timer.period", [1000, 0])
-    # # events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
-    # # events.ListenEventName('fwd.button.backward')
-    # # events.connect_to_signal('Event', prox_emergency_callback)
-    #
-    # while True:
-    #     # Create an event filter and catch events
-    #     eventfilter = network.CreateEventFilter()
-    #     events = dbus.Interface(
-    #         bus.get_object('ch.epfl.mobots.Aseba', eventfilter),
-    #         dbus_interface='ch.epfl.mobots.EventFilter')
-    #
-    #     network.SetVariable(thymio, "timer.period", [1000, 0])
-    #     events.ListenEventName('fwd.timer0')  # not required for the first event in aesl file!
-    #     events.ListenEventName('fwd.button.backward')
-    #     events.connect_to_signal('Event', prox_emergency_callback)
