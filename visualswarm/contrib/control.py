@@ -2,6 +2,7 @@
 @author: mezdahun
 @description: Motor Control related parameters
 """
+# MOTOR INTERFACE
 # Serial port on which the Thymio is available
 THYMIO_DEVICE_PORT = "/dev/ttyACM0"
 
@@ -14,7 +15,9 @@ B = 0.11
 # Maximum motor speed of thymio2
 MAX_MOTOR_SPEED = 500
 
-# Exploration and Movement Regimes
+
+
+# EXPLORATION REGIMES
 # Exploration mode, possible values: 'RandomWalk', 'Rotation', 'NoExploration'
 EXP_MOVE_TYPE = 'RandomWalk'
 
@@ -24,6 +27,7 @@ WAIT_BEFORE_SWITCH_MOVEMENT = 1
 # Status LEDs
 EXPLORE_STATUS_RGB = (20, 20, 20)
 BEHAVE_STATUS_RGB = (0, 0, 0)
+
 
 
 # RANDOM WALK
@@ -36,10 +40,15 @@ V_EXP_RW = 0.2
 # Possible absolute angle change in a given timestep during RW exploration (in radian)
 DPSI_MAX_EXP = 1.5
 
-
 # ROTATION
 # Motor speed (per motor) during rotation (rotation speed)
 ROT_MOTOR_SPEED = 10
 
 # Rotation direction, possible values: 'Left', 'Right', 'Random'
 ROT_DIRECTION = 'Left'
+
+
+
+# OBSTACLE DETECTION
+# angle to turn away from obstacle during obstacle avoidance.
+OBSTACLE_TURN_ANGLE = 8
