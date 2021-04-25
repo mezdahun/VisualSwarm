@@ -50,8 +50,8 @@ ROT_DIRECTION = 'Left'
 
 
 # OBSTACLE DETECTION
-# Emergency monitoring in Hz
-EMERGENCY_CHECK_FREQ = 4
+# Emergency monitoring in Hz (maximum value is 10Hz, on which Thymio is updating these values)
+EMERGENCY_CHECK_FREQ = 5
 
 # Threshold value on horizontal proximity sensors that triggers obstacle avoidance
 EMERGENCY_PROX_THRESHOLD = 3000
