@@ -156,9 +156,9 @@ def empty_queue(queue2empty):
         try:
             queue2empty.get_nowait()
         except Empty:
-            logger.debug(f'Emptied queue: {queue2empty}')
+            logger.debug('Emptied passed queue')
             return True
-    logger.debug(f'Emptied queue: {queue2empty}')
+    logger.debug('Emptied passed queue')
     return True
 
 
