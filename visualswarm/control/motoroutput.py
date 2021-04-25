@@ -178,6 +178,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
             method is called from turn_avoid_obstacle. As a result the recursion is continued until the proximity
             sensors are free.
     """
+    # TODO: implement turning with keeping forward speed that can be calculated from v_left and v_right as avg
     # translating desired physical values into motor velocities
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     turning_time = np.abs(angle / phys_turning_rate)
@@ -234,7 +235,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
             method is called from avoid_obstacle after the turning maneuver. As a result the recursion is continued
             until the proximity sensors are free, after which all recursively called avoid_obstacle methods will return.
     """
-
+    # TODO: implement moving with keeping forward speed that can be calculated from v_left and v_right as avg
     # Checking distance
     if distance < 0:
         logger.error(f'Negative distance in move_robot: {distance}'
@@ -344,50 +345,47 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
     if turn_avoid_angle is None:
         turn_avoid_angle = control.OBSTACLE_TURN_ANGLE
 
-    # TODO think through if we need to check values larger zero or more
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
 
     # any of the front sensors are on
     if np.any(prox_vals[0:5] > 0):
 
-        # any of the back sensors are on
+        # any of the back sensors are also on, send warning, we might be locked
         if np.any(prox_vals[5:7]>0):
-            # TODO: does this really mean that the robot is locked? What if robot is followed?
-            # TODO: Behavior when locked
-            logger.error(f'ROBOT LOCKED, proximity values: {prox_vals}')
+            logger.warning(f'ROBOT seems to be locked, proximity values: {prox_vals}')
             pass
 
-        # only the front sensors are on
+        # some of the front sensors are on
         # act according to the closest point/sensor with maximal value
-        else:
-            closest_sensor = np.argmax(prox_vals[0:5])
-            logger.debug(f'Sensor with highest value: {closest_sensor}, with value {prox_vals[closest_sensor]}')
+        closest_sensor = np.argmax(prox_vals[0:5])
+        logger.debug(f'Sensor with highest value: {closest_sensor}, with value {prox_vals[closest_sensor]}')
 
-            # left sensors on, avoid obstacle by turning right
-            if closest_sensor in [0, 1]:
+        # left sensors on, avoid obstacle by turning right
+        if closest_sensor in [0, 1]:
+            turn_robot(network, turn_avoid_angle, emergency_stream)
+
+        # middle sensor is on, close to orthogonal collision is expected
+        elif closest_sensor == 2:
+
+            # check which direction we deviate from orthogonal to turn properly
+            left_proximity = np.mean(prox_vals[0:2])
+            right_proximity = np.mean(prox_vals[3:5])
+            if left_proximity > right_proximity:
                 turn_robot(network, turn_avoid_angle, emergency_stream)
-
-            # middle sensor is on, close to orthogonal collision is expected
-            elif closest_sensor == 2:
-
-                # check which direction we deviate from orthogonal to turn properly
-                left_proximity = np.mean(prox_vals[0:2])
-                right_proximity = np.mean(prox_vals[3:5])
-                if left_proximity > right_proximity:
-                    turn_robot(network, turn_avoid_angle, emergency_stream)
-                else:
-                    turn_robot(network, -turn_avoid_angle, emergency_stream)
-
-            # right sensors on, avoid obstacle by turning left
-            elif closest_sensor in [3, 4]:
+            else:
                 turn_robot(network, -turn_avoid_angle, emergency_stream)
+
+        # right sensors on, avoid obstacle by turning left
+        elif closest_sensor in [3, 4]:
+            turn_robot(network, -turn_avoid_angle, emergency_stream)
 
     # none of the front sensors are on
     else:
-        # both back sensors are signaling
+        # both back sensors are signaling (currently not used)
         if np.all(prox_vals[5:7]>0):
-            return "Speed up", 1.5
+            pass
+            # return "Speed up", 1.5
 
         # only back left is signalling
         elif prox_vals[5]>0:
