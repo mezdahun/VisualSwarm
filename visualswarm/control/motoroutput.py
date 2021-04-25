@@ -362,24 +362,24 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         closest_sensor = np.argmax(prox_vals[0:5])
         logger.debug(f'Sensor with highest value: {closest_sensor}, with value {prox_vals[closest_sensor]}')
 
-        # left sensors on, avoid obstacle by turning right
-        if closest_sensor in [0, 1]:
+        # # left sensors on, avoid obstacle by turning right
+        # if closest_sensor in [0, 1]:
+        #     turn_robot(network, turn_avoid_angle, emergency_stream)
+        #
+        # # middle sensor is on, close to orthogonal collision is expected
+        # elif closest_sensor == 2:
+
+        # check which direction we deviate from orthogonal to turn properly
+        left_proximity = np.mean(prox_vals[0:2])
+        right_proximity = np.mean(prox_vals[3:5])
+        if left_proximity > right_proximity:
             turn_robot(network, turn_avoid_angle, emergency_stream)
-
-        # middle sensor is on, close to orthogonal collision is expected
-        elif closest_sensor == 2:
-
-            # check which direction we deviate from orthogonal to turn properly
-            left_proximity = np.mean(prox_vals[0:2])
-            right_proximity = np.mean(prox_vals[3:5])
-            if left_proximity > right_proximity:
-                turn_robot(network, turn_avoid_angle, emergency_stream)
-            else:
-                turn_robot(network, -turn_avoid_angle, emergency_stream)
-
-        # right sensors on, avoid obstacle by turning left
-        elif closest_sensor in [3, 4]:
+        else:
             turn_robot(network, -turn_avoid_angle, emergency_stream)
+
+        # # right sensors on, avoid obstacle by turning left
+        # elif closest_sensor in [3, 4]:
+        #     turn_robot(network, -turn_avoid_angle, emergency_stream)
 
     # IGNORED FOR NOW AS ONLY BACK SENSORS NEVER TRIGGER EMERGENCY MODE
     # none of the front sensors are on
