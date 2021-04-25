@@ -32,13 +32,13 @@ BEHAVE_STATUS_RGB = (0, 0, 0)
 
 # RANDOM WALK
 # Random walk time step to change direction (sec)
-RW_DT = 1
+RW_DT = 10
 
 # Fixed speed during random walk exploration
-V_EXP_RW = 0.2
+V_EXP_RW = 0.4
 
 # Possible absolute angle change in a given timestep during RW exploration (in radian)
-DPSI_MAX_EXP = 1.5
+DPSI_MAX_EXP = 3
 
 # ROTATION
 # Motor speed (per motor) during rotation (rotation speed)
