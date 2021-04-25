@@ -285,6 +285,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
         Args:
             network (dbus network): network on which we communicate with Thymio
             prox_vals (list or np.array): len 7 array with the proximity sensor values of the Thymio
+                more info: http://wiki.thymio.org/en:thymioapi#toc2
             emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
                 sensor values
         Returns:
@@ -296,54 +297,56 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream):
     # TODO think through if we need to check values larger zero or more
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
-    # 5 and/or 6 only
-    if np.any(prox_vals[0:5] > 0): # one or more of the front sensors are on
-        if np.any(prox_vals[5:7]>0): # as well as the back sensors, we are locked
+
+    # any of the front sensors are on
+    if np.any(prox_vals[0:5] > 0):
+
+        # any of the back sensors are on
+        if np.any(prox_vals[5:7]>0):
             # TODO: does this really mean that the robot is locked? What if robot is followed?
             # TODO: Behavior when locked
             logger.error(f'ROBOT LOCKED, proximity values: {prox_vals}')
             pass
-        else: # act according to the closest point/sensor with maximal value
+
+        # only the front sensors are on
+        # act according to the closest point/sensor with maximal value
+        else:
             closest_sensor = np.argmax(prox_vals[0:5])
-            logger.info(f'closest_sensor: {closest_sensor}')
-            if closest_sensor == 0:
-                # 90 right try moving forward
+            logger.debug(f'Sensor with highest value: {closest_sensor}, with value {prox_vals[closest_sensor]}')
+
+            # left sensors on, avoid obstacle by turning right
+            if closest_sensor in [0, 1]:
                 turn_robot(network, 5, emergency_stream)
-                # move_robot(network, 'Forward', 10, emergency_stream)
-            elif closest_sensor == 1:
-                # 115 right then try moving forward
-                turn_robot(network, 5, emergency_stream)
-                # move_robot(network, 'Forward', 10, emergency_stream)
+
+            # middle sensor is on, close to orthogonal collision is expected
             elif closest_sensor == 2:
-                # check if left or right sensors are nonzero, turn the other way 90+x and move forward
+
+                # check which direction we deviate from orthogonal to turn properly
                 left_proximity = np.mean(prox_vals[0:2])
                 right_proximity = np.mean(prox_vals[3:5])
                 if left_proximity > right_proximity:
                     turn_robot(network, 5, emergency_stream)
-                    # move_robot(network, 'Forward', 10, emergency_stream)
                 else:
                     turn_robot(network, -5, emergency_stream)
-                    # move_robot(network, 'Forward', 10, emergency_stream)
-            elif closest_sensor == 3:
-                # 115 left, try moving forward
-                turn_robot(network, -5, emergency_stream)
-                # move_robot(network, 'Forward', 10, emergency_stream)
-            elif closest_sensor == 4:
-                # 90 left, try moving forward
-                turn_robot(network, -5, emergency_stream)
-                # move_robot(network, 'Forward', 10, emergency_stream)
 
-    else: # none of the front sensors are on
+            # right sensors on, avoid obstacle by turning left
+            elif closest_sensor in [3, 4]:
+                turn_robot(network, -5, emergency_stream)
+
+    # none of the front sensors are on
+    else:
+        # both back sensors are signaling
         if np.all(prox_vals[5:7]>0):
             # only back sensors on, calculate proximity ratio and angle
             # move_robot(network, 'Forward', 50, emergency_stream) # TODO: pass velocity, because we need to move fast here
             pass # TODO: What if robot is followed? Do we need to interfere?
+
+        # only back left is signalling
         elif prox_vals[5]>0:
-            # only back right is on turn slightly left and move forward
             turn_robot(network, 5, emergency_stream)
-            # move_robot(network, 'Forward', 10, emergency_stream)
+
+        # only back right is signalling
         elif prox_vals[6]>0:
-            # only back left is on turn slightly right and move forward
             turn_robot(network, -5, emergency_stream)
 
 
