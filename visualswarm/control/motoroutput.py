@@ -408,6 +408,7 @@ def avoid_obstacle(network, prox_vals, emergency_stream):
     # TODO: keep velocity that the robot had when enetered in obstacle avoidance mode
     additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream)
     if additional_protocol is not None:
+        logger.info('ADDITIONAL PROTOCOL AFTER TURN')
         run_additional_protocol(network, additional_protocol, emergency_stream)
     else:
         move_robot(network, 'Forward', 20, emergency_stream)
