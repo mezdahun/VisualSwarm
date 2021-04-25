@@ -179,6 +179,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
             sensors are free.
     """
     # TODO: implement turning with keeping forward speed that can be calculated from v_left and v_right as avg
+    # TODO: add some small random noise to turning time so that we don't get stuck when objects symmetric? Check avoidnace for corners
     # translating desired physical values into motor velocities
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     turning_time = np.abs(angle / phys_turning_rate)
@@ -380,6 +381,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         elif closest_sensor in [3, 4]:
             turn_robot(network, -turn_avoid_angle, emergency_stream)
 
+    # IGNORED FOR NOW AS ONLY BACK SENSORS NEVER TRIGGER EMERGENCY MODE
     # none of the front sensors are on
     else:
         # both back sensors are signaling (currently not implemented, we just exit avoidance protocol)
