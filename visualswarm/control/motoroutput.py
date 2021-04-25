@@ -374,11 +374,12 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         right_proximity = np.mean(prox_vals[3:5])
 
         # symmetric proximity, we have a wall in front that we can not pass but has a hole in the middle, or a corner
-        if np.abs(left_proximity-right_proximity) < 1200:
+        if np.abs(left_proximity-right_proximity) < 500:
             # keep rotational direction and keep rotating
             logger.warning("SYMMETRIC OBSTACLES!!!")
-            current_rotation_direction = np.sign(network.GetVariable("thymio-II", "motor.left.speed")[0])
-            turn_robot(network, current_rotation_direction * turn_avoid_angle, emergency_stream)
+            # current_rotation_direction = np.sign(network.GetVariable("thymio-II", "motor.left.speed")[0])
+            # turn_robot(network, current_rotation_direction * turn_avoid_angle, emergency_stream)
+            move_robot(network, 'Backward', 10, emergency_stream)
         if left_proximity > right_proximity:
             turn_robot(network, turn_avoid_angle, emergency_stream)
         else:
