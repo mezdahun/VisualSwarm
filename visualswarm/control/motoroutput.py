@@ -567,7 +567,7 @@ def emergency_behavior(emergency_stream):
     while True:
         if abs(t-datetime.now()).total_seconds() > 0.25:
             prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
-            idx = np.where(prox_val>2000)[0]
+            idx = np.where(prox_val[0:5]>2000)[0]
             if len(idx) > 0:
                 logger.info(idx)
                 logger.info('EMERGENCY')
