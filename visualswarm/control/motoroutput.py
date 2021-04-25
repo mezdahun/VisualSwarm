@@ -382,9 +382,9 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
 
     # none of the front sensors are on
     else:
-        # both back sensors are signaling (currently not used)
+        # both back sensors are signaling (currently not implemented, we just exit avoidance protocol)
         if np.all(prox_vals[5:7]>0):
-            pass
+            return ("End avoidance")
             # return "Speed up", 1.5
 
         # only back left is signalling
@@ -401,6 +401,8 @@ def run_additional_protocol(network, additional_protocol, emergency_stream):
     protocol_name = additional_protocol[0]
     if protocol_name == "Speed up":
         speed_up_robot(network, additional_protocol[1], emergency_stream)
+    elif protocol_name == "End avoidance":
+        return
 
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
@@ -412,6 +414,7 @@ def avoid_obstacle(network, prox_vals, emergency_stream):
         logger.info('ADDITIONAL PROTOCOL AFTER TURN')
         run_additional_protocol(network, additional_protocol, emergency_stream)
     else:
+        # always moving a bit forward to close avoidance to be sure that the way is clear
         move_robot(network, 'Forward', 20, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
 
