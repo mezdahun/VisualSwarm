@@ -575,7 +575,7 @@ def emergency_behavior(emergency_stream):
     t = datetime.now()
     while True:
         # enforcing checks on a regular basis
-        if abs(t-datetime.now()).total_seconds() > control.EMERGENCY_CHECK_FREQ:
+        if abs(t-datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
 
             # reading proximity values
             prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])

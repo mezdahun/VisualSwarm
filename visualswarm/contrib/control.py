@@ -50,8 +50,8 @@ ROT_DIRECTION = 'Left'
 
 
 # OBSTACLE DETECTION
-# Emergency monitoring in every x sec
-EMERGENCY_CHECK_FREQ = 0.25
+# Emergency monitoring in Hz
+EMERGENCY_CHECK_FREQ = 4
 
 # Threshold value on horizontal proximity sensors that triggers obstacle avoidance
 EMERGENCY_PROX_THRESHOLD = 3000
