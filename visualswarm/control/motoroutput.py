@@ -219,7 +219,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50):
+def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50, blind_mode=False):
     """
     moving robot with a specified speed to a particular distance according to the heuristics (multipliers)
     defined in contrib.physconstraints
@@ -230,6 +230,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
             emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
                 sensor values
             moving_motor_speed (int), optional: motor speed to move the robot with
+            blind_mode (bool), optional: if blind is true, the recursive function call will be deactivated
         Returns:
             None
         Note: recursively calling avoid_obstacle if obstacle is detected during moving as well as this
@@ -276,7 +277,10 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
 
         else:
             # TODO: check if we are locked and return if yes
-            avoid_obstacle(network, proximity_values, emergency_stream)
+            if not blind_mode:
+                avoid_obstacle(network, proximity_values, emergency_stream)
+            else:
+                logger.warning(f'Blind mode activated during moving {direction}, emergency signal ignored!')
 
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
@@ -377,9 +381,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         if np.abs(left_proximity-right_proximity) < 500:
             # keep rotational direction and keep rotating
             logger.warning("SYMMETRIC OBSTACLES!!!")
-            # current_rotation_direction = np.sign(network.GetVariable("thymio-II", "motor.left.speed")[0])
-            # turn_robot(network, current_rotation_direction * turn_avoid_angle, emergency_stream)
-            move_robot(network, 'Backward', 30, emergency_stream)
+            move_robot(network, 'Backward', 30, emergency_stream,blind_mode=True)
             turn_robot(network, 90, emergency_stream)
             return ("End avoidance")
         if left_proximity > right_proximity:
