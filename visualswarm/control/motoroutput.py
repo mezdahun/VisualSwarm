@@ -417,12 +417,14 @@ def avoid_obstacle(network, prox_vals, emergency_stream):
         run_additional_protocol(network, additional_protocol, emergency_stream)
     else:
         # always moving a bit forward to close avoidance to be sure that the way is clear
+        logger.info('MOVE ROBOT FWD')
         move_robot(network, 'Forward', 20, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
 
+
 def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
     """
-    Process to translate state variables to motor velocities and send to Thymio2 robot via DBUS.
+    Process to switch between movement regimes and control the movement of Thymio2 robot via DBUS.
         Args:
             control_stream (multiprocessing Queue): stream to push calculated control parameters
             motor_control_mode_stream (multiprocessing Queue): stream to get movement type/mode.
