@@ -235,11 +235,13 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
             until the proximity sensors are free, after which all recursively called avoid_obstacle methods will return.
     """
 
+    # Checking distance
     if distance < 0:
         logger.error(f'Negative distance in move_robot: {distance}'
                      f'PLease control the robot direction with the "direction" parameter instead of the distance sign!')
         raise KeyboardInterrupt
 
+    # Checking direction
     if direction == "Forward":
         multiplier = physconstraints.FWD_MULTIPLIER
         movesign = 1
