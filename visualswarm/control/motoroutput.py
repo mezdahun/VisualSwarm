@@ -383,6 +383,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
 
         # symmetric proximity with no middle, we have a wall in front that we can not pass but has a hole in the middle,
         # or a corner
+        # TODO: think this through again!
         if np.abs(left_proximity-right_proximity) < 500 and prox_vals[2] < 1000:
             # keep rotational direction and keep rotating
             logger.warning("SYMMETRIC OBSTACLES!!!")
