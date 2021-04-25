@@ -379,7 +379,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
             logger.warning("SYMMETRIC OBSTACLES!!!")
             # current_rotation_direction = np.sign(network.GetVariable("thymio-II", "motor.left.speed")[0])
             # turn_robot(network, current_rotation_direction * turn_avoid_angle, emergency_stream)
-            move_robot(network, 'Backward', 10, emergency_stream)
+            move_robot(network, 'Backward', 25, emergency_stream)
         if left_proximity > right_proximity:
             turn_robot(network, turn_avoid_angle, emergency_stream)
         else:
