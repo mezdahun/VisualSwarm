@@ -162,7 +162,7 @@ def empty_queue(queue2empty):
     return True
 
 
-def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
+def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_mode=False):
     """
     turning robot with a specified speed to a particular physical angle according to the heuristics (multipliers)
     defined in contrib.physconstraints
@@ -172,6 +172,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
             emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
                 sensor values
             turning_motor_speed (int), optional: motor speed to turn the robot with
+            blind_mode (bool), optional: if blind is true, the recursive function call will not be activated
         Returns:
             None
         Note: recursively calling turn_avoid_obstacle if obstacle is detected during turning as well as this
@@ -212,8 +213,11 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50):
             # call the turning maneuver according to the new proximity values. The frequency of this check is
             # restricted by the frequency of new elements in the emergency_stream, as the get method will wait for the
             # new element
-            logger.debug('Recursive turning maneuver during obstacle detection...')
-            turn_avoid_obstacle(network, proximity_values, emergency_stream)
+            if not blind_mode:
+                logger.debug('Recursive turning maneuver during obstacle detection...')
+                turn_avoid_obstacle(network, proximity_values, emergency_stream)
+            else:
+                logger.warning(f'Blind mode activated during turning {angle} degrees, further emergency signals ignored!')
 
         # update emergency status and proximity values from emergency stream with wait behavior (get).
         (recursive_obstacle, proximity_values) = emergency_stream.get()
@@ -230,7 +234,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
             emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
                 sensor values
             moving_motor_speed (int), optional: motor speed to move the robot with
-            blind_mode (bool), optional: if blind is true, the recursive function call will be deactivated
+            blind_mode (bool), optional: if blind is true, the recursive function call will not be activated
         Returns:
             None
         Note: recursively calling avoid_obstacle if obstacle is detected during moving as well as this
@@ -381,7 +385,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         if np.abs(left_proximity-right_proximity) < 500:
             # keep rotational direction and keep rotating
             logger.warning("SYMMETRIC OBSTACLES!!!")
-            move_robot(network, 'Backward', 30, emergency_stream,blind_mode=True)
+            move_robot(network, 'Backward', 30, emergency_stream, blind_mode=True)
             turn_robot(network, 90, emergency_stream)
             return ("End avoidance")
         if left_proximity > right_proximity:
