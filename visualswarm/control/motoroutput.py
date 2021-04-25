@@ -279,7 +279,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream, protocol_time=1.0):
+def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream, protocol_time=0.5):
     """
     speeding up robot with a specified additional motor speed until back sensors are cleared.
         Args:
