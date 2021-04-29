@@ -203,6 +203,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
 
         # call obstacle avoidance recursively if we get emergency signal from emergency_stream
         if not recursive_obstacle:
+            logger.warning('no recursion')
             # the proximity sensors in this timestep are clear, we can just continue setting the turning motor speeds
             network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
             network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
@@ -214,12 +215,14 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
             # new element
             if not blind_mode:
                 logger.debug('Recursive turning maneuver during obstacle detection...')
+                logger.warning('recursion')
                 turn_avoid_obstacle(network, proximity_values, emergency_stream)
             else:
                 logger.warning(f'Blind mode activated during turning {angle} degrees, further emergency signals ignored!')
 
         # update emergency status and proximity values from emergency stream with wait behavior (get).
         (recursive_obstacle, proximity_values) = emergency_stream.get()
+    logger.warning('finish')
 
 
 def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50, blind_mode=False):
