@@ -180,7 +180,6 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
             sensors are free.
     """
     # TODO: implement turning with keeping forward speed that can be calculated from v_left and v_right as avg
-    # TODO: add some small random noise to turning time so that we don't get stuck when objects symmetric? Check avoidnace for corners
     # translating desired physical values into motor velocities
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     turning_time = np.abs(angle / phys_turning_rate)
