@@ -184,8 +184,8 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     turning_time = np.abs(angle / phys_turning_rate)
 
-    logger.warning(f"phys turning rate: {phys_turning_rate} deg/sec")
-    logger.warning(f"turning time: {turning_time}")
+    logger.debug(f"phys turning rate: {phys_turning_rate} deg/sec")
+    logger.debug(f"turning time: {turning_time}")
 
     # emptying so far accumulated values from emergency stream before turning maneuver with monitoring
     # otherwise updating from a FIFO stream would cause delay in proximity values and action
@@ -203,7 +203,6 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
 
         # call obstacle avoidance recursively if we get emergency signal from emergency_stream
         if not recursive_obstacle:
-            logger.warning('no recursion')
             # the proximity sensors in this timestep are clear, we can just continue setting the turning motor speeds
             network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
             network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
@@ -374,7 +373,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         # TODO: parametrize these thresholds and pendulum trap angle
         # Pendulum Trap (corner or symmetric non-continuous obstacle around the robot)
         if np.abs(left_proximity-right_proximity) < 500 and prox_vals[2] < 1000:
-            logger.warning("Pendulum trap strategy initiated.")
+            logger.warning("Pendulum trap strategy initiated!")
             # change orientation drastically to get out of pendulum trap
             turn_robot(network, 90, emergency_stream, blind_mode=True)
             return "Move", "Forward", 20
