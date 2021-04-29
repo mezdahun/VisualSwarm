@@ -31,8 +31,8 @@ def asebamedulla_init():
     # TODO: fix this to be changable from config between wireless and wired connection
     # important to improve code: http://wiki.thymio.org/en:asebaswitchremap
     # the cable matters!!!
-    os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")  # nosec
-    # os.system("(asebamedulla ser:name=Thymio-II &)")  # nosec
+    # os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")  # nosec
+    os.system("(asebamedulla ser:name=Thymio-II &)")  # nosec
     time.sleep(5)
 
 
