@@ -109,8 +109,8 @@ class MotorInterfaceTest(TestCase):
     @mock.patch('dbus.mainloop.glib.DBusGMainLoop', return_value=None)
     @mock.patch('dbus.SessionBus')
     @mock.patch('dbus.Interface')
-    def emergency_behavior(self, emergency_stream):
-        with mock.patch('visualswarm.contrib.control.EMERGENCY_CHECK_FREQ',  1):
+    def test_emergency_behavior(self, mock_network_init, mock_dbus_sessionbus, mock_dbus_init):
+        with mock.patch('visualswarm.contrib.control.EMERGENCY_CHECK_FREQ', 1):
             mock_network = mock.MagicMock(return_value=None)
             mock_network_init.return_value = mock_network
 
@@ -124,8 +124,20 @@ class MotorInterfaceTest(TestCase):
             mock_network.GetVariable.return_value = [0, 0, 0, 0, 0, 0, 0]
             motoroutput.emergency_behavior(emergency_stream)
             mock_network.GetVariable.assert_called_once_with("thymio-II", "prox.horizontal")
-            emergency_stream.put.assert_called_once_with(False, None)
+            emergency_stream.put.assert_called_once_with((False, None))
 
+            # Case2: emergency on frontal sensors
+            emergency_prox_values = [0, 25, 0, 0, 0, 0, 0]
+            mock_network.reset_mock()
+            mock_network.GetVariable.return_value = emergency_prox_values
+            emergency_stream.put.reset_mock()
+            with mock.patch('visualswarm.contrib.control.EMERGENCY_PROX_THRESHOLD', 20):
+                motoroutput.emergency_behavior(emergency_stream)
+                mock_network.GetVariable.assert_called_once_with("thymio-II", "prox.horizontal")
+                emergency_stream.put.assert_called_once()
+                args, kwargs = emergency_stream.put.call_args
+                self.assertTrue(args[0][0])
+                self.assertListEqual(list(args[0][1]), emergency_prox_values)
 
     def test_rotate(self):
         with mock.patch('visualswarm.contrib.control.ROT_MOTOR_SPEED', 100):
