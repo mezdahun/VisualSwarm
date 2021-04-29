@@ -416,16 +416,15 @@ def run_additional_protocol(network, additional_protocol, emergency_stream):
 
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
+    # TODO: parametrize light, docstring
     light_up_led(network, 32, 0, 0)
     # TODO: keep velocity that the robot had when enetered in obstacle avoidance mode
     additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream)
+
     if additional_protocol is not None:
         logger.info(f'Initiated additional protocol after turn: {additional_protocol}')
         run_additional_protocol(network, additional_protocol, emergency_stream)
-    # else:
-    #     # always moving a bit forward to close avoidance to be sure that the way is clear
-    #     logger.info('MOVE ROBOT FWD')
-    #     move_robot(network, 'Forward', 20, emergency_stream)
+
     logger.info('Obstacle Avoidance Protocol done!')
 
 
