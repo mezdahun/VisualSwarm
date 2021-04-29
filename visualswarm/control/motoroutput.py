@@ -255,7 +255,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         multiplier = physconstraints.BWD_MULTIPLIER
         movesign = -1
     else:
-        logger.error(f'Unknown direction: {direction}')
+        logger.error(f'Unknown movement direction: {direction}')
         raise KeyboardInterrupt
 
     # calculating motor values from desired physical values and heuristics
@@ -290,7 +290,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
 
 def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream, protocol_time=0.5):
     """
-    speeding up robot with a specified additional motor speed until back sensors are cleared.
+    speeding up robot with a specified motor speed multiplier for a given time.
         Args:
             network (dbus network): network on which we communicate with Thymio
             additional_motor_speed_multiplier (int): motor speed to multiply to current motor speeds with
@@ -308,9 +308,6 @@ def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream,
     v_right_curr = network.GetVariable("thymio-II", "motor.right.speed")[0]
     logger.info(v_left_curr)
     logger.info(v_right_curr)
-
-    # v_left_target = np.sign(v_left_curr) * (np.abs(v_left_curr) + additional_motor_speed)
-    # v_right_target = np.sign(v_right_curr) * (np.abs(v_right_curr) + additional_motor_speed)
 
     v_left_target = additional_motor_speed_multiplier * v_left_curr
     v_right_target = additional_motor_speed_multiplier * v_right_curr
@@ -337,7 +334,7 @@ def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream,
 
 def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None):
     """
-    deciding on and starting turning maneuver during obstacle avoidance.
+    deciding on direction and starting turning maneuver during obstacle avoidance.
         Args:
             network (dbus network): network on which we communicate with Thymio
             prox_vals (list or np.array): len 7 array with the proximity sensor values of the Thymio
@@ -353,64 +350,55 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
     if turn_avoid_angle is None:
         turn_avoid_angle = control.OBSTACLE_TURN_ANGLE
 
+    # transforming prox_vals to array if not in desired format
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
 
     # any of the front sensors are on
     if np.any(prox_vals[0:5] > 0):
 
-        # any of the back sensors are also on, send warning, we might be locked
+        # any of the back sensors are also on, send warning as we might be locked
+        # but proceed according to frontal sensors
         if np.any(prox_vals[5:7]>0):
-            logger.warning(f'ROBOT seems to be locked, proximity values: {prox_vals}')
-            pass
+            logger.warning(f'Agent might be locked! Proximity values: {prox_vals}')
 
-        # some of the front sensors are on
-        # act according to the closest point/sensor with maximal value
-        closest_sensor = np.argmax(prox_vals[0:5])
-        logger.debug(f'Sensor with highest value: {closest_sensor}, with value {prox_vals[closest_sensor]}')
-
-        # # left sensors on, avoid obstacle by turning right
-        # if closest_sensor in [0, 1]:
-        #     turn_robot(network, turn_avoid_angle, emergency_stream)
-        #
-        # # middle sensor is on, close to orthogonal collision is expected
-        # elif closest_sensor == 2:
-
-        # check which direction we deviate from orthogonal to turn properly
+        # check which direction we deviate from orthogonal to decide on turning direction
         left_proximity = np.mean(prox_vals[0:2])
         right_proximity = np.mean(prox_vals[3:5])
+        logger.debug(f'Frontal center prox: {prox_vals[2]}')
+        logger.debug(f'Left sum prox: {left_proximity} vs Right sum prox: {right_proximity}')
 
         # symmetric proximity with no middle, we have a wall in front that we can not pass but has a hole in the middle,
         # or a corner
         # TODO: think this through again!
         if np.abs(left_proximity-right_proximity) < 500 and prox_vals[2] < 1000:
-            # keep rotational direction and keep rotating
-            logger.warning("SYMMETRIC OBSTACLES!!!")
+            logger.warning("Pendulum trap strategy initiated.")
+            # change orientation drastically to get out of pendulum trap
             turn_robot(network, 90, emergency_stream, blind_mode=True)
+
+        # Obstacle is closer to the left, turn right
         elif left_proximity > right_proximity:
             turn_robot(network, turn_avoid_angle, emergency_stream)
+
+        # Obstacle is closer to the right, turn left
         else:
             turn_robot(network, -turn_avoid_angle, emergency_stream)
 
-        # # right sensors on, avoid obstacle by turning left
-        # elif closest_sensor in [3, 4]:
-        #     turn_robot(network, -turn_avoid_angle, emergency_stream)
-
     # IGNORED FOR NOW AS ONLY BACK SENSORS NEVER TRIGGER EMERGENCY MODE
     # none of the front sensors are on
-    else:
-        # both back sensors are signaling (currently not implemented, we just exit avoidance protocol)
-        if np.all(prox_vals[5:7]>0):
-            return ("End avoidance")
-            # return "Speed up", 1.5
-
-        # only back left is signalling
-        elif prox_vals[5]>0:
-            turn_robot(network, turn_avoid_angle, emergency_stream)
-
-        # only back right is signalling
-        elif prox_vals[6]>0:
-            turn_robot(network, -turn_avoid_angle, emergency_stream)
+    # else:
+    #     # both back sensors are signaling (currently not implemented, we just exit avoidance protocol)
+    #     if np.all(prox_vals[5:7]>0):
+    #         return ("End avoidance")
+    #         # return "Speed up", 1.5
+    #
+    #     # only back left is signalling
+    #     elif prox_vals[5]>0:
+    #         turn_robot(network, turn_avoid_angle, emergency_stream)
+    #
+    #     # only back right is signalling
+    #     elif prox_vals[6]>0:
+    #         turn_robot(network, -turn_avoid_angle, emergency_stream)
 
 
 def run_additional_protocol(network, additional_protocol, emergency_stream):
