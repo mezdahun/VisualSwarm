@@ -38,7 +38,7 @@ RW_DT = 1
 V_EXP_RW = 0.4
 
 # Possible absolute angle change in a given timestep during RW exploration (in radian)
-DPSI_MAX_EXP = 0.1
+DPSI_MAX_EXP = 0
 
 # ROTATION
 # Motor speed (per motor) during rotation (rotation speed)
