@@ -279,7 +279,6 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
             network.SetVariable("thymio-II", "motor.right.target", [movesign * moving_motor_speed])
 
         else:
-            # TODO: check if we are locked and return if yes
             if not blind_mode:
                 avoid_obstacle(network, proximity_values, emergency_stream)
             else:
