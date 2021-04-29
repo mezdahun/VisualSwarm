@@ -448,137 +448,140 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
         Returns:
             -shall not return-
     """
-    prev_movement_mode = "BEHAVE"
-    (emergR, emergG, emergB) = control.EMERGENCY_STATUS_RGB
-    (expR, expG, expB) = control.EXPLORE_STATUS_RGB
-    (behR, behG, behB) = control.BEHAVE_STATUS_RGB
+    try:
+        prev_movement_mode = "BEHAVE"
+        (emergR, emergG, emergB) = control.EMERGENCY_STATUS_RGB
+        (expR, expG, expB) = control.EXPLORE_STATUS_RGB
+        (behR, behG, behB) = control.BEHAVE_STATUS_RGB
 
-    if not with_control:
-        # simply consuming the input stream so that we don't fill up memory
-        while True:
-            (v, dpsi) = control_stream.get()
-            movement_mode = motor_control_mode_stream.get()
-
-            # To test infinite loops
-            if env.EXIT_CONDITION:
-                break
-    else:
-        # Initialize timestamp
-        last_explore_change = datetime.now()
-        last_behave_change = datetime.now()
-
-        # Initializing DBus
-        dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
-
-        # Create Aseba network
-        # if network is None:
-        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
-
-        if motorinterface.asebamedulla_health(network):
-            logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
-
+        if not with_control:
+            # simply consuming the input stream so that we don't fill up memory
             while True:
-                # fetching state variables
                 (v, dpsi) = control_stream.get()
                 movement_mode = motor_control_mode_stream.get()
-                try:
-                    (emergency_mode, proximity_values) = emergency_stream.get_nowait()
-                except Empty:
-                    pass
-
-                if not emergency_mode:
-                    if movement_mode == "BEHAVE":
-
-                        # Switch between modes, change mode status LED
-                        if prev_movement_mode == "EXPLORE":
-                            light_up_led(network, behR, behG, behB)
-
-                        # Persistent change in movement mode
-                        is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
-                                        control.WAIT_BEFORE_SWITCH_MOVEMENT
-                        if is_persistent or env.EXIT_CONDITION:
-                            # Behavior according to Romanczuk and Bastien 2020
-                            # distributing desired forward speed according to dpsi
-                            [v_left, v_right] = distribute_overall_speed(v, dpsi)
-
-                            # hard limit motor velocities but keep their ratio for desired movement
-                            if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
-                                logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
-                                [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
-
-                            # sending motor values to robot
-                            network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                            network.SetVariable("thymio-II", "motor.right.target", [v_right])
-
-                            logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
-                            # last time we changed velocity according to BEHAVIOR REGIME
-                            last_behave_change = datetime.now()
-
-                    elif movement_mode == "EXPLORE":
-
-                        # Switch between modes, change mode status LED
-                        if prev_movement_mode == "BEHAVE":
-                            light_up_led(network, expR, expG, expB)
-
-                        # Persistent change in modes
-                        if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
-                            # Enforcing specific dt in Random Walk Process
-                            if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
-
-                                if control.EXP_MOVE_TYPE == 'RandomWalk':
-                                    # Exploration according to Random Walk Process
-                                    [v_left, v_right] = step_random_walk()
-                                elif control.EXP_MOVE_TYPE == 'Rotation':
-                                    # Exploration according to simple rotation movement
-                                    [v_left, v_right] = rotate()
-                                else:
-                                    # Unknown exploration regime in configuration
-                                    logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
-                                    raise KeyboardInterrupt
-
-                                logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
-
-                                # sending motor values to robot
-                                network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                                network.SetVariable("thymio-II", "motor.right.target", [v_right])
-
-                                # last time we changed velocity according to EXPLORE REGIME
-                                last_explore_change = datetime.now()
-
-                    else:
-                        logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
-                        raise KeyboardInterrupt
-
-                    prev_movement_mode = movement_mode
-
-                else:
-                    # showing emergency mode with top LEDs
-                    light_up_led(network, emergR, emergG, emergB)
-                    # triggering obstacle avoidance system
-                    avoid_obstacle(network, proximity_values, emergency_stream)
-
-                    # emptying accumulated queues
-                    empty_queue(control_stream)
-                    empty_queue(motor_control_mode_stream)
-                    empty_queue(emergency_stream)
-
-                    # turn off emergency mode and return to normal mode, showing this with LEDs
-                    emergency_mode = False
-                    if movement_mode == "EXPLORE":
-                        light_up_led(network, expR, expG, expB)
-                    elif movement_mode == "BEHAVE":
-                        light_up_led(network, behR, behG, behB)
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
                     break
         else:
-            logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
-            motorinterface.asebamedulla_end()
-            raise Exception('asebamedulla connection not healthy!')
+            # Initialize timestamp
+            last_explore_change = datetime.now()
+            last_behave_change = datetime.now()
+
+            # Initializing DBus
+            dbus.mainloop.glib.threads_init()
+            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+            bus = dbus.SessionBus()
+
+            # Create Aseba network
+            # if network is None:
+            network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                     dbus_interface='ch.epfl.mobots.AsebaNetwork')
+
+            if motorinterface.asebamedulla_health(network):
+                logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
+
+                while True:
+                    # fetching state variables
+                    (v, dpsi) = control_stream.get()
+                    movement_mode = motor_control_mode_stream.get()
+                    try:
+                        (emergency_mode, proximity_values) = emergency_stream.get_nowait()
+                    except Empty:
+                        pass
+
+                    if not emergency_mode:
+                        if movement_mode == "BEHAVE":
+
+                            # Switch between modes, change mode status LED
+                            if prev_movement_mode == "EXPLORE":
+                                light_up_led(network, behR, behG, behB)
+
+                            # Persistent change in movement mode
+                            is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
+                                            control.WAIT_BEFORE_SWITCH_MOVEMENT
+                            if is_persistent or env.EXIT_CONDITION:
+                                # Behavior according to Romanczuk and Bastien 2020
+                                # distributing desired forward speed according to dpsi
+                                [v_left, v_right] = distribute_overall_speed(v, dpsi)
+
+                                # hard limit motor velocities but keep their ratio for desired movement
+                                if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
+                                    logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
+                                    [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
+
+                                # sending motor values to robot
+                                network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                network.SetVariable("thymio-II", "motor.right.target", [v_right])
+
+                                logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
+                                # last time we changed velocity according to BEHAVIOR REGIME
+                                last_behave_change = datetime.now()
+
+                        elif movement_mode == "EXPLORE":
+
+                            # Switch between modes, change mode status LED
+                            if prev_movement_mode == "BEHAVE":
+                                light_up_led(network, expR, expG, expB)
+
+                            # Persistent change in modes
+                            if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
+                                # Enforcing specific dt in Random Walk Process
+                                if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
+
+                                    if control.EXP_MOVE_TYPE == 'RandomWalk':
+                                        # Exploration according to Random Walk Process
+                                        [v_left, v_right] = step_random_walk()
+                                    elif control.EXP_MOVE_TYPE == 'Rotation':
+                                        # Exploration according to simple rotation movement
+                                        [v_left, v_right] = rotate()
+                                    else:
+                                        # Unknown exploration regime in configuration
+                                        logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
+                                        raise KeyboardInterrupt
+
+                                    logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
+
+                                    # sending motor values to robot
+                                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+
+                                    # last time we changed velocity according to EXPLORE REGIME
+                                    last_explore_change = datetime.now()
+
+                        else:
+                            logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
+                            raise KeyboardInterrupt
+
+                        prev_movement_mode = movement_mode
+
+                    else:
+                        # showing emergency mode with top LEDs
+                        light_up_led(network, emergR, emergG, emergB)
+                        # triggering obstacle avoidance system
+                        avoid_obstacle(network, proximity_values, emergency_stream)
+
+                        # emptying accumulated queues
+                        empty_queue(control_stream)
+                        empty_queue(motor_control_mode_stream)
+                        empty_queue(emergency_stream)
+
+                        # turn off emergency mode and return to normal mode, showing this with LEDs
+                        emergency_mode = False
+                        if movement_mode == "EXPLORE":
+                            light_up_led(network, expR, expG, expB)
+                        elif movement_mode == "BEHAVE":
+                            light_up_led(network, behR, behG, behB)
+
+                    # To test infinite loops
+                    if env.EXIT_CONDITION:
+                        break
+            else:
+                logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
+                motorinterface.asebamedulla_end()
+                raise Exception('asebamedulla connection not healthy!')
+    except KeyboardInterrupt:
+        pass
 
 
 def emergency_behavior(emergency_stream):
