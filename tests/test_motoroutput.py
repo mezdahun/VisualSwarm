@@ -14,8 +14,10 @@ class MotorInterfaceTest(TestCase):
     @mock.patch('dbus.Interface')
     @mock.patch('visualswarm.control.motoroutput.distribute_overall_speed', return_value=(10, 10))
     @mock.patch('visualswarm.control.motoroutput.hardlimit_motor_speed', return_value=(1, 1))
-    def test_control_thymio(self, mock_hard_limit, mock_distribute, mock_network_init, mock_dbus_sessionbus,
-                            mock_dbus_init):
+    @mock.patch('visualswarm.control.motoroutput.avoid_obstacle', return_value=None)
+    @mock.patch('visualswarm.control.motoroutput.empty_queue', return_value=None)
+    def test_control_thymio(self, mock_empty_queue, mock_avoid_obstacle, mock_hard_limit, mock_distribute,
+                            mock_network_init, mock_dbus_sessionbus, mock_dbus_init):
         mock_network = mock.MagicMock(return_value=None)
         mock_network.SetVariable.return_value = None
         mock_network_init.return_value = mock_network
@@ -59,8 +61,20 @@ class MotorInterfaceTest(TestCase):
                 motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream, with_control=True)
                 mock_hard_limit.assert_called_once()
 
-            # Case 1/d: with control but exploration
+            # Case 1/d: with control but emergency
+            emergency_prox_values = [0, 25, 0, 0, 0, 0, 0]
+            emergency_stream.get_nowait.return_value = (True, emergency_prox_values)
+            with mock.patch('visualswarm.contrib.control.EMERGENCY_PROX_THRESHOLD', 20):
+                with mock.patch('visualswarm.control.motoroutput.light_up_led') as mock_light:
+                    motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
+                                               with_control=True)
+                    self.assertEqual(mock_light.call_count, 2)
+                    mock_avoid_obstacle.assert_called_once()
+                    self.assertEqual(mock_empty_queue.call_count, 3)
+
+            # Case 1/e: with control but exploration
             movement_mode_stream.get.return_value = "EXPLORE"
+            emergency_stream.get_nowait.return_value = (False, None)
             with mock.patch('visualswarm.contrib.control.WAIT_BEFORE_SWITCH_MOVEMENT', 15 - 1):
                 # ROTATION
                 with mock.patch('visualswarm.contrib.control.EXP_MOVE_TYPE', 'Rotation'):
