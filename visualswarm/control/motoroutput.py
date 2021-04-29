@@ -369,8 +369,6 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         logger.debug(f'Frontal center prox: {prox_vals[2]}')
         logger.debug(f'Left sum prox: {left_proximity} vs Right sum prox: {right_proximity}')
 
-        # TODO: think this through again!
-        # TODO: parametrize these thresholds and pendulum trap angle
         # Pendulum Trap (corner or symmetric non-continuous obstacle around the robot)
         if np.abs(left_proximity-right_proximity) < control.SYMMETRICITY_THRESHOLD and \
                 prox_vals[2] < control.UNCONTINOUTY_THRESHOLD:
