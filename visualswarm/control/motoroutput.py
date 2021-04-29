@@ -624,5 +624,9 @@ def emergency_behavior(emergency_stream):
 
                 t = datetime.now()
 
+            # To test infinite loops
+            if env.EXIT_CONDITION:
+                break
+
     except KeyboardInterrupt:
         pass

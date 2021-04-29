@@ -104,6 +104,29 @@ class MotorInterfaceTest(TestCase):
                     motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
                                                with_control=True)
 
+    @freeze_time("Jan 15th, 2020", auto_tick_seconds=15)
+    @mock.patch('visualswarm.env.EXIT_CONDITION', True)
+    @mock.patch('dbus.mainloop.glib.DBusGMainLoop', return_value=None)
+    @mock.patch('dbus.SessionBus')
+    @mock.patch('dbus.Interface')
+    def emergency_behavior(self, emergency_stream):
+        with mock.patch('visualswarm.contrib.control.EMERGENCY_CHECK_FREQ',  1):
+            mock_network = mock.MagicMock(return_value=None)
+            mock_network_init.return_value = mock_network
+
+            mock_dbus_sessionbus.return_value.get_object.return_value = None
+
+            # mocking streams
+            emergency_stream = mock.MagicMock()
+            emergency_stream.put.return_value = None
+
+            # CASE1: no emergency
+            mock_network.GetVariable.return_value = [0, 0, 0, 0, 0, 0, 0]
+            motoroutput.emergency_behavior(emergency_stream)
+            mock_network.GetVariable.assert_called_once_with("thymio-II", "prox.horizontal")
+            emergency_stream.put.assert_called_once_with(False, None)
+
+
     def test_rotate(self):
         with mock.patch('visualswarm.contrib.control.ROT_MOTOR_SPEED', 100):
             with mock.patch('visualswarm.contrib.control.ROT_DIRECTION', 'Left'):
