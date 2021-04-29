@@ -55,7 +55,15 @@ ROT_DIRECTION = 'Left'
 EMERGENCY_CHECK_FREQ = 5
 
 # Threshold value on horizontal proximity sensors that triggers obstacle avoidance
-EMERGENCY_PROX_THRESHOLD = 4000
+EMERGENCY_PROX_THRESHOLD = 3000
 
 # angle to turn away from obstacle during obstacle avoidance.
 OBSTACLE_TURN_ANGLE = 30
+
+# PENDULUM TRAP
+# sensor value threshold below which the left and right sensor values are said to be symmetric
+SYMMETRICITY_THRESHOLD = 500
+# sensor value below which the middle frontal sensor is ignored when the obstacle is symmetric
+UNCONTINOUTY_THRESHOLD = 1500
+# angle to turn with to get out of pendulum traps
+PENDULUM_TRAP_ANGLE = 90

@@ -372,10 +372,11 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         # TODO: think this through again!
         # TODO: parametrize these thresholds and pendulum trap angle
         # Pendulum Trap (corner or symmetric non-continuous obstacle around the robot)
-        if np.abs(left_proximity-right_proximity) < 500 and prox_vals[2] < 1000:
+        if np.abs(left_proximity-right_proximity) < control.SYMMETRICITY_THRESHOLD and \
+                prox_vals[2] < control.UNCONTINOUTY_THRESHOLD:
             logger.warning("Pendulum trap strategy initiated!")
-            # change orientation drastically to get out of pendulum trap
-            turn_robot(network, 90, emergency_stream, blind_mode=True)
+            # change orientation (always to the right) drastically to get out of pendulum trap
+            turn_robot(network, control.PENDULUM_TRAP_ANGLE, emergency_stream, blind_mode=True)
             return "Move", "Forward", 20
 
         # Obstacle is closer to the left, turn right
@@ -427,8 +428,18 @@ def run_additional_protocol(network, additional_protocol, emergency_stream):
 
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
-    # TODO: docstring
-    # TODO: keep velocity that the robot had when enetered in obstacle avoidance mode
+    """
+    Initiating 2-level recursive obstacle avoidance algorithm
+        Args:
+            network (dbus network): network on which we communicate with Thymio
+            prox_vals (list or np.array): len 7 array with the proximity sensor values of the Thymio
+                more info: http://wiki.thymio.org/en:thymioapi#toc2
+            emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
+                sensor values
+        Returns:
+            None
+    """
+    # TODO: keep velocity that the robot had when entered in obstacle avoidance mode
     additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream)
 
     if additional_protocol is not None:
