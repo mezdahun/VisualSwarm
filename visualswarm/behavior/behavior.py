@@ -29,57 +29,61 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         Returns:
             -shall not return-
     """
-    measurement_name = "control_parameters"
-    ifclient = ifdb.create_ifclient()
-    phi = None
-    v = 0
-    t_prev = datetime.datetime.now()
+    try:
+        measurement_name = "control_parameters"
+        ifclient = ifdb.create_ifclient()
+        phi = None
+        v = 0
+        t_prev = datetime.datetime.now()
 
-    (projection_field, capture_timestamp) = VPF_stream.get()
-    phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
-                      len(projection_field))
-
-    while True:
         (projection_field, capture_timestamp) = VPF_stream.get()
+        phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
+                          len(projection_field))
 
-        if np.mean(projection_field) == 0:
-            movement_mode = "EXPLORE"
-        else:
-            movement_mode = "BEHAVE"
+        while True:
+            (projection_field, capture_timestamp) = VPF_stream.get()
 
-        t_now = datetime.datetime.now()
-        dt = (t_now - t_prev).total_seconds()  # to normalize
+            if np.mean(projection_field) == 0:
+                movement_mode = "EXPLORE"
+            else:
+                movement_mode = "BEHAVE"
 
-        dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-        v += dv * dt
+            t_now = datetime.datetime.now()
+            dt = (t_now - t_prev).total_seconds()  # to normalize
 
-        t_prev = t_now
+            dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
+            v += dv * dt
 
-        if monitoring.SAVE_CONTROL_PARAMS:
+            t_prev = t_now
 
-            # take a timestamp for this measurement
-            time = datetime.datetime.utcnow()
+            if monitoring.SAVE_CONTROL_PARAMS:
 
-            # generating data to dump in db
-            field_dict = {"agent_velocity": v,
-                          "heading_angle": dpsi,
-                          "processing_delay": (time - capture_timestamp).total_seconds()}
+                # take a timestamp for this measurement
+                time = datetime.datetime.utcnow()
 
-            # format the data as a single measurement for influx
-            body = [
-                {
-                    "measurement": measurement_name,
-                    "time": time,
-                    "fields": field_dict
-                }
-            ]
+                # generating data to dump in db
+                field_dict = {"agent_velocity": v,
+                              "heading_angle": dpsi,
+                              "processing_delay": (time - capture_timestamp).total_seconds()}
 
-            ifclient.write_points(body, time_precision='ms')
+                # format the data as a single measurement for influx
+                body = [
+                    {
+                        "measurement": measurement_name,
+                        "time": time,
+                        "fields": field_dict
+                    }
+                ]
 
-        if with_control:
-            control_stream.put((v, dpsi))
-            motor_control_mode_stream.put(movement_mode)
+                ifclient.write_points(body, time_precision='ms')
 
-        # To test infinite loops
-        if env.EXIT_CONDITION:
-            break
+            if with_control:
+                control_stream.put((v, dpsi))
+                motor_control_mode_stream.put(movement_mode)
+
+            # To test infinite loops
+            if env.EXIT_CONDITION:
+                break
+
+    except KeyboardInterrupt:
+        pass

@@ -592,27 +592,31 @@ def emergency_behavior(emergency_stream):
         Returns:
             -shall not return-
     """
-    # Initializing DBus
-    dbus.mainloop.glib.threads_init()
-    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-    bus = dbus.SessionBus()
+    try:
+        # Initializing DBus
+        dbus.mainloop.glib.threads_init()
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+        bus = dbus.SessionBus()
 
-    # Create Aseba network
-    network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                             dbus_interface='ch.epfl.mobots.AsebaNetwork')
+        # Create Aseba network
+        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
-    t = datetime.now()
-    while True:
-        # enforcing checks on a regular basis
-        if abs(t-datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
+        t = datetime.now()
+        while True:
+            # enforcing checks on a regular basis
+            if abs(t-datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
 
-            # reading proximity values
-            prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
+                # reading proximity values
+                prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
 
-            if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
-                logger.info('Triggered Obstacle Avoidance!')
-                emergency_stream.put((True, prox_val))
-            else:
-                emergency_stream.put((False, None))
+                if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
+                    logger.info('Triggered Obstacle Avoidance!')
+                    emergency_stream.put((True, prox_val))
+                else:
+                    emergency_stream.put((False, None))
 
-            t =datetime.now()
+                t =datetime.now()
+
+    except KeyboardInterrupt:
+        pass
