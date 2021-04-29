@@ -184,8 +184,8 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
     phys_turning_rate = turning_motor_speed * physconstraints.ROT_MULTIPLIER
     turning_time = np.abs(angle / phys_turning_rate)
 
-    logger.debug(f"phys turning rate: {phys_turning_rate} deg/sec")
-    logger.debug(f"turning time: {turning_time}")
+    logger.warning(f"phys turning rate: {phys_turning_rate} deg/sec")
+    logger.warning(f"turning time: {turning_time}")
 
     # emptying so far accumulated values from emergency stream before turning maneuver with monitoring
     # otherwise updating from a FIFO stream would cause delay in proximity values and action
