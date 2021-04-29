@@ -37,58 +37,62 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         Returns:
             -shall not return-
     """
-    hsv_low = visualswarm.contrib.vision.HSV_LOW
-    hsv_high = visualswarm.contrib.vision.HSV_HIGH
+    try:
+        hsv_low = visualswarm.contrib.vision.HSV_LOW
+        hsv_high = visualswarm.contrib.vision.HSV_HIGH
 
-    while True:
-        (img, frame_id, capture_timestamp) = raw_vision_stream.get()
-        # logger.info(raw_vision_stream.qsize())
-        if vision.FIND_COLOR_INTERACTIVE:
-            if target_config_stream is not None:
-                if target_config_stream.qsize() > 1:
-                    (R, B, G, hue_range, sv_min, sv_max) = target_config_stream.get()
-                    target_hsv = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
-                    hsv_low = np.uint8([target_hsv[0][0][0] - hue_range, sv_min, sv_min])
-                    hsv_high = np.uint8([target_hsv[0][0][0] + hue_range, sv_max, sv_max])
+        while True:
+            (img, frame_id, capture_timestamp) = raw_vision_stream.get()
+            # logger.info(raw_vision_stream.qsize())
+            if vision.FIND_COLOR_INTERACTIVE:
+                if target_config_stream is not None:
+                    if target_config_stream.qsize() > 1:
+                        (R, B, G, hue_range, sv_min, sv_max) = target_config_stream.get()
+                        target_hsv = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
+                        hsv_low = np.uint8([target_hsv[0][0][0] - hue_range, sv_min, sv_min])
+                        hsv_high = np.uint8([target_hsv[0][0][0] + hue_range, sv_max, sv_max])
 
-        # logger.info(raw_vision_stream.qsize())
-        hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            # logger.info(raw_vision_stream.qsize())
+            hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # Threshold the HSV image to get only blue colors
-        mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
+            # Threshold the HSV image to get only blue colors
+            mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
-        # Gaussian blur
-        blurred = cv2.GaussianBlur(mask, (
-            visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
-        blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
+            # Gaussian blur
+            blurred = cv2.GaussianBlur(mask, (
+                visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
+            blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
 
-        # Find contours
-        conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
+            # Find contours
+            conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
 
-        # Selecting appropriate contours
-        fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= visualswarm.contrib.vision.MIN_BLOB_AREA]
+            # Selecting appropriate contours
+            fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= visualswarm.contrib.vision.MIN_BLOB_AREA]
 
-        # Creating convex hull from selected contours
-        hull_list = []
-        for i in range(len(fconts)):
-            hull = cv2.convexHull(fconts[i])
-            hull_list.append(hull)
+            # Creating convex hull from selected contours
+            hull_list = []
+            for i in range(len(fconts)):
+                hull = cv2.convexHull(fconts[i])
+                hull_list.append(hull)
 
-        # visualize contours and convex hull on the original image and the area on the new mask
-        cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
-        cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
-        cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
+            # visualize contours and convex hull on the original image and the area on the new mask
+            cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
+            cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
+            cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
-        # Forwarding result to VPF extraction
-        high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+            # Forwarding result to VPF extraction
+            high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
 
-        # Forwarding result for visualization if requested
-        if visualization_stream is not None:
-            visualization_stream.put((img, blurred, frame_id))
+            # Forwarding result for visualization if requested
+            if visualization_stream is not None:
+                visualization_stream.put((img, blurred, frame_id))
 
-        # To test infinite loops
-        if env.EXIT_CONDITION:
-            break
+            # To test infinite loops
+            if env.EXIT_CONDITION:
+                break
+
+    except KeyboardInterrupt:
+        pass
 
 
 def visualizer(visualization_stream, target_config_stream=None):
