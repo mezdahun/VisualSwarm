@@ -406,7 +406,17 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
 
 
 def run_additional_protocol(network, additional_protocol, emergency_stream):
-
+    """
+    Running additional necessary protocol after turning the robot.
+        Args:
+            network (dbus network): network on which we communicate with Thymio
+            additional_protocol (list): first element is the name of the protocol, additional elements are the arguments
+                of the initiated additional protocol.
+            emergency_stream (multiprocessing.Queue): stream to receive real time emergenecy status and proximity
+                sensor values
+        Returns:
+            None
+    """
     protocol_name = additional_protocol[0]
     if protocol_name == "Speed up":
         speed_up_robot(network, additional_protocol[1], emergency_stream)
