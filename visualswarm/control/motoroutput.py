@@ -375,14 +375,17 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
             logger.warning("Pendulum trap strategy initiated.")
             # change orientation drastically to get out of pendulum trap
             turn_robot(network, 90, emergency_stream, blind_mode=True)
+            return "Move", "Forward", 20
 
         # Obstacle is closer to the left, turn right
         elif left_proximity > right_proximity:
             turn_robot(network, turn_avoid_angle, emergency_stream)
+            return "Move", "Forward", 20
 
         # Obstacle is closer to the right, turn left
         else:
             turn_robot(network, -turn_avoid_angle, emergency_stream)
+            return "Move", "Forward", 20
 
     # IGNORED FOR NOW AS ONLY BACK SENSORS NEVER TRIGGER EMERGENCY MODE
     # none of the front sensors are on
@@ -406,22 +409,23 @@ def run_additional_protocol(network, additional_protocol, emergency_stream):
     protocol_name = additional_protocol[0]
     if protocol_name == "Speed up":
         speed_up_robot(network, additional_protocol[1], emergency_stream)
+    elif protocol_name == "Move":
+        move_robot(network, additional_protocol[1], additional_protocol[2], emergency_stream)
     elif protocol_name == "End avoidance":
         return
 
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
     light_up_led(network, 32, 0, 0)
-    # TODO: check proximity values and if obstacle is too close do backwards movement
     # TODO: keep velocity that the robot had when enetered in obstacle avoidance mode
     additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream)
     if additional_protocol is not None:
-        logger.info('ADDITIONAL PROTOCOL AFTER TURN')
+        logger.info(f'Initiated additional protocol after turn: {additional_protocol}')
         run_additional_protocol(network, additional_protocol, emergency_stream)
-    else:
-        # always moving a bit forward to close avoidance to be sure that the way is clear
-        logger.info('MOVE ROBOT FWD')
-        move_robot(network, 'Forward', 20, emergency_stream)
+    # else:
+    #     # always moving a bit forward to close avoidance to be sure that the way is clear
+    #     logger.info('MOVE ROBOT FWD')
+    #     move_robot(network, 'Forward', 20, emergency_stream)
     logger.info('Obstacle Avoidance Protocol done!')
 
 
