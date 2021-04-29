@@ -427,8 +427,7 @@ def run_additional_protocol(network, additional_protocol, emergency_stream):
 
 
 def avoid_obstacle(network, prox_vals, emergency_stream):
-    # TODO: parametrize light, docstring
-    light_up_led(network, 32, 0, 0)
+    # TODO: docstring
     # TODO: keep velocity that the robot had when enetered in obstacle avoidance mode
     additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream)
 
@@ -450,6 +449,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
             -shall not return-
     """
     prev_movement_mode = "BEHAVE"
+    (emergR, emergG, emergB) = control.EMERGENCY_STATUS_RGB
     (expR, expG, expB) = control.EXPLORE_STATUS_RGB
     (behR, behG, behB) = control.BEHAVE_STATUS_RGB
 
@@ -555,6 +555,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     prev_movement_mode = movement_mode
 
                 else:
+                    # showing emergency mode with top LEDs
+                    light_up_led(network, emergR, emergG, emergB)
                     # triggering obstacle avoidance system
                     avoid_obstacle(network, proximity_values, emergency_stream)
 
@@ -563,7 +565,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     empty_queue(motor_control_mode_stream)
                     empty_queue(emergency_stream)
 
-                    # turn off emergency mode and return to normal mode
+                    # turn off emergency mode and return to normal mode, showing this with LEDs
                     emergency_mode = False
                     if movement_mode == "EXPLORE":
                         light_up_led(network, expR, expG, expB)
