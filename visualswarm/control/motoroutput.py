@@ -215,9 +215,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
             # new element
             if not blind_mode:
                 logger.debug('Recursive turning maneuver during obstacle detection...')
-                logger.warning('recursion')
                 turn_avoid_obstacle(network, proximity_values, emergency_stream)
-                logger.warning('finish')
                 break
             else:
                 logger.warning(f'Blind mode activated during turning {angle} degrees, further emergency signals ignored!')
@@ -285,6 +283,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         else:
             if not blind_mode:
                 avoid_obstacle(network, proximity_values, emergency_stream)
+                break
             else:
                 logger.warning(f'Blind mode activated during moving {direction}, emergency signal ignored!')
 
