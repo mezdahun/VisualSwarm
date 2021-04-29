@@ -368,9 +368,9 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         logger.debug(f'Frontal center prox: {prox_vals[2]}')
         logger.debug(f'Left sum prox: {left_proximity} vs Right sum prox: {right_proximity}')
 
-        # symmetric proximity with no middle, we have a wall in front that we can not pass but has a hole in the middle,
-        # or a corner
         # TODO: think this through again!
+        # TODO: parametrize these thresholds and pendulum trap angle
+        # Pendulum Trap (corner or symmetric non-continuous obstacle around the robot)
         if np.abs(left_proximity-right_proximity) < 500 and prox_vals[2] < 1000:
             logger.warning("Pendulum trap strategy initiated.")
             # change orientation drastically to get out of pendulum trap
