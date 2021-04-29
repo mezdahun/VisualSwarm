@@ -14,9 +14,11 @@ class FakePicameraArray(object):
     """faking picamera.array.PiRGBArray"""
     PiRGBArray = mock.MagicMock()
 
+
 class FakePicameraException(object):
     """faking picamera.array.PiRGBArray"""
     PiCameraValueError = mock.MagicMock()
+
 
 sys.modules['picamera'] = fake_rpi.picamera
 sys.modules['picamera.array'] = FakePicameraArray

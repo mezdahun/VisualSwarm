@@ -10,7 +10,6 @@ import numpy as np
 import tempfile
 from datetime import datetime
 # import random
-from time import sleep
 from queue import Empty
 
 
@@ -18,11 +17,6 @@ from queue import Empty
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
 
-# # Initializing DBus
-# bus = None
-#
-# # Create Aseba network
-# network = None
 
 def light_up_led(network, R, G, B):
     """
@@ -217,7 +211,8 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
                 turn_avoid_obstacle(network, proximity_values, emergency_stream)
                 break
             else:
-                logger.warning(f'Blind mode activated during turning {angle} degrees, further emergency signals ignored!')
+                logger.warning(f'Blind mode activated during turning {angle} degrees')
+                logger.warning('Further emergency signals ignored!')
 
         # update emergency status and proximity values from emergency stream with wait behavior (get).
         (recursive_obstacle, proximity_values) = emergency_stream.get()
@@ -360,7 +355,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
 
         # any of the back sensors are also on, send warning as we might be locked
         # but proceed according to frontal sensors
-        if np.any(prox_vals[5:7]>0):
+        if np.any(prox_vals[5:7] > 0):
             logger.warning(f'Agent might be locked! Proximity values: {prox_vals}')
 
         # check which direction we deviate from orthogonal to decide on turning direction
@@ -370,7 +365,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         logger.debug(f'Left sum prox: {left_proximity} vs Right sum prox: {right_proximity}')
 
         # Pendulum Trap (corner or symmetric non-continuous obstacle around the robot)
-        if np.abs(left_proximity-right_proximity) < control.SYMMETRICITY_THRESHOLD and \
+        if np.abs(left_proximity - right_proximity) < control.SYMMETRICITY_THRESHOLD and \
                 prox_vals[2] < control.UNCONTINOUTY_THRESHOLD:
             logger.warning("Pendulum trap strategy initiated!")
             # change orientation (always to the right) drastically to get out of pendulum trap
@@ -515,7 +510,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
                                 # hard limit motor velocities but keep their ratio for desired movement
-                                if np.abs(v_left) > control.MAX_MOTOR_SPEED or np.abs(v_right) > control.MAX_MOTOR_SPEED:
+                                if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
+                                        np.abs(v_right) > control.MAX_MOTOR_SPEED:
                                     logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
                                     [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
@@ -534,7 +530,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 light_up_led(network, expR, expG, expB)
 
                             # Persistent change in modes
-                            if abs((last_behave_change - datetime.now()).total_seconds()) > control.WAIT_BEFORE_SWITCH_MOVEMENT:
+                            if abs((last_behave_change - datetime.now()).total_seconds()) \
+                                    > control.WAIT_BEFORE_SWITCH_MOVEMENT:
                                 # Enforcing specific dt in Random Walk Process
                                 if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
 
@@ -614,7 +611,7 @@ def emergency_behavior(emergency_stream):
         t = datetime.now()
         while True:
             # enforcing checks on a regular basis
-            if abs(t-datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
+            if abs(t - datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
 
                 # reading proximity values
                 prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
@@ -625,7 +622,7 @@ def emergency_behavior(emergency_stream):
                 else:
                     emergency_stream.put((False, None))
 
-                t =datetime.now()
+                t = datetime.now()
 
     except KeyboardInterrupt:
         pass

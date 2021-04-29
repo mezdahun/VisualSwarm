@@ -120,8 +120,10 @@ def visualizer(visualization_stream, target_config_stream=None):
                                    nothing)
                 cv2.createTrackbar("H_range", "Segmentation Parameters", visualswarm.contrib.vision.HSV_HUE_RANGE, 255,
                                    nothing)
-                cv2.createTrackbar("SV_min", "Segmentation Parameters", visualswarm.contrib.vision.SV_MINIMUM, 255, nothing)
-                cv2.createTrackbar("SV_max", "Segmentation Parameters", visualswarm.contrib.vision.SV_MAXIMUM, 255, nothing)
+                cv2.createTrackbar("SV_min", "Segmentation Parameters", visualswarm.contrib.vision.SV_MINIMUM,
+                                   255, nothing)
+                cv2.createTrackbar("SV_max", "Segmentation Parameters", visualswarm.contrib.vision.SV_MAXIMUM,
+                                   255, nothing)
                 color_sample = np.zeros((200, 200, 3), np.uint8)
 
             while True:

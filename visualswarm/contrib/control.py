@@ -16,7 +16,6 @@ B = 0.11
 MAX_MOTOR_SPEED = 500
 
 
-
 # EXPLORATION REGIMES
 # Exploration mode, possible values: 'RandomWalk', 'Rotation', 'NoExploration'
 EXP_MOVE_TYPE = 'RandomWalk'
@@ -28,7 +27,6 @@ WAIT_BEFORE_SWITCH_MOVEMENT = 1
 EXPLORE_STATUS_RGB = (20, 20, 20)
 BEHAVE_STATUS_RGB = (0, 0, 0)
 EMERGENCY_STATUS_RGB = (32, 0, 0)
-
 
 
 # RANDOM WALK
@@ -47,7 +45,6 @@ ROT_MOTOR_SPEED = 10
 
 # Rotation direction, possible values: 'Left', 'Right', 'Random'
 ROT_DIRECTION = 'Left'
-
 
 
 # OBSTACLE DETECTION

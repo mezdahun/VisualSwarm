@@ -27,12 +27,14 @@ class MotorInterfaceTest(TestCase):
         control_stream.get.return_value = (1, 1)
         movement_mode_stream = mock.MagicMock()
         movement_mode_stream.get.return_value = "BEHAVE"
+        emergency_stream = mock.MagicMock()
+        emergency_stream.get_nowait.return_value = (False, None)
 
         # Case 1 : healthy connection via asebamedulla
         with mock.patch('visualswarm.control.motorinterface.asebamedulla_health') as mock_health:
             mock_health.return_value = True
             # Case 1/a : with no control
-            motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=False)
+            motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream, with_control=False)
             control_stream.get.assert_called_once()
             movement_mode_stream.get.assert_called_once()
 
@@ -42,7 +44,7 @@ class MotorInterfaceTest(TestCase):
 
             # Case 1/b : with control and normal output velcoity values
             with mock.patch('visualswarm.contrib.control.MAX_MOTOR_SPEED', 12):
-                motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream, with_control=True)
                 mock_dbus_init.assert_called_once_with(set_as_default=True)
                 mock_dbus_sessionbus.assert_called_once()
                 mock_network_init.assert_called_once()
@@ -54,7 +56,7 @@ class MotorInterfaceTest(TestCase):
 
             # Case 1/c : with control and too large output velcoity values
             with mock.patch('visualswarm.contrib.control.MAX_MOTOR_SPEED', 5):
-                motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream, with_control=True)
                 mock_hard_limit.assert_called_once()
 
             # Case 1/d: with control but exploration
@@ -64,26 +66,28 @@ class MotorInterfaceTest(TestCase):
                 with mock.patch('visualswarm.contrib.control.EXP_MOVE_TYPE', 'Rotation'):
                     with mock.patch('visualswarm.control.motoroutput.rotate') as mock_rotate:
                         mock_rotate.return_value = [0, 0]
-                        motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                        motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
+                                                   with_control=True)
                         mock_rotate.assert_called_once()
 
                 # RANDOM WALK
                 with mock.patch('visualswarm.contrib.control.EXP_MOVE_TYPE', 'RandomWalk'):
                     with mock.patch('visualswarm.control.motoroutput.step_random_walk') as mock_rw:
                         mock_rw.return_value = [0, 0]
-                        motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                        motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
+                                                   with_control=True)
                         mock_rw.assert_called_once()
 
                 # UNKNOWN
                 with mock.patch('visualswarm.contrib.control.EXP_MOVE_TYPE', 'Invalid'):
-                    with self.assertRaises(KeyboardInterrupt):
-                        motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                    motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
+                                               with_control=True)
 
             # Case 1/c: unknown movement mode
             movement_mode_stream = mock.MagicMock()
             movement_mode_stream.get.return_value = "UNKNOWN"
-            with self.assertRaises(KeyboardInterrupt):
-                motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+            motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
+                                       with_control=True)
 
         # Case 2 : unhealthy connection via asebamedulla
         with mock.patch('visualswarm.control.motorinterface.asebamedulla_health') as mock_health:
@@ -91,12 +95,14 @@ class MotorInterfaceTest(TestCase):
                 mock_health.return_value = False
                 control_stream.reset_mock()
                 movement_mode_stream.get.reset_mock()
-                motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=False)
+                motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
+                                           with_control=False)
                 control_stream.get.assert_called_once()
                 movement_mode_stream.get.assert_called_once()
 
                 with self.assertRaises(Exception):
-                    motoroutput.control_thymio(control_stream, movement_mode_stream, with_control=True)
+                    motoroutput.control_thymio(control_stream, movement_mode_stream, emergency_stream,
+                                               with_control=True)
 
     def test_rotate(self):
         with mock.patch('visualswarm.contrib.control.ROT_MOTOR_SPEED', 100):
