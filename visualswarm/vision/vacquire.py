@@ -5,6 +5,7 @@
 import logging
 from picamera import PiCamera
 from picamera.array import PiRGBArray
+from picamera.exc import PiCameraValueError
 
 import time
 from datetime import datetime
@@ -74,5 +75,9 @@ def raw_vision(raw_vision_stream):
             # Clear the raw capture stream in preparation for the next frame
             raw_capture.truncate(0)
             frame_id += 1
+
     except KeyboardInterrupt:
-        pass
+        try:
+            pass
+        except PiCameraValueError:
+            pass
