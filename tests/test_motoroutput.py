@@ -153,6 +153,27 @@ class MotorInterfaceTest(TestCase):
                 self.assertTrue(args[0][0])
                 self.assertListEqual(list(args[0][1]), emergency_prox_values)
 
+    @mock.patch('visualswarm.control.motoroutput.turn_avoid_obstacle')
+    @mock.patch('visualswarm.control.motoroutput.run_additional_protocol', return_value=None)
+    def test_avoid_obstacle(self, mock_run_add_prot, mock_turn_avoid):
+        network = "mock network"
+        prox_vals = [0, 0, 0, 0, 0, 0, 0]
+        emergency_stream = "mock emergency stream"
+
+        # case 1: turn returns none, no additional protocol
+        mock_turn_avoid.return_value = None
+        motoroutput.avoid_obstacle(network, prox_vals, emergency_stream)
+        mock_turn_avoid.assert_called_once_with(network, prox_vals, emergency_stream)
+        mock_run_add_prot.assert_not_called()
+
+        # case 2: we get back an additional protocol
+        mock_turn_avoid.reset_mock()
+        mock_run_add_prot.reset_mock()
+        mock_turn_avoid.return_value = "Some additional protocol"
+        motoroutput.avoid_obstacle(network, prox_vals, emergency_stream)
+        mock_turn_avoid.assert_called_once_with(network, prox_vals, emergency_stream)
+        mock_run_add_prot.assert_called_once_with(network, 'Some additional protocol', emergency_stream)
+
     def test_rotate(self):
         with mock.patch('visualswarm.contrib.control.ROT_MOTOR_SPEED', 100):
             with mock.patch('visualswarm.contrib.control.ROT_DIRECTION', 'Left'):
