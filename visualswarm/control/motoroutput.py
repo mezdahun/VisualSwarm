@@ -217,12 +217,13 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
                 logger.debug('Recursive turning maneuver during obstacle detection...')
                 logger.warning('recursion')
                 turn_avoid_obstacle(network, proximity_values, emergency_stream)
+                logger.warning('finish')
+                break
             else:
                 logger.warning(f'Blind mode activated during turning {angle} degrees, further emergency signals ignored!')
 
         # update emergency status and proximity values from emergency stream with wait behavior (get).
         (recursive_obstacle, proximity_values) = emergency_stream.get()
-    logger.warning('finish')
 
 
 def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50, blind_mode=False):
