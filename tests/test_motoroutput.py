@@ -395,3 +395,64 @@ class MotorInterfaceTest(TestCase):
         self.assertEqual(emergency_stream.get.call_count, 3)
         self.assertEqual(mock_network.SetVariable.call_count, 4)
         mock_turn_avoid.assert_not_called()
+
+    @freeze_time("Jan 15th, 2020", auto_tick_seconds=1)
+    @mock.patch('visualswarm.contrib.physconstraints.FWD_MULTIPLIER', 10)
+    @mock.patch('visualswarm.contrib.physconstraints.BWD_MULTIPLIER', 10)
+    @mock.patch('visualswarm.control.motoroutput.empty_queue', return_value=None)
+    @mock.patch('visualswarm.control.motoroutput.avoid_obstacle')
+    def test_move_robot(self, mock_avoid, mock_empty_queue):
+
+        mock_network = mock.MagicMock(return_value=None)
+        mock_network.SetVariable.return_value = None
+
+        emergency_stream = mock.MagicMock()
+        emergency_stream.get.return_value = (False, None)
+
+        # case 1 move without recursion for 4 iterations but 1 tick is between inital time definition, so there should
+        # be 3 iterations
+        # this should take 4 seconds, and we freeze the tick to 1 second, so we should get 4 iterations
+        motoroutput.move_robot(mock_network, "Forward", 40, emergency_stream, moving_motor_speed=1)
+        self.assertEqual(emergency_stream.get.call_count, 3)
+        self.assertEqual(mock_network.SetVariable.call_count, 6)
+
+        mock_network.SetVariable.reset_mock()
+        emergency_stream.get.reset_mock()
+
+        # case 1b same backward
+        motoroutput.move_robot(mock_network, "Backward", 40, emergency_stream, moving_motor_speed=1)
+        self.assertEqual(emergency_stream.get.call_count, 3)
+        self.assertEqual(mock_network.SetVariable.call_count, 6)
+
+        mock_network.SetVariable.reset_mock()
+        emergency_stream.get.reset_mock()
+
+        # case 2 move with recursion, there should be 3 iterations, but the second one triggers recursion
+        # this should take 4 seconds, and we freeze the tick to 1 second, so we should get 4 iterations
+        emergency_stream.get.side_effect = [(False, None), (True, [0, 0, 0, 0, 0, 0, 0]), (False, None)]
+        motoroutput.move_robot(mock_network, "Backward", 40, emergency_stream, moving_motor_speed=1)
+        self.assertEqual(emergency_stream.get.call_count, 2)
+        self.assertEqual(mock_network.SetVariable.call_count, 4)
+        mock_avoid.assert_called_once()
+
+        mock_network.SetVariable.reset_mock()
+        emergency_stream.get.reset_mock()
+        mock_avoid.reset_mock()
+
+        # case 3 move with recursion and blind_mode, there should be 3 iterations, but the second one triggers recursion
+        # this should take 4 seconds, and we freeze the tick to 1 second, so we should get 4 iterations
+        emergency_stream.get.side_effect = [(False, None), (True, [0, 0, 0, 0, 0, 0, 0]), (False, None)]
+        motoroutput.move_robot(mock_network, "Backward", 40, emergency_stream, moving_motor_speed=1, blind_mode=True)
+        self.assertEqual(emergency_stream.get.call_count, 3)
+        self.assertEqual(mock_network.SetVariable.call_count, 4)
+        mock_avoid.assert_not_called()
+
+        # case 4 negative distance
+        with self.assertRaises(KeyboardInterrupt):
+            motoroutput.move_robot(mock_network, "Backward", -40, emergency_stream, moving_motor_speed=1,
+                                   blind_mode=True)
+
+        # case 5 unknown direction
+        with self.assertRaises(KeyboardInterrupt):
+            motoroutput.move_robot(mock_network, "Unknown", 40, emergency_stream, moving_motor_speed=1,
+                                   blind_mode=True)

@@ -299,33 +299,34 @@ def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream,
             method is called from avoid_obstacle after the turning maneuver. As a result the recursion is continued
             until the proximity sensors are free, after which all recursively called avoid_obstacle methods will return.
     """
-    # first getting current motor values
-    v_left_curr = network.GetVariable("thymio-II", "motor.left.speed")[0]
-    v_right_curr = network.GetVariable("thymio-II", "motor.right.speed")[0]
-    logger.info(v_left_curr)
-    logger.info(v_right_curr)
-
-    v_left_target = additional_motor_speed_multiplier * v_left_curr
-    v_right_target = additional_motor_speed_multiplier * v_right_curr
-
-    # from this point the method shows a lot of similarity with turn_robot, please check the comments there
-    empty_queue(emergency_stream)
-
-    recursive_obstacle = False
-    proximity_values = None
-
-    start_time = datetime.now()
-    while abs(start_time - datetime.now()).total_seconds() < protocol_time:
-
-        if not recursive_obstacle:
-            network.SetVariable("thymio-II", "motor.left.target", [v_left_target])
-            network.SetVariable("thymio-II", "motor.right.target", [v_right_target])
-
-        else:
-            # TODO: check if we are locked and return if yes
-            avoid_obstacle(network, proximity_values, emergency_stream)
-
-        (recursive_obstacle, proximity_values) = emergency_stream.get()
+    # # first getting current motor values
+    # v_left_curr = network.GetVariable("thymio-II", "motor.left.speed")[0]
+    # v_right_curr = network.GetVariable("thymio-II", "motor.right.speed")[0]
+    # logger.info(v_left_curr)
+    # logger.info(v_right_curr)
+    #
+    # v_left_target = additional_motor_speed_multiplier * v_left_curr
+    # v_right_target = additional_motor_speed_multiplier * v_right_curr
+    #
+    # # from this point the method shows a lot of similarity with turn_robot, please check the comments there
+    # empty_queue(emergency_stream)
+    #
+    # recursive_obstacle = False
+    # proximity_values = None
+    #
+    # start_time = datetime.now()
+    # while abs(start_time - datetime.now()).total_seconds() < protocol_time:
+    #
+    #     if not recursive_obstacle:
+    #         network.SetVariable("thymio-II", "motor.left.target", [v_left_target])
+    #         network.SetVariable("thymio-II", "motor.right.target", [v_right_target])
+    #
+    #     else:
+    #         # TODO: check if we are locked and return if yes
+    #         avoid_obstacle(network, proximity_values, emergency_stream)
+    #
+    #     (recursive_obstacle, proximity_values) = emergency_stream.get()
+    pass
 
 
 def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None):
