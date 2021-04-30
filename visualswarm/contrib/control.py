@@ -55,7 +55,8 @@ EMERGENCY_CHECK_FREQ = 8
 EMERGENCY_PROX_THRESHOLD = 4000
 
 # angle to turn away from obstacle during obstacle avoidance.
-OBSTACLE_TURN_ANGLE = 45
+turn_angle_correction = 10
+OBSTACLE_TURN_ANGLE = 45 + turn_angle_correction
 
 # PENDULUM TRAP
 # sensor value threshold below which the left and right sensor values are said to be symmetric
