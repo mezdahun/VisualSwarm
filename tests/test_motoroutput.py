@@ -204,6 +204,13 @@ class MotorInterfaceTest(TestCase):
         mock_speed.assert_not_called()
         mock_move.assert_not_called()
 
+    def test_empty_queue(self):
+        mock_stream = mock.MagicMock()
+        mock_stream.get_nowait.return_value = (False, None)
+        mock_stream.empty.side_effect = [False, False, True]
+        motoroutput.empty_queue(mock_stream)
+        self.assertEqual(mock_stream.get_nowait.call_count, 2)
+
     @mock.patch('visualswarm.control.motoroutput.turn_robot', return_value=None)
     def test_turn_avoid_obstacle(self, mock_turn):
         network = "mock network"
