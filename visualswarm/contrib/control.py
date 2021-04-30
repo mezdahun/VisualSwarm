@@ -63,6 +63,6 @@ OBSTACLE_TURN_ANGLE = desired_alignemnt_angle + turn_angle_correction
 # sensor value threshold below which the left and right sensor values are said to be symmetric
 SYMMETRICITY_THRESHOLD = 500
 # sensor value below which the middle frontal sensor is ignored when the obstacle is symmetric
-UNCONTINOUTY_THRESHOLD = 1500
+UNCONTINOUTY_THRESHOLD = 3000
 # angle to turn with to get out of pendulum traps
 PENDULUM_TRAP_ANGLE = 90
