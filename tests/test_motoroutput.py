@@ -6,6 +6,8 @@ from visualswarm.control import motoroutput
 
 import numpy as np
 
+from queue import Empty
+
 
 class MotorInterfaceTest(TestCase):
 
@@ -210,6 +212,7 @@ class MotorInterfaceTest(TestCase):
         mock_stream.empty.side_effect = [False, False, True]
         motoroutput.empty_queue(mock_stream)
         self.assertEqual(mock_stream.get_nowait.call_count, 2)
+        self.assertEqual(mock_stream.empty.call_count, 3)
 
     @mock.patch('visualswarm.control.motoroutput.turn_robot', return_value=None)
     def test_turn_avoid_obstacle(self, mock_turn):
