@@ -20,11 +20,11 @@ class AppTest(TestCase):
         if FAKE_STATUS:
             with mock.patch('visualswarm.env.INFLUX_FRESH_DB_UPON_START', False):
                 # Case 1 with interactive visualization
-                num_processes = 6 + visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS
+                num_processes = 7 + visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS
                 with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', True):
                     # Case 1/A visualization started even if didnt set in env
                     with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', False):
-                        num_queues = 7
+                        num_queues = 8
                         mp = mockProcess.return_value
                         app.start_application(with_control=True)
                         self.assertEqual(mp.start.call_count, num_processes)
@@ -37,7 +37,7 @@ class AppTest(TestCase):
                     mockQueue.reset_mock()
                     mock_asebamedulla_init.reset_mock()
                     with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', True):
-                        num_queues = 8
+                        num_queues = 9
                         mp = mockProcess.return_value
                         app.start_application(with_control=True)
                         self.assertEqual(mp.start.call_count, num_processes)
@@ -51,7 +51,7 @@ class AppTest(TestCase):
                     mockQueue.reset_mock()
                     mock_asebamedulla_init.reset_mock()
                     with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', False):
-                        num_queues = 5
+                        num_queues = 6
                         mp = mockProcess.return_value
                         app.start_application(with_control=True)
                         self.assertEqual(mp.start.call_count, num_processes)
@@ -64,7 +64,7 @@ class AppTest(TestCase):
                     mockQueue.reset_mock()
                     mock_asebamedulla_init.reset_mock()
                     with mock.patch('visualswarm.contrib.vision.SHOW_VISION_STREAMS', True):
-                        num_queues = 6
+                        num_queues = 7
                         mp = mockProcess.return_value
                         app.start_application(with_control=True)
                         self.assertEqual(mp.start.call_count, num_processes)

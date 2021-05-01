@@ -5,6 +5,7 @@
 
 import logging
 from multiprocessing import Process, Queue
+import sys
 
 import visualswarm.contrib.vision
 from visualswarm import env
@@ -15,6 +16,8 @@ from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
 
 import dbus.mainloop.glib
+
+dbus.mainloop.glib.threads_init()
 
 # setup logging
 logging.basicConfig()
@@ -64,6 +67,7 @@ def start_application(with_control=False):
     VPF_stream = Queue()
     control_stream = Queue()
     motor_control_mode_stream = Queue()
+    emergency_stream = Queue()
 
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
@@ -78,8 +82,9 @@ def start_application(with_control=False):
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
                                                                    motor_control_mode_stream, with_control))
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, motor_control_mode_stream,
-                                                                     with_control))
+                                                                     emergency_stream, with_control))
     system_monitor_proc = Process(target=system_monitor.system_monitor)
+    emergency_proc = Process(target=motoroutput.emergency_behavior, args=(emergency_stream,))
 
     try:
         # Start subprocesses
@@ -93,6 +98,7 @@ def start_application(with_control=False):
         behavior_proc.start()
         motor_control.start()
         system_monitor_proc.start()
+        emergency_proc.start()
 
         # Wait for subprocesses in main process to terminate
         visualizer.join()
@@ -103,11 +109,17 @@ def start_application(with_control=False):
         behavior_proc.join()
         motor_control.join()
         system_monitor_proc.join()
+        emergency_proc.join()
 
     except KeyboardInterrupt:
+        # suppressing all error messages during graceful exit that come from intermingled queues
+        sys.stderr = object
+
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
+        emergency_proc.terminate()
+        emergency_proc.join()
         system_monitor_proc.terminate()
         system_monitor_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
@@ -146,6 +158,8 @@ def start_application(with_control=False):
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} control parameter stream!')
         motor_control_mode_stream.close()
         logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} movement mode stream!')
+        emergency_stream.close()
+        logger.info(f'{bcolors.WARNING}CLOSED{bcolors.ENDC} emergency stream!')
 
         if with_control:
             logger.info(f'{bcolors.OKGREEN}Setting Thymio2 velocity to zero...{bcolors.ENDC}')
