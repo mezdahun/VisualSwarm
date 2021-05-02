@@ -1,7 +1,11 @@
 import os
 import logging
 
-from dbus.exceptions import DBusException
+from visualswarm.contrib import simulation
+
+if not simulation.ENABLE_SIMULATION:
+    from dbus.exceptions import DBusException
+
 import time
 from visualswarm.contrib import control, logparams
 

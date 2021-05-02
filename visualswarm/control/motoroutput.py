@@ -1,5 +1,9 @@
-import dbus
-import dbus.mainloop.glib
+from visualswarm.contrib import simulation
+
+if not simulation.ENABLE_SIMULATION:
+    import dbus
+    import dbus.mainloop.glib
+
 import logging
 
 from visualswarm.control import motorinterface
