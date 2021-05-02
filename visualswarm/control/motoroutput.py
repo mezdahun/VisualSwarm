@@ -3,22 +3,22 @@ from visualswarm.contrib import simulation
 if not simulation.ENABLE_SIMULATION:
     import dbus
     import dbus.mainloop.glib
+    from visualswarm.control import motorinterface
 
 import logging
-
-from visualswarm.control import motorinterface
 from visualswarm.contrib import logparams, control, physconstraints
 from visualswarm import env
 
 import numpy as np
 import tempfile
 from datetime import datetime
-# import random
 from queue import Empty
 
-
 # using main logger
-logger = logging.getLogger('visualswarm.app')
+if not simulation.ENABLE_SIMULATION:
+    logger = logging.getLogger('visualswarm.app')
+else:
+    logger = logging.getLogger('visualswarm.app_simulation')
 bcolors = logparams.BColors
 
 
@@ -31,16 +31,19 @@ def light_up_led(network, R, G, B):
         Returns:
             None
     """
-    with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
-        aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
-        node_id = 1
-        name = 'thymio-II'
-        aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
-        aesl.write(f'call leds.top({R},{G},{B})\n')
-        aesl.write('</node>\n')
-        aesl.write('</network>\n')
-        aesl.seek(0)
-        network.LoadScripts(aesl.name)
+    if not simulation.ENABLE_SIMULATION:
+        with tempfile.NamedTemporaryFile(suffix='.aesl', mode='w+t') as aesl:
+            aesl.write('<!DOCTYPE aesl-source>\n<network>\n')
+            node_id = 1
+            name = 'thymio-II'
+            aesl.write(f'<node nodeId="{node_id}" name="{name}">\n')
+            aesl.write(f'call leds.top({R},{G},{B})\n')
+            aesl.write('</node>\n')
+            aesl.write('</network>\n')
+            aesl.seek(0)
+            network.LoadScripts(aesl.name)
+    else:
+        logger.info(f'Would Light up LEDS: {R} - {G} - {B}')
 
 
 def step_random_walk() -> list:
@@ -142,6 +145,23 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     return [v_left, v_right]
 
 
+def get_latest_element(queue):
+    """
+    emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
+        Args:
+            queue2empty (multiprocessing.Queue): queue object to be emptied
+        Returns:
+            status: True if successful
+    """
+    val = None
+    while not queue.empty():
+        try:
+            val = queue.get_nowait()
+        except Empty:
+            return val
+    return val
+
+
 def empty_queue(queue2empty):
     """
     emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
@@ -160,7 +180,8 @@ def empty_queue(queue2empty):
     return True
 
 
-def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_mode=False):
+def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_mode=False,
+               motor_set_stream=None):
     """
     turning robot with a specified speed to a particular physical angle according to the heuristics (multipliers)
     defined in contrib.physconstraints
@@ -202,8 +223,13 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
         # call obstacle avoidance recursively if we get emergency signal from emergency_stream
         if not recursive_obstacle:
             # the proximity sensors in this timestep are clear, we can just continue setting the turning motor speeds
-            network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
-            network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
+            if not simulation.ENABLE_SIMULATION:
+                network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
+                network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
+            else:
+                motor_set_stream.put({'left': float(np.sign(angle) * turning_motor_speed),
+                                      'right': float(-np.sign(angle) * turning_motor_speed)})
+
 
         else:
             # if the defined angle of turn was not enough to clear the proximity sensors we retry to recursively
@@ -212,7 +238,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
             # new element
             if not blind_mode:
                 logger.debug('Recursive turning maneuver during obstacle detection...')
-                turn_avoid_obstacle(network, proximity_values, emergency_stream)
+                turn_avoid_obstacle(network, proximity_values, emergency_stream, motor_set_stream=motor_set_stream)
                 break
             else:
                 logger.warning(f'Blind mode activated during turning {angle} degrees')
@@ -222,7 +248,8 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50, blind_mode=False):
+def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50, blind_mode=False,
+               motor_set_stream=None):
     """
     moving robot with a specified speed to a particular distance according to the heuristics (multipliers)
     defined in contrib.physconstraints
@@ -275,12 +302,16 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
     while abs(start_time - datetime.now()).total_seconds() < movement_time:
 
         if not recursive_obstacle:
-            network.SetVariable("thymio-II", "motor.left.target", [movesign * moving_motor_speed])
-            network.SetVariable("thymio-II", "motor.right.target", [movesign * moving_motor_speed])
+            if not simulation.ENABLE_SIMULATION:
+                network.SetVariable("thymio-II", "motor.left.target", [movesign * moving_motor_speed])
+                network.SetVariable("thymio-II", "motor.right.target", [movesign * moving_motor_speed])
+            else:
+                motor_set_stream.put({'left': float(movesign * moving_motor_speed),
+                                      'right': float(movesign * moving_motor_speed)})
 
         else:
             if not blind_mode:
-                avoid_obstacle(network, proximity_values, emergency_stream)
+                avoid_obstacle(network, proximity_values, emergency_stream, motor_set_stream=motor_set_stream)
                 break
             else:
                 logger.warning(f'Blind mode activated during moving {direction}, emergency signal ignored!')
@@ -333,7 +364,8 @@ def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream,
     pass
 
 
-def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None):
+def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None,
+                        motor_set_stream=None):
     """
     deciding on direction and starting turning maneuver during obstacle avoidance.
         Args:
@@ -374,17 +406,18 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
                 prox_vals[2] < control.UNCONTINOUTY_THRESHOLD:
             logger.warning("Pendulum trap strategy initiated!")
             # change orientation (always to the right) drastically to get out of pendulum trap
-            turn_robot(network, control.PENDULUM_TRAP_ANGLE, emergency_stream, blind_mode=True)
+            turn_robot(network, control.PENDULUM_TRAP_ANGLE, emergency_stream, blind_mode=True,
+                       motor_set_stream=motor_set_stream)
             return "Move", "Forward", 20
 
         # Obstacle is closer to the left, turn right
         elif left_proximity > right_proximity:
-            turn_robot(network, turn_avoid_angle, emergency_stream)
+            turn_robot(network, turn_avoid_angle, emergency_stream, motor_set_stream=motor_set_stream)
             return "Move", "Forward", 20
 
         # Obstacle is closer to the right, turn left
         else:
-            turn_robot(network, -turn_avoid_angle, emergency_stream)
+            turn_robot(network, -turn_avoid_angle, emergency_stream, motor_set_stream=motor_set_stream)
             return "Move", "Forward", 20
 
     # IGNORED FOR NOW AS ONLY BACK SENSORS NEVER TRIGGER EMERGENCY MODE
@@ -404,7 +437,8 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
     #         turn_robot(network, -turn_avoid_angle, emergency_stream)
 
 
-def run_additional_protocol(network, additional_protocol, emergency_stream):
+def run_additional_protocol(network, additional_protocol, emergency_stream,
+                            motor_set_stream=None):
     """
     Running additional necessary protocol after turning the robot.
         Args:
@@ -420,12 +454,14 @@ def run_additional_protocol(network, additional_protocol, emergency_stream):
     if protocol_name == "Speed up":
         speed_up_robot(network, additional_protocol[1], emergency_stream)
     elif protocol_name == "Move":
-        move_robot(network, additional_protocol[1], additional_protocol[2], emergency_stream)
+        move_robot(network, additional_protocol[1], additional_protocol[2], emergency_stream,
+                   motor_set_stream=motor_set_stream)
     elif protocol_name == "End avoidance":
         return
 
 
-def avoid_obstacle(network, prox_vals, emergency_stream):
+def avoid_obstacle(network, prox_vals, emergency_stream,
+                   motor_set_stream=None):
     """
     Initiating 2-level recursive obstacle avoidance algorithm
         Args:
@@ -438,22 +474,25 @@ def avoid_obstacle(network, prox_vals, emergency_stream):
             None
     """
     # TODO: keep velocity that the robot had when entered in obstacle avoidance mode
-    additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream)
+    additional_protocol = turn_avoid_obstacle(network, prox_vals, emergency_stream, motor_set_stream=motor_set_stream)
 
     if additional_protocol is not None:
         logger.info(f'Initiated additional protocol after turn: {additional_protocol}')
-        run_additional_protocol(network, additional_protocol, emergency_stream)
+        run_additional_protocol(network, additional_protocol, emergency_stream, motor_set_stream=motor_set_stream)
 
     logger.info('Obstacle Avoidance Protocol done!')
 
 
-def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False):
+def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, with_control=False,
+                   motor_set_stream=None):
     """
     Process to switch between movement regimes and control the movement of Thymio2 robot via DBUS.
         Args:
             control_stream (multiprocessing Queue): stream to push calculated control parameters
             motor_control_mode_stream (multiprocessing Queue): stream to get movement type/mode.
             with_control (boolean): sends motor command to robot if true. Only consumes input stream if false.
+            motor_set_stream (multiprocessing Queue): if we use a webots simulation this stream is to communicate with
+                webots interface and set motor values with pushed values.
         Returns:
             -shall not return-
     """
@@ -477,17 +516,23 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
             last_explore_change = datetime.now()
             last_behave_change = datetime.now()
 
-            # Initializing DBus
-            dbus.mainloop.glib.threads_init()
-            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-            bus = dbus.SessionBus()
+            if not simulation.ENABLE_SIMULATION:
+                # Initializing DBus
+                dbus.mainloop.glib.threads_init()
+                dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+                bus = dbus.SessionBus()
 
-            # Create Aseba network
-            # if network is None:
-            network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                     dbus_interface='ch.epfl.mobots.AsebaNetwork')
+                # Create Aseba network
+                # if network is None:
+                network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                         dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
-            if motorinterface.asebamedulla_health(network):
+                is_connection_healthy = motorinterface.asebamedulla_health(network)
+            else:
+                network = "SimulationDummy"
+                is_connection_healthy = True
+
+            if is_connection_healthy:
                 logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
 
                 while True:
@@ -497,7 +542,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     try:
                         (emergency_mode, proximity_values) = emergency_stream.get_nowait()
                     except Empty:
-                        pass
+                        emergency_mode = False
 
                     if not emergency_mode:
                         if movement_mode == "BEHAVE":
@@ -521,8 +566,11 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
                                 # sending motor values to robot
-                                network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                                network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                                if not simulation.ENABLE_SIMULATION:
+                                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                                else:
+                                    motor_set_stream.put({'left': v_left, 'right': v_right})
 
                                 logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
                                 # last time we changed velocity according to BEHAVIOR REGIME
@@ -554,8 +602,11 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
 
                                     # sending motor values to robot
-                                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                                    if not simulation.ENABLE_SIMULATION:
+                                        network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                        network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                                    else:
+                                        motor_set_stream.put({'left': float(v_left), 'right': float(v_right)})
 
                                     # last time we changed velocity according to EXPLORE REGIME
                                     last_explore_change = datetime.now()
@@ -570,7 +621,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                         # showing emergency mode with top LEDs
                         light_up_led(network, emergR, emergG, emergB)
                         # triggering obstacle avoidance system
-                        avoid_obstacle(network, proximity_values, emergency_stream)
+                        avoid_obstacle(network, proximity_values, emergency_stream, motor_set_stream=motor_set_stream)
 
                         # emptying accumulated queues
                         empty_queue(control_stream)
@@ -588,44 +639,61 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     if env.EXIT_CONDITION:
                         break
             else:
-                logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
-                motorinterface.asebamedulla_end()
-                raise Exception('asebamedulla connection not healthy!')
+                if not simulation.ENABLE_SIMULATION:
+                    logger.error(f'{bcolors.FAIL}🗴 CONNECTION FAILED{bcolors.ENDC} via asebamedulla')
+                    motorinterface.asebamedulla_end()
+                    raise Exception('asebamedulla connection not healthy!')
     except KeyboardInterrupt:
         pass
 
 
-def emergency_behavior(emergency_stream):
+def emergency_behavior(emergency_stream, sensor_stream=None):
     """
     Process to check for emergency signals via proximity sensors and transmit information to other processes
         Args:
             emergency_stream (multiprocessing Queue): stream to push emergency status and sensor values
+            sensor_stream (multiprocessing Queue): in case of webots simulation this stream should be continously
+                updated with the virtual robots sensor values
         Returns:
             -shall not return-
     """
     try:
-        # Initializing DBus
-        dbus.mainloop.glib.threads_init()
-        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-        bus = dbus.SessionBus()
+        if not simulation.ENABLE_SIMULATION:
+            # Initializing DBus
+            dbus.mainloop.glib.threads_init()
+            dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+            bus = dbus.SessionBus()
 
-        # Create Aseba network
-        network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
-                                 dbus_interface='ch.epfl.mobots.AsebaNetwork')
+            # Create Aseba network
+            network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
+                                     dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
         t = datetime.now()
+        if simulation.ENABLE_SIMULATION and sensor_stream is not None:
+            logger.info(f'START: len{sensor_stream.qsize()}')
+            empty_queue(sensor_stream)
+
         while True:
             # enforcing checks on a regular basis
             if abs(t - datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
 
                 # reading proximity values
-                prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
-
-                if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
-                    logger.info('Triggered Obstacle Avoidance!')
-                    emergency_stream.put((True, prox_val))
+                if not simulation.ENABLE_SIMULATION:
+                    prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
                 else:
-                    emergency_stream.put((False, None))
+                    if sensor_stream is not None:
+                        prox_val = np.array(get_latest_element(sensor_stream))
+                    else:
+                        raise Exception('No sensor stream has been passed from Webots to sentinel process!')
+
+                try:
+                    if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
+                        logger.info('Triggered Obstacle Avoidance!')
+                        emergency_stream.put((True, prox_val))
+                    else:
+                        emergency_stream.put((False, None))
+                except IndexError:
+                    logger.warning('IndexError in sentinel process!!!')
 
                 t = datetime.now()
 
