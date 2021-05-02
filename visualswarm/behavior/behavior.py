@@ -9,12 +9,15 @@ import numpy as np
 
 import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import monitoring
+from visualswarm.contrib import monitoring, simulation
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
 # using main logger
-logger = logging.getLogger('visualswarm.app')
+if not simulation.ENABLE_SIMULATION:
+    logger = logging.getLogger('visualswarm.app')
+else:
+    logger = logging.getLogger('visualswarm.app_simulation')
 
 
 def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_control=False):
@@ -30,8 +33,10 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             -shall not return-
     """
     try:
-        measurement_name = "control_parameters"
-        ifclient = ifdb.create_ifclient()
+        if not simulation.ENABLE_SIMULATION:
+            measurement_name = "control_parameters"
+            ifclient = ifdb.create_ifclient()
+
         phi = None
         v = 0
         t_prev = datetime.datetime.now()
@@ -56,7 +61,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             t_prev = t_now
 
-            if monitoring.SAVE_CONTROL_PARAMS:
+            if monitoring.SAVE_CONTROL_PARAMS and not simulation.ENABLE_SIMULATION:
 
                 # take a timestamp for this measurement
                 time = datetime.datetime.utcnow()

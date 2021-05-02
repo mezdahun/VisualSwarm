@@ -12,10 +12,13 @@ import numpy as np
 import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import camera, vision, monitoring
+from visualswarm.contrib import camera, vision, monitoring, simulation
 
 # using main logger
-logger = logging.getLogger('visualswarm.app')
+if not simulation.ENABLE_SIMULATION:
+    logger = logging.getLogger('visualswarm.app')
+else:
+    logger = logging.getLogger('visualswarm.app_simulation')
 
 
 def nothing(x):
@@ -166,8 +169,9 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             -shall not return-
     """
     try:
-        measurement_name = "visual_projection_field"
-        ifclient = ifdb.create_ifclient()
+        if not simulation.ENABLE_SIMULATION:
+            measurement_name = "visual_projection_field"
+            ifclient = ifdb.create_ifclient()
 
         while True:
             (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
@@ -177,7 +181,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             projection_field = np.max(cropped_image, axis=0)
             projection_field = projection_field / 255
 
-            if monitoring.SAVE_PROJECTION_FIELD:
+            if monitoring.SAVE_PROJECTION_FIELD and not simulation.ENABLE_SIMULATION:
                 # Saving projection field data to InfluxDB to visualize with Grafana
                 proj_field_vis = projection_field[0:-1:monitoring.DOWNGRADING_FACTOR]
 

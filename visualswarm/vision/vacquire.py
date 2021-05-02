@@ -10,6 +10,8 @@ if not simulation.ENABLE_SIMULATION:
     from picamera import PiCamera
     from picamera.array import PiRGBArray
     from picamera.exc import PiCameraValueError
+else:
+    import numpy as np
 
 import time
 from datetime import datetime
@@ -17,7 +19,10 @@ from datetime import datetime
 from visualswarm.contrib import camera, logparams
 
 # using main logger
-logger = logging.getLogger('visualswarm.app')
+if not simulation.ENABLE_SIMULATION:
+    logger = logging.getLogger('visualswarm.app')
+else:
+    logger = logging.getLogger('visualswarm.app_simulation')
 bcolors = logparams.BColors
 
 
@@ -87,3 +92,16 @@ def raw_vision(raw_vision_stream):
                 pass
     except PiCameraValueError:
         pass
+
+
+def simulated_vision(raw_vision_stream):
+    t = datetime.now()
+    frame_id = 0
+    while True:
+        # enforcing checks on a regular basis
+        if abs(t - datetime.now()).total_seconds() > (1 / camera.FRAMERATE):
+            image = np.zeros((camera.RESOLUTION[0], camera.RESOLUTION[1], 3), np.uint8)
+            image[10:15, 10:15, :] = 155
+            raw_vision_stream.put((image, frame_id, t))
+            t = datetime.now()
+            frame_id += 1
