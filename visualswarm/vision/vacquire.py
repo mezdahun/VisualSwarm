@@ -3,9 +3,13 @@
 @description: Acquiring low-level imput from camera module
 """
 import logging
-from picamera import PiCamera
-from picamera.array import PiRGBArray
-from picamera.exc import PiCameraValueError
+
+from visualswarm.contrib import simulation
+
+if not simulation.ENABLE_SIMULATION:
+    from picamera import PiCamera
+    from picamera.array import PiRGBArray
+    from picamera.exc import PiCameraValueError
 
 import time
 from datetime import datetime
