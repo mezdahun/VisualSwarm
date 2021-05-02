@@ -5,6 +5,7 @@
 
 import logging
 from multiprocessing import Process, Queue
+from multiprocessing.pool import ThreadPool
 import sys
 
 import visualswarm.contrib.vision
@@ -29,6 +30,21 @@ bcolors = logparams.BColors
 def health():
     """Entrypoint to start high level application"""
     logger.info("VisualSwarm application OK!")
+
+
+def webots_test(arg_list):
+    robot = arg_list[0]
+    sensors = arg_list[1]
+    timestep = arg_list[2]
+    while robot.step(timestep) != -1:
+        prox_vals = [i.getValue() for i in sensors['prox']['horizontal']]
+        logger.info(f"Sensor values: {prox_vals}")
+
+
+def webots_test_process(robot, sensors, timestep):
+    p = ThreadPool(1)
+    xs = p.map(webots_test, ([robot, sensors, timestep],))
+    logger.info("started")
 
 
 def start_application(with_control=False):
