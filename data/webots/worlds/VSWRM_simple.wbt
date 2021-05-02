@@ -1,0 +1,35 @@
+#VRML_SIM R2021a utf8
+WorldInfo {
+  FPS 30
+  optimalThreadCount 6
+  coordinateSystem "NUE"
+}
+Viewpoint {
+  orientation -0.9475800584521301 -0.22457915528070774 -0.2272800823593247 1.508467093952396
+  position -0.035165441863874845 1.782584102079523 0.2182267825958985
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorTileSize 4 4
+  floorAppearance DEF wallColor Parquetry {
+    type "chequered"
+  }
+  wallHeight 0.3
+  wallAppearance BrushedAluminium {
+    IBLStrength 24
+  }
+}
+Thymio2 {
+  translation -0.026238958571642285 -6.74708948073463e-05 0.2517227302370621
+  rotation 0.6970230446843944 0.7170416505164459 0.003185373376525659 -0.012722043485291564
+  controller "blank_controller"
+}
+Thymio2 {
+  translation 0.0791425 -0.00529939 -0.238227
+  rotation -0.005792300918535826 0.9999731585744912 -0.004486800711511238 1.2999
+  name "Thymio II(1)"
+  controller "blank_controller"
+}
