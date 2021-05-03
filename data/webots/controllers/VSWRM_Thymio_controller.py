@@ -5,11 +5,12 @@
 
 # You may need to import some classes of the controller module. Ex:
 from controller import Robot
-from visualswarm import app_simulation
 
 import os
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = 'True'
+
+from visualswarm import app_simulation
 
 # create the Robot instance.
 robot = Robot()
