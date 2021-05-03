@@ -31,10 +31,12 @@ def test_reader(sensor_stream, webots_do_stream):
 
 def webots_do(control_args, devices):
     command = control_args[0]
-    command_dict = control_args[1]
+    command_arg = control_args[1]
     if command == "SET_MOTOR":
-        devices['motors']['left'].setVelocity(command_dict['left'] / 100)
-        devices['motors']['right'].setVelocity(command_dict['right'] / 100)
+        devices['motors']['left'].setVelocity(command_arg['left'] / 100)
+        devices['motors']['right'].setVelocity(command_arg['right'] / 100)
+    elif command == "LIGHTUP_LED":
+        devices['leds']['top'].set(command_arg)
 
 
 def webots_interface(robot, sensors, devices, timestep, with_control=False):
