@@ -10,7 +10,7 @@ import os
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = str(int(True))
 os.environ['SHOW_VISION_STREAMS'] = str(int(False))
-os.environ['LOG_LEVEL'] = 'DEBUG'
+os.environ['LOG_LEVEL'] = 'INFO'
 
 from visualswarm import app_simulation
 
@@ -56,10 +56,18 @@ def setup_motors():
 
     return motors
 
+def setup_leds():
+    global robot
+
+    leds = {}
+    leds['top'] = robot.getDevice("leds.top")
+
+    return leds
+
 sensors = setup_sensors()
-motors = setup_motors()
 
 devices = {}
-devices['motors'] = motors
+devices['motors'] = setup_motors()
+devices['leds'] = setup_leds()
 
 app_simulation.webots_interface(robot, sensors, devices, timestep, with_control=True)
