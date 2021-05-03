@@ -540,7 +540,14 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     (v, dpsi) = control_stream.get()
                     movement_mode = motor_control_mode_stream.get()
                     try:
-                        (emergency_mode, proximity_values) = emergency_stream.get_nowait()
+                        if not simulation.ENABLE_SIMULATION:
+                            (emergency_mode, proximity_values) = emergency_stream.get_nowait()
+                        else:
+                            latest_emergency = get_latest_element(emergency_stream)
+                            if latest_emergency is not None:
+                                (emergency_mode, proximity_values) = latest_emergency
+                            else:
+                                emergency_mode = False
                     except Empty:
                         emergency_mode = False
 
