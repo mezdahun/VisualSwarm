@@ -103,10 +103,10 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
         while robot.step(timestep) != -1:
             # logger.info(f'sensor_get_time: {sensor_get_time}')
             # Thymio updates sensor values on predefined frequency irr
-            if (sensor_get_time / 1000) > (1 / simulation_start_time.UPFREQ_PROX_HORIZONTAL):
+            if (sensor_get_time / 1000) > (1 / simulation.UPFREQ_PROX_HORIZONTAL):
                 prox_vals = [i.getValue() for i in sensors['prox']['horizontal']]
                 sensor_stream.put(prox_vals)
-                sensor_get_time = sensor_get_time % (1 / simulation_start_time.UPFREQ_PROX_HORIZONTAL)
+                sensor_get_time = sensor_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
 
             if motor_set_stream.qsize() > 0:
                 motor_vals = motor_set_stream.get()
