@@ -22,7 +22,14 @@ else:
 bcolors = logparams.BColors
 
 
-def light_up_led(network, R, G, B):
+def rgb_to_hex(R, G, B):
+    R = int((R / 32) * 200)
+    G = int((G / 32) * 200)
+    B = int((B / 32) * 200)
+    return '0x%02x%02x%02x' % (R, G, B)
+
+
+def light_up_led(network, R, G, B, webots_do_stream=None):
     """
     Method to indicate movement mode by lighting up top LEDS on robot
         Args:
@@ -43,7 +50,7 @@ def light_up_led(network, R, G, B):
             aesl.seek(0)
             network.LoadScripts(aesl.name)
     else:
-        logger.info(f'Would Light up LEDS: {R} - {G} - {B}')
+        webots_do_stream.put(('LIGHTUP_LED', int(rgb_to_hex(R, G, B), 0)))
 
 
 def step_random_walk() -> list:
@@ -556,7 +563,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                             # Switch between modes, change mode status LED
                             if prev_movement_mode == "EXPLORE":
-                                light_up_led(network, behR, behG, behB)
+                                light_up_led(network, behR, behG, behB, webots_do_stream=webots_do_stream)
 
                             # Persistent change in movement mode
                             is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
@@ -587,7 +594,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                             # Switch between modes, change mode status LED
                             if prev_movement_mode == "BEHAVE":
-                                light_up_led(network, expR, expG, expB)
+                                light_up_led(network, expR, expG, expB, webots_do_stream=webots_do_stream)
 
                             # Persistent change in modes
                             if abs((last_behave_change - datetime.now()).total_seconds()) \
@@ -627,7 +634,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                     else:
                         # showing emergency mode with top LEDs
-                        light_up_led(network, emergR, emergG, emergB)
+                        light_up_led(network, emergR, emergG, emergB, webots_do_stream=webots_do_stream)
                         # triggering obstacle avoidance system
                         avoid_obstacle(network, proximity_values, emergency_stream, webots_do_stream=webots_do_stream)
 
@@ -639,9 +646,9 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                         # turn off emergency mode and return to normal mode, showing this with LEDs
                         emergency_mode = False
                         if movement_mode == "EXPLORE":
-                            light_up_led(network, expR, expG, expB)
+                            light_up_led(network, expR, expG, expB, webots_do_stream=webots_do_stream)
                         elif movement_mode == "BEHAVE":
-                            light_up_led(network, behR, behG, behB)
+                            light_up_led(network, behR, behG, behB, webots_do_stream=webots_do_stream)
 
                     # To test infinite loops
                     if env.EXIT_CONDITION:
