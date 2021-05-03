@@ -13,6 +13,7 @@ from visualswarm.control import motoroutput
 
 from freezegun import freeze_time
 import datetime
+from time import sleep
 
 # setup logging
 logging.basicConfig()
@@ -119,6 +120,9 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
 
             # ticking virtual time with virtual time of Webots environment
             freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
+
+            # sleeping with physical time so that all processes can calculate until the next simulation timestep
+            sleep(0.01)
 
         # End subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
