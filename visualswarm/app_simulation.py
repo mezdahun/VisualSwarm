@@ -99,14 +99,14 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
 
         # The main thread to interact with non-pickleable objects that can not be passed
         # to subprocesses
-        # sensor_get_time = 0  # virtual time increment in ms
+        sensor_get_time = 0  # virtual time increment in ms
         while robot.step(timestep) != -1:
             # logger.info(f'sensor_get_time: {sensor_get_time}')
             # Thymio updates sensor values on predefined frequency irr
-            # if (sensor_get_time / 1000) > (1 / 10):
-            prox_vals = [i.getValue() for i in sensors['prox']['horizontal']]
-            sensor_stream.put(prox_vals)
-            # sensor_get_time = sensor_get_time % (1 / 10)
+            if (sensor_get_time / 1000) > (1 / simulation_start_time.UPFREQ_PROX_HORIZONTAL):
+                prox_vals = [i.getValue() for i in sensors['prox']['horizontal']]
+                sensor_stream.put(prox_vals)
+                sensor_get_time = sensor_get_time % (1 / simulation_start_time.UPFREQ_PROX_HORIZONTAL)
 
             if motor_set_stream.qsize() > 0:
                 motor_vals = motor_set_stream.get()
@@ -115,7 +115,8 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
                 motors['right'].setVelocity(motor_vals['right'] / 100)
 
             # increment virtual time counters
-            # sensor_get_time += timestep
+            sensor_get_time += timestep
+
             # ticking virtual time with virtual time of Webots environment
             freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
 
