@@ -10,6 +10,7 @@ import os
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = 'True'
 os.environ['SHOW_VISION_STREAMS'] = 'False'
+os.environ['LOG_LEVEL'] = 'INFO'
 
 from visualswarm import app_simulation
 
