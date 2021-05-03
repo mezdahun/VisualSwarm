@@ -22,14 +22,22 @@ logger.setLevel(env.LOG_LEVEL)
 bcolors = logparams.BColors
 
 
-def test_reader(sensor_stream, motor_set_stream):
+def test_reader(sensor_stream, webots_do_stream):
     while True:
         prox_vals = sensor_stream.get()
-        motor_set_stream.put(prox_vals[0])
+        webots_do_stream.put(prox_vals[0])
         print(f'put done: {prox_vals[0]}')
 
 
-def webots_interface(robot, sensors, motors, timestep, with_control=False):
+def webots_do(control_args, devices):
+    command = control_args[0]
+    command_dict = control_args[1]
+    if command == "SET_MOTOR":
+        devices['motors']['left'].setVelocity(command_dict['left'] / 100)
+        devices['motors']['right'].setVelocity(command_dict['right'] / 100)
+
+
+def webots_interface(robot, sensors, devices, timestep, with_control=False):
     logger.info(f'Started VSWRM-Webots interface app with timestep: {timestep}')
     simulation_start_time = '2000-01-01 12:00:01'
     logger.info(f'Freezing time to: {simulation_start_time}')
@@ -37,7 +45,7 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
         # sensor and motor value queues shared across subprocesses
         sensor_stream = Queue()
         motor_get_stream = Queue()
-        motor_set_stream = Queue()
+        webots_do_stream = Queue()
 
         # vision
         raw_vision_stream = Queue()
@@ -75,10 +83,12 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
         visualizer = threading.Thread(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
         VPF_extractor = threading.Thread(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
         behavior_proc = threading.Thread(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
-                                                                                motor_control_mode_stream, with_control))
-        motor_control = threading.Thread(target=motoroutput.control_thymio, args=(control_stream, motor_control_mode_stream,
-                                                                                  emergency_stream, with_control,
-                                                                                  motor_set_stream))
+                                                                                motor_control_mode_stream,
+                                                                                with_control))
+        motor_control = threading.Thread(target=motoroutput.control_thymio,
+                                         args=(control_stream, motor_control_mode_stream,
+                                               emergency_stream, with_control,
+                                               webots_do_stream))
         emergency_proc = threading.Thread(target=motoroutput.emergency_behavior, args=(emergency_stream, sensor_stream))
 
         # Start subprocesses
@@ -113,12 +123,13 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
                 sensor_stream.put(prox_vals)
                 sensor_get_time = sensor_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
 
-            if motor_set_stream.qsize() > 0:
-                #motor_vals = motoroutput.get_latest_element(motor_set_stream)
-                motor_vals = motor_set_stream.get()
-                logger.debug(motor_vals)
-                motors['left'].setVelocity(motor_vals['left'] / 100)
-                motors['right'].setVelocity(motor_vals['right'] / 100)
+            if webots_do_stream.qsize() > 0:
+                # motor_vals = motoroutput.get_latest_element(webots_do_stream)
+                command_set = webots_do_stream.get()
+                logger.debug(command_set)
+                webots_do(command_set, devices)
+                # devices['motors']['left'].setVelocity(motor_vals[1]['left'] / 100)
+                # devices['motors']['right'].setVelocity(motor_vals[1]['right'] / 100)
 
             # increment virtual time counters
             sensor_get_time += timestep
@@ -141,7 +152,7 @@ def webots_interface(robot, sensors, motors, timestep, with_control=False):
 
         sensor_stream.close()
         motor_get_stream.close()
-        motor_set_stream.close()
+        webots_do_stream.close()
 
         raw_vision_stream.close()
         high_level_vision_stream.close()
