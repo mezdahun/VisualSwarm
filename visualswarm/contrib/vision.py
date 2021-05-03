@@ -4,12 +4,13 @@
 """
 from cv2 import cvtColor, COLOR_BGR2HSV
 from numpy import uint8, pi
+import os
 
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = True
+SHOW_VISION_STREAMS = bool(int(os.getenv('SHOW_VISION_STREAMS', '0')))
 VIS_DOWNSAMPLE_FACTOR = 1
 
 # Drawing, color in RGB
