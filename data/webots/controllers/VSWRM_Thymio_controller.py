@@ -9,8 +9,8 @@ from controller import Robot, Camera
 import os
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = str(int(True))
-os.environ['SHOW_VISION_STREAMS'] = str(int(False))
-os.environ['LOG_LEVEL'] = 'INFO'
+os.environ['SHOW_VISION_STREAMS'] = str(int(True))
+os.environ['LOG_LEVEL'] = 'DEBUG'
 
 from visualswarm import app_simulation
 
@@ -67,9 +67,10 @@ def setup_leds():
 def setup_camera():
     # create and enable the camera on the robot
     camera = Camera("rPi4_Camera_Module_v2.1")
-    sampling_freq = 10  #Hz
-    camera.enable(int(1/sampling_freq*1000))
+    sampling_freq = 16  #Hz
+    sampling_period = int(1/sampling_freq*1000)
 
+    camera.enable(sampling_period)
     return camera
 
 sensors = setup_sensors()
