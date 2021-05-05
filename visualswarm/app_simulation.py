@@ -2,10 +2,12 @@ import logging
 import threading
 from queue import Queue
 import sys
+import numpy as np
+from cv2 import rotate, flip, cvtColor, ROTATE_90_CLOCKWISE, COLOR_BGR2RGB
 
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, vision, simulation
+from visualswarm.contrib import logparams, vision, simulation, control
 
 from visualswarm.behavior import behavior
 
@@ -32,9 +34,11 @@ def test_reader(sensor_stream, webots_do_stream):
 def webots_do(control_args, devices):
     command = control_args[0]
     command_arg = control_args[1]
+    MAX_WEBOTS_MOTOR_SPEED = 9.53
     if command == "SET_MOTOR":
-        devices['motors']['left'].setVelocity(command_arg['left'] / 100)
-        devices['motors']['right'].setVelocity(command_arg['right'] / 100)
+        logger.debug(f"webots_do_move: {command_arg['left']} * {MAX_WEBOTS_MOTOR_SPEED} / {control.MAX_MOTOR_SPEED}")
+        devices['motors']['left'].setVelocity(command_arg['left'] * (MAX_WEBOTS_MOTOR_SPEED/control.MAX_MOTOR_SPEED))
+        devices['motors']['right'].setVelocity(command_arg['right'] * (MAX_WEBOTS_MOTOR_SPEED/control.MAX_MOTOR_SPEED))
     elif command == "LIGHTUP_LED":
         devices['leds']['top'].set(command_arg)
 
