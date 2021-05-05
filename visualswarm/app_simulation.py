@@ -165,7 +165,7 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
             freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
 
             # sleeping with physical time so that all processes can calculate until the next simulation timestep
-            sleep(0.01)
+            sleep(0.025)
 
         # End subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
