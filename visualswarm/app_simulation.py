@@ -99,7 +99,7 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
 
         # Start subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
-        raw_vision.start()
+        # raw_vision.start()
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
         for proc in high_level_vision_pool:
             logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} start---')
@@ -117,7 +117,27 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
         # The main thread to interact with non-pickleable objects that can not be passed
         # to subprocesses
         sensor_get_time = 0  # virtual time increment in ms
+        camera_sampling_period = devices['camera'].getSamplingPeriod()
+        camera_get_time = 0
+        frame_id = 0
+        from pprint import pprint
         while robot.step(timestep) != -1:
+
+            # Fetching camera image on a predefined frequency
+            if camera_get_time > camera_sampling_period:
+                logger.info(f'capturing frame_id: {frame_id}')
+                try:
+                    raw_vision_stream.get_nowait()
+                except:
+                    pass
+                img = flip(rotate(np.array(devices['camera'].getImageArray(),
+                                           dtype=np.uint8),
+                                  ROTATE_90_CLOCKWISE), 1)
+                img = cvtColor(img, COLOR_BGR2RGB)
+                raw_vision_stream.put((img, frame_id, datetime.datetime.utcnow()))
+
+                frame_id += 1
+                camera_get_time = camera_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
 
             # Thymio updates sensor values on predefined frequency
             if (sensor_get_time / 1000) > (1 / simulation.UPFREQ_PROX_HORIZONTAL):
@@ -139,6 +159,7 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
 
             # increment virtual time counters
             sensor_get_time += timestep
+            camera_get_time += timestep
 
             # ticking virtual time with virtual time of Webots environment
             freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
