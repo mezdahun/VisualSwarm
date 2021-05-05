@@ -4,7 +4,7 @@
 """
 
 # You may need to import some classes of the controller module. Ex:
-from controller import Robot
+from controller import Robot, Camera
 
 import os
 # Set environment variables for configuration here!
@@ -64,10 +64,19 @@ def setup_leds():
 
     return leds
 
+def setup_camera():
+    # create and enable the camera on the robot
+    camera = Camera("rPi4_Camera_Module_v2.1")
+    sampling_freq = 10  #Hz
+    camera.enable(int(1/sampling_freq*1000))
+
+    return camera
+
 sensors = setup_sensors()
 
 devices = {}
 devices['motors'] = setup_motors()
 devices['leds'] = setup_leds()
+devices['camera'] = setup_camera()
 
 app_simulation.webots_interface(robot, sensors, devices, timestep, with_control=True)
