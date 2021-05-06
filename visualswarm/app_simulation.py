@@ -52,12 +52,14 @@ class VSWRMParallelObject(object):
 def webots_do(control_args, devices):
     command = control_args[0]
     command_arg = control_args[1]
-    MAX_WEBOTS_MOTOR_SPEED = 9.53
     if command == "SET_MOTOR":
-        logger.debug(f"webots_do_move: {command_arg['left']} * {MAX_WEBOTS_MOTOR_SPEED} / {control.MAX_MOTOR_SPEED}")
-        devices['motors']['left'].setVelocity(command_arg['left'] * (MAX_WEBOTS_MOTOR_SPEED/control.MAX_MOTOR_SPEED))
-        devices['motors']['right'].setVelocity(command_arg['right'] * (MAX_WEBOTS_MOTOR_SPEED/control.MAX_MOTOR_SPEED))
+        v_left = command_arg['left'] * (simulation.MAX_WEBOTS_MOTOR_SPEED / control.MAX_MOTOR_SPEED)
+        v_right = command_arg['right'] * (simulation.MAX_WEBOTS_MOTOR_SPEED / control.MAX_MOTOR_SPEED)
+        logger.debug(f"webots_do move: left {v_left}, right {v_right}")
+        devices['motors']['left'].setVelocity(v_left)
+        devices['motors']['right'].setVelocity(v_right)
     elif command == "LIGHTUP_LED":
+        logger.debug(f"webots_do light: color {command_arg}")
         devices['leds']['top'].set(command_arg)
 
 

@@ -19,3 +19,6 @@ UPFREQ_PROX_HORIZONTAL = 10  #in Hz
 # matically limits the available rescources for the simulation, therefore
 # it is safer but slower. Deafult value is safe mode, using threading.
 SPARE_RESCOURCES = bool(int(os.getenv('SPARE_RESCOURCES', '1')))
+
+# Max Thymio motor speed in webots environment
+MAX_WEBOTS_MOTOR_SPEED = 9.53
