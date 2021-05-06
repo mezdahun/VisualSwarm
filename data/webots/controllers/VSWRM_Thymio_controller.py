@@ -9,20 +9,14 @@ from controller import Robot, Camera
 import os
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = str(int(True))
-os.environ['SHOW_VISION_STREAMS'] = str(int(True))
+os.environ['SHOW_VISION_STREAMS'] = str(int(False))
 os.environ['LOG_LEVEL'] = 'DEBUG'
+# either using multithreading or multiprocessing
+os.environ['SPARE_RESCOURCES'] = str(int(False))
 
 from visualswarm import app_simulation
 
-# create the Robot instance.
-robot = Robot()
-
-# get the time step of the current world.
-timestep = int(robot.getBasicTimeStep())
-
-def setup_sensors():
-    global robot
-
+def setup_sensors(robot):
     # Creating sensor structure
     sensors = {}
 
@@ -38,9 +32,7 @@ def setup_sensors():
 
     return sensors
 
-def setup_motors():
-    global robot
-
+def setup_motors(robot):
     # Creating motor structure
     motors = {}
 
@@ -56,28 +48,41 @@ def setup_motors():
 
     return motors
 
-def setup_leds():
-    global robot
-
+def setup_leds(robot):
     leds = {}
     leds['top'] = robot.getDevice("leds.top")
 
     return leds
 
-def setup_camera():
+def setup_camera(robot):
     # create and enable the camera on the robot
     camera = Camera("rPi4_Camera_Module_v2.1")
     sampling_freq = 16  #Hz
     sampling_period = int(1/sampling_freq*1000)
-
+    print(sampling_period)
     camera.enable(sampling_period)
+
     return camera
 
-sensors = setup_sensors()
+def main():
 
-devices = {}
-devices['motors'] = setup_motors()
-devices['leds'] = setup_leds()
-devices['camera'] = setup_camera()
+    # create the Robot instance.
+    robot = Robot()
 
-app_simulation.webots_interface(robot, sensors, devices, timestep, with_control=True)
+    # get the time step of the current world.
+    timestep = int(robot.getBasicTimeStep())
+
+    sensors = setup_sensors(robot)
+
+    devices = {}
+    devices['motors'] = setup_motors(robot)
+    devices['leds'] = setup_leds(robot)
+    devices['camera'] = setup_camera(robot)
+
+    app_simulation.webots_interface(robot, sensors, devices, timestep, with_control=True)
+    # while robot.step(timestep) != -1:
+        # devices['motors']['left'].setVelocity(9)
+        # devices['motors']['right'].setVelocity(0)
+
+if __name__ == "__main__":
+    main()
