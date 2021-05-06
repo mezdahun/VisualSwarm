@@ -7,14 +7,16 @@
 from controller import Robot, Camera
 
 import os
+
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = str(int(True))
 os.environ['SHOW_VISION_STREAMS'] = str(int(False))
 os.environ['LOG_LEVEL'] = 'DEBUG'
 # either using multithreading or multiprocessing
-os.environ['SPARE_RESCOURCES'] = str(int(False))
+os.environ['SPARE_RESCOURCES'] = str(int(True))
 
 from visualswarm import app_simulation
+
 
 def setup_sensors(robot):
     # Creating sensor structure
@@ -32,6 +34,7 @@ def setup_sensors(robot):
 
     return sensors
 
+
 def setup_motors(robot):
     # Creating motor structure
     motors = {}
@@ -48,24 +51,26 @@ def setup_motors(robot):
 
     return motors
 
+
 def setup_leds(robot):
     leds = {}
     leds['top'] = robot.getDevice("leds.top")
 
     return leds
 
+
 def setup_camera(robot):
     # create and enable the camera on the robot
     camera = Camera("rPi4_Camera_Module_v2.1")
-    sampling_freq = 16  #Hz
-    sampling_period = int(1/sampling_freq*1000)
+    sampling_freq = 16  # Hz
+    sampling_period = int(1 / sampling_freq * 1000)
     print(sampling_period)
     camera.enable(sampling_period)
 
     return camera
 
-def main():
 
+def main():
     # create the Robot instance.
     robot = Robot()
 
@@ -79,10 +84,8 @@ def main():
     devices['leds'] = setup_leds(robot)
     devices['camera'] = setup_camera(robot)
 
-    app_simulation.webots_interface(robot, sensors, devices, timestep, with_control=True)
-    # while robot.step(timestep) != -1:
-        # devices['motors']['left'].setVelocity(9)
-        # devices['motors']['right'].setVelocity(0)
+    app_simulation.webots_entrypoint(robot, sensors, devices, timestep, with_control=True)
+
 
 if __name__ == "__main__":
     main()

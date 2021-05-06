@@ -24,9 +24,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(env.LOG_LEVEL)
 bcolors = logparams.BColors
 
+
 class VSWRMParallelObject(object):
     """Wrapper around runnable objects so we can switch between Threads and Processes according to the
     architecture we run the simulation on"""
+
     def __init__(self, target=None, args=None):
         if simulation.SPARE_RESCOURCES:
             self.runnable = Thread(target=target, args=args)
@@ -59,7 +61,7 @@ def webots_do(control_args, devices):
         devices['leds']['top'].set(command_arg)
 
 
-def webots_interface(robot, sensors, devices, timestep, with_control=False):
+def webots_entrypoint(robot, sensors, devices, timestep, with_control=False):
     logger.info(f'Started VSWRM-Webots interface app with timestep: {timestep}')
     simulation_start_time = '2000-01-01 12:00:01'
     logger.info(f'Freezing time to: {simulation_start_time}')
@@ -96,21 +98,23 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
 
         # A process to read and act according to sensor values
         high_level_vision_pool = [VSWRMParallelObject(target=vprocess.high_level_vision,
-                                                   args=(raw_vision_stream,
-                                                         high_level_vision_stream,
-                                                         visualization_stream,
-                                                         target_config_stream,)) for i in
+                                                      args=(raw_vision_stream,
+                                                            high_level_vision_stream,
+                                                            visualization_stream,
+                                                            target_config_stream,)) for i in
                                   range(vision.NUM_SEGMENTATION_PROCS)]
         visualizer = VSWRMParallelObject(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
-        VPF_extractor = VSWRMParallelObject(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
+        VPF_extractor = VSWRMParallelObject(target=vprocess.VPF_extraction,
+                                            args=(high_level_vision_stream, VPF_stream,))
         behavior_proc = VSWRMParallelObject(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
-                                                                                motor_control_mode_stream,
-                                                                                with_control))
+                                                                                   motor_control_mode_stream,
+                                                                                   with_control))
         motor_control = VSWRMParallelObject(target=motoroutput.control_thymio,
-                                         args=(control_stream, motor_control_mode_stream,
-                                               emergency_stream, with_control,
-                                               webots_do_stream))
-        emergency_proc = VSWRMParallelObject(target=motoroutput.emergency_behavior, args=(emergency_stream, sensor_stream))
+                                            args=(control_stream, motor_control_mode_stream,
+                                                  emergency_stream, with_control,
+                                                  webots_do_stream))
+        emergency_proc = VSWRMParallelObject(target=motoroutput.emergency_behavior,
+                                             args=(emergency_stream, sensor_stream))
 
         # Start subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
