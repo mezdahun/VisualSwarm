@@ -9,7 +9,7 @@ import numpy as np
 
 import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
-from visualswarm.contrib import monitoring, simulation
+from visualswarm.contrib import monitoring, simulation, control
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
@@ -48,7 +48,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         while True:
             (projection_field, capture_timestamp) = VPF_stream.get()
 
-            if np.mean(projection_field) == 0:
+            if np.mean(projection_field) == 0 and control.EXP_MOVE_TYPE != 'NoExploration':
                 movement_mode = "EXPLORE"
             else:
                 movement_mode = "BEHAVE"
