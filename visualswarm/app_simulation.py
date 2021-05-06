@@ -24,17 +24,27 @@ logger = logging.getLogger(__name__)
 logger.setLevel(env.LOG_LEVEL)
 bcolors = logparams.BColors
 
-# deciding on thread vs process
-if simulation.SPARE_RESCOURCES:
-    VSWRMParallelObject = Thread
-else:
-    VSWRMParallelObject = Process
+class VSWRMParallelObject(object):
+    """Wrapper around runnable objects so we can switch between Threads and Processes according to the
+    architecture we run the simulation on"""
+    def __init__(self, target=None, args=None):
+        if simulation.SPARE_RESCOURCES:
+            self.runnable = Thread(target=target, args=args)
+            self.runnable_type = Thread
+        else:
+            self.runnable = Process(target=target, args=args)
+            self.runnable_type = Process
 
-def test_reader(sensor_stream, webots_do_stream):
-    while True:
-        prox_vals = sensor_stream.get()
-        webots_do_stream.put(prox_vals[0])
-        print(f'put done: {prox_vals[0]}')
+    def start(self):
+        self.runnable.start()
+
+    def terminate(self):
+        if self.runnable_type == Process:
+            # Only Process has terminate, threads will just join
+            self.runnable.terminate()
+
+    def join(self):
+        self.runnable.join()
 
 
 def webots_do(control_args, devices):
