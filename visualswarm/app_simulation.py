@@ -1,17 +1,18 @@
 import logging
-import threading
-from queue import Queue
-import sys
 import numpy as np
 from cv2 import rotate, flip, cvtColor, ROTATE_90_CLOCKWISE, COLOR_BGR2RGB
 
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, vision, simulation, control
-
 from visualswarm.behavior import behavior
-
 from visualswarm.control import motoroutput
+
+if simulation.SPARE_RESCOURCES:
+    from threading import Thread
+    from queue import Queue
+else:
+    from multiprocessing import Process, Queue
 
 from freezegun import freeze_time
 import datetime
@@ -23,6 +24,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(env.LOG_LEVEL)
 bcolors = logparams.BColors
 
+# deciding on thread vs process
+if simulation.SPARE_RESCOURCES:
+    VSWRMParallelObject = Thread
+else:
+    VSWRMParallelObject = Process
 
 def test_reader(sensor_stream, webots_do_stream):
     while True:
@@ -79,27 +85,24 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
         emergency_stream = Queue()
 
         # A process to read and act according to sensor values
-        raw_vision = threading.Thread(target=vacquire.simulated_vision, args=(raw_vision_stream,))
-        high_level_vision_pool = [threading.Thread(target=vprocess.high_level_vision,
+        high_level_vision_pool = [VSWRMParallelObject(target=vprocess.high_level_vision,
                                                    args=(raw_vision_stream,
                                                          high_level_vision_stream,
                                                          visualization_stream,
                                                          target_config_stream,)) for i in
                                   range(vision.NUM_SEGMENTATION_PROCS)]
-        visualizer = threading.Thread(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
-        VPF_extractor = threading.Thread(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
-        behavior_proc = threading.Thread(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
+        visualizer = VSWRMParallelObject(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
+        VPF_extractor = VSWRMParallelObject(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
+        behavior_proc = VSWRMParallelObject(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
                                                                                 motor_control_mode_stream,
                                                                                 with_control))
-        motor_control = threading.Thread(target=motoroutput.control_thymio,
+        motor_control = VSWRMParallelObject(target=motoroutput.control_thymio,
                                          args=(control_stream, motor_control_mode_stream,
                                                emergency_stream, with_control,
                                                webots_do_stream))
-        emergency_proc = threading.Thread(target=motoroutput.emergency_behavior, args=(emergency_stream, sensor_stream))
+        emergency_proc = VSWRMParallelObject(target=motoroutput.emergency_behavior, args=(emergency_stream, sensor_stream))
 
         # Start subprocesses
-        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
-        # raw_vision.start()
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
         for proc in high_level_vision_pool:
             logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} start---')
@@ -120,7 +123,8 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
         camera_sampling_period = devices['camera'].getSamplingPeriod()
         camera_get_time = 0
         frame_id = 0
-        from pprint import pprint
+
+        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision from main thread/process')
         while robot.step(timestep) != -1:
 
             # Fetching camera image on a predefined frequency
@@ -165,17 +169,25 @@ def webots_interface(robot, sensors, devices, timestep, with_control=False):
             freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
 
             # sleeping with physical time so that all processes can calculate until the next simulation timestep
-            sleep(0.025)
+            # sleep(0.01)
 
         # End subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
-        raw_vision.join()
+        # raw_vision.join()
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
         for proc in high_level_vision_pool:
+            proc.terminate()
             proc.join()
+        visualizer.terminate()
         visualizer.join()
+        VPF_extractor.terminate()
         VPF_extractor.join()
+        behavior_proc.terminate()
         behavior_proc.join()
+        motor_control.terminate()
+        motor_control.join()
+        emergency_proc.terminate()
+        emergency_proc.join()
 
         sensor_stream.close()
         motor_get_stream.close()
