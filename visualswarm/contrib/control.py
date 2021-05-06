@@ -18,7 +18,7 @@ MAX_MOTOR_SPEED = 500
 
 # EXPLORATION REGIMES
 # Exploration mode, possible values: 'RandomWalk', 'Rotation', 'NoExploration'
-EXP_MOVE_TYPE = 'RandomWalk'
+EXP_MOVE_TYPE = 'NoExploration'
 
 # waiting some time before exploration if no input (sec)
 WAIT_BEFORE_SWITCH_MOVEMENT = 1
@@ -37,7 +37,8 @@ RW_DT = 1
 V_EXP_RW = 0.4
 
 # Possible absolute angle change in a given timestep during RW exploration (in radian)
-DPSI_MAX_EXP = 0
+# if zero the exploration is just moving in a straight line
+DPSI_MAX_EXP = 3
 
 # ROTATION
 # Motor speed (per motor) during rotation (rotation speed)

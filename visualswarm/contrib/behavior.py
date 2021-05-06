@@ -5,8 +5,8 @@
 
 # Velocity Parameters
 GAM = 0.9  # irl 0.2
-V0 = 0
-ALP0 = 0.5  # overall speed scale (limited by possible motor speed)
+V0 = 0.4
+ALP0 = 0.55  # overall speed scale (limited by possible motor speed)
 ALP1 = 0.010  # ~ 1 / equilibrium distance : irl 0.015
 ALP2 = 0
 
