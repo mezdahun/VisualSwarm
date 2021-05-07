@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from cv2 import rotate, flip, cvtColor, ROTATE_90_CLOCKWISE, COLOR_BGR2RGB
+import os
 
 from visualswarm import env
 from visualswarm.vision import vacquire, vprocess
@@ -47,6 +48,52 @@ class VSWRMParallelObject(object):
 
     def join(self):
         self.runnable.join()
+
+
+def save_simulation_data(r_orientation, r_position, robot_name):
+
+    save_folder = os.path.join(simulation.WEBOTS_SIM_SAVE_FOLDER, robot_name)
+
+    if not os.path.isdir(save_folder):
+        os.mkdir(save_folder)
+        run_num = 1
+    else:
+        subfolders = [name for name in os.listdir(save_folder) if os.path.isdir(os.path.join(save_folder, name))]
+        subfolders = [int(name) for name in subfolders]
+
+        if len(subfolders) == 0:
+            run_num = 1
+        else:
+            run_num = np.max(subfolders) + 1
+
+    save_folder = os.path.join(save_folder, str(run_num))
+    os.mkdir(save_folder)
+
+    filename_or = os.path.join(save_folder, f'{robot_name}_run{run_num}_or.npy')
+    filename_pos = os.path.join(save_folder, f'{robot_name}_run{run_num}_pos.npy')
+    np.save(filename_or, r_orientation)
+    np.save(filename_pos, r_position)
+
+
+def unit_vector(vector):
+    """ Returns the unit vector of the vector.  """
+    return vector / np.linalg.norm(vector)
+
+
+def robot_orientation(compass_values):
+    """ The zero direction can be given as [X, Y, Z] in contrib.simulation"""
+    zero_vector = np.array(simulation.WEBOTS_ZERO_ORIENTATION)
+    zero_vector = zero_vector[~np.isnan(zero_vector)]
+
+    v1_u = unit_vector(zero_vector)
+
+    compass_values = np.array(compass_values)
+    compass_values = compass_values[~np.isnan(compass_values)]
+
+    v2_u = unit_vector(compass_values)
+
+    angle = np.sign(compass_values[simulation.WEBOTS_ORIENTATION_SIGN_IDX]) * np.arccos(np.dot(v1_u, v2_u))
+    return angle
 
 
 def webots_do(control_args, devices):
@@ -143,6 +190,15 @@ def webots_entrypoint(robot, sensors, devices, timestep, with_control=False):
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision from main thread/process')
         while robot.step(timestep) != -1:
 
+            if simulation.WEBOTS_SAVE_SIMULATION_DATA:
+                if frame_id == 0:
+                    r_orientation = np.array([robot_orientation(devices['monitor']['orientation'].getValues())])
+                    r_position = np.array(devices['monitor']['gps'].getValues())
+                else:
+                    r_orientation = np.concatenate((r_orientation,
+                                                    np.array([robot_orientation(devices['monitor']['orientation'].getValues())])))
+                    r_position = np.vstack((r_position, np.array(devices['monitor']['gps'].getValues())))
+
             # Fetching camera image on a predefined frequency
             if camera_get_time > camera_sampling_period:
                 logger.info(f'capturing frame_id: {frame_id}')
@@ -154,6 +210,7 @@ def webots_entrypoint(robot, sensors, devices, timestep, with_control=False):
                                            dtype=np.uint8),
                                   ROTATE_90_CLOCKWISE), 1)
                 img = cvtColor(img, COLOR_BGR2RGB)
+                # img = np.zeros((480, 360, 3), np.uint8)
                 raw_vision_stream.put((img, frame_id, datetime.datetime.utcnow()))
 
                 frame_id += 1
@@ -169,13 +226,12 @@ def webots_entrypoint(robot, sensors, devices, timestep, with_control=False):
                 sensor_stream.put(prox_vals)
                 sensor_get_time = sensor_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
 
+            # Acting on robot devices according to controller
             if webots_do_stream.qsize() > 0:
-                # motor_vals = motoroutput.get_latest_element(webots_do_stream)
-                command_set = webots_do_stream.get()
+                # command_set = motoroutput.get_latest_element(webots_do_stream)
+                command_set = webots_do_stream.get_nowait()
                 logger.debug(command_set)
                 webots_do(command_set, devices)
-                # devices['motors']['left'].setVelocity(motor_vals[1]['left'] / 100)
-                # devices['motors']['right'].setVelocity(motor_vals[1]['right'] / 100)
 
             # increment virtual time counters
             sensor_get_time += timestep
@@ -186,6 +242,9 @@ def webots_entrypoint(robot, sensors, devices, timestep, with_control=False):
 
             # sleeping with physical time so that all processes can calculate until the next simulation timestep
             # sleep(0.01)
+
+        if simulation.WEBOTS_SAVE_SIMULATION_DATA:
+            save_simulation_data(r_orientation, r_position, robot.getName())
 
         # End subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
