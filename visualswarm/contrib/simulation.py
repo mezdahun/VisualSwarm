@@ -4,6 +4,7 @@
 """
 
 import os
+import numpy as np
 
 # Simulation switch, set true to use package from WeBots as a controller package
 # Pass it as an environmental variable (in in venv, use a custom activate.bat with additional env vars in it)
@@ -22,3 +23,19 @@ SPARE_RESCOURCES = bool(int(os.getenv('SPARE_RESCOURCES', '1')))
 
 # Max Thymio motor speed in webots environment
 MAX_WEBOTS_MOTOR_SPEED = 9.53
+
+# Zero angle direction, robot orientation will be calculated as a difference from this vector
+# if an axis is disable in Webots, write nan there here too
+WEBOTS_ZERO_ORIENTATION = [1, np.nan, 0]
+
+# Robot forward axis
+WEBOTS_ROBOT_FWD_AXIS = np.array([0, 0, 1])
+
+# calculating which coordinate will decide on orientation sign
+WEBOTS_ORIENTATION_SIGN_IDX = np.nonzero(WEBOTS_ROBOT_FWD_AXIS[~np.isnan(np.array(WEBOTS_ZERO_ORIENTATION))])[0][0]
+
+# Saving simulation data if true
+WEBOTS_SAVE_SIMULATION_DATA = os.getenv('WEBOTS_SAVE_SIMULATION_DATA')
+
+# Saving simulation data to
+WEBOTS_SIM_SAVE_FOLDER = os.getenv('WEBOTS_SIM_SAVE_FOLDER')
