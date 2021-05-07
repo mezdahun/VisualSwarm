@@ -4,16 +4,20 @@
 """
 
 # You may need to import some classes of the controller module. Ex:
-from controller import Robot, Camera
+from controller import Robot, Camera, GPS, Compass
 
 import os
 
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = str(int(True))
 os.environ['SHOW_VISION_STREAMS'] = str(int(False))
-os.environ['LOG_LEVEL'] = 'DEBUG'
+os.environ['LOG_LEVEL'] = 'INFO'
 # either using multithreading or multiprocessing
 os.environ['SPARE_RESCOURCES'] = str(int(True))
+# saving simulation data
+os.environ['WEBOTS_SAVE_SIMULATION_DATA'] = str(int(True))
+os.environ['WEBOTS_SIM_SAVE_FOLDER'] = 'C:\\Users\\David\\Documents\\VisualSwarm\\controllers\\blank_controller' \
+                                       '\\simulation_data'
 
 from visualswarm import app_simulation
 
@@ -70,6 +74,22 @@ def setup_camera(robot):
     return camera
 
 
+def setup_monitors(robot):
+    # Enable and configure monitoring devices on the robot
+    timestep = int(robot.getBasicTimeStep())
+
+    gps = GPS('gps_sensor')
+    gps.enable(timestep)
+
+    monitor = {'gps': gps}
+
+    orientation = Compass('orientation_sensor')
+    orientation.enable(timestep)
+
+    monitor['orientation'] = orientation
+    return monitor
+
+
 def main():
     # create the Robot instance.
     robot = Robot()
@@ -83,6 +103,7 @@ def main():
     devices['motors'] = setup_motors(robot)
     devices['leds'] = setup_leds(robot)
     devices['camera'] = setup_camera(robot)
+    devices['monitor'] = setup_monitors(robot)
 
     app_simulation.webots_entrypoint(robot, sensors, devices, timestep, with_control=True)
 
