@@ -244,11 +244,8 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                     raw_vision_stream.get_nowait()
                 except:
                     pass
-                img = flip(rotate(np.array(devices['camera'].getImageArray(),
-                                           dtype=np.uint8),
-                                  ROTATE_90_CLOCKWISE), 1)
-                img = cvtColor(img, COLOR_BGR2RGB)
-                # img = np.zeros((480, 360, 3), np.uint8)
+
+                img = getWebotsCameraImage(devices)
                 raw_vision_stream.put((img, frame_id, datetime.datetime.utcnow()))
 
                 frame_id += 1
