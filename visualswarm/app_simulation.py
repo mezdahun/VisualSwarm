@@ -189,7 +189,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                                                             high_level_vision_stream,
                                                             visualization_stream,
                                                             target_config_stream,)) for i in
-                                  range(vision.NUM_SEGMENTATION_PROCS)]
+                                  range(1)]
         visualizer = VSWRMParallelObject(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
         VPF_extractor = VSWRMParallelObject(target=vprocess.VPF_extraction,
                                             args=(high_level_vision_stream, VPF_stream,))
