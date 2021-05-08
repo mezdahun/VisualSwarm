@@ -15,9 +15,8 @@ os.environ['LOG_LEVEL'] = 'INFO'
 # either using multithreading or multiprocessing
 os.environ['SPARE_RESCOURCES'] = str(int(True))
 # saving simulation data
-os.environ['WEBOTS_SAVE_SIMULATION_DATA'] = str(int(True))
-os.environ['WEBOTS_SIM_SAVE_FOLDER'] = 'C:\\Users\\David\\Documents\\VisualSwarm\\controllers\\blank_controller' \
-                                       '\\simulation_data'
+os.environ['WEBOTS_SAVE_SIMULATION_DATA'] = str(int(False))
+os.environ['WEBOTS_SIM_SAVE_FOLDER'] = 'path to folder'
 
 from visualswarm import app_simulation
 
@@ -90,6 +89,19 @@ def setup_monitors(robot):
     return monitor
 
 
+def setup_devices(robot):
+    devices = {}
+    devices['params'] = {}
+    devices['sensors'] = setup_sensors(robot)
+    devices['motors'] = setup_motors(robot)
+    devices['leds'] = setup_leds(robot)
+    devices['camera'] = setup_camera(robot)
+    devices['params']['c_height'] = devices['camera'].getHeight()
+    devices['params']['c_width'] = devices['camera'].getWidth()
+    devices['monitor'] = setup_monitors(robot)
+    return devices
+
+
 def main():
     # create the Robot instance.
     robot = Robot()
@@ -97,15 +109,9 @@ def main():
     # get the time step of the current world.
     timestep = int(robot.getBasicTimeStep())
 
-    sensors = setup_sensors(robot)
+    devices = setup_devices(robot)
 
-    devices = {}
-    devices['motors'] = setup_motors(robot)
-    devices['leds'] = setup_leds(robot)
-    devices['camera'] = setup_camera(robot)
-    devices['monitor'] = setup_monitors(robot)
-
-    app_simulation.webots_entrypoint(robot, sensors, devices, timestep, with_control=True)
+    app_simulation.webots_entrypoint(robot, devices, timestep, with_control=True)
 
 
 if __name__ == "__main__":
