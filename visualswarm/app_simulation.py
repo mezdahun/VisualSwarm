@@ -110,7 +110,45 @@ def webots_do(control_args, devices):
         devices['leds']['top'].set(command_arg)
 
 
-def webots_entrypoint(robot, sensors, devices, timestep, with_control=False):
+def getWebotsCameraImage(devices):
+        rawString = devices['camera'].getImage()
+        width = devices['params']['c_width']
+        height = devices['params']['c_height']
+
+        # # Create mask for yellow pixels based on the camera image.
+        # index = 0
+        # img = np.zeros([height, width, 3], np.uint8)
+        # for j in range(height):
+        #     for i in range(width):
+        #         img[j, i, 2] = rawString[index]
+        #         img[j, i, 1] = rawString[index + 1]
+        #         img[j, i, 0] = rawString[index + 2]
+        #
+        # return img
+
+        camera_data = devices['camera'].getImage()
+
+        # solution1
+        # camera_image = decode_image(camera_data, height, width)
+        # print(camera_image.shape)
+
+        # #solution2
+        # nparr = np.frombuffer(camera_data, np.uint8)
+        # slicer_idx = int(len(nparr) / 4)
+        # # r = nparr[0:slicer_idx].reshape(height, width)
+        # # g = nparr[slicer_idx:2 * slicer_idx].reshape(height, width)
+        # # b = nparr[2 * slicer_idx:3 * slicer_idx].reshape(height, width)
+        # r = nparr[0:3 * slicer_idx:3].reshape(height, width)
+        # g = nparr[1:3 * slicer_idx + 1:3].reshape(height, width)
+        # b = nparr[2:3 * slicer_idx + 2:3].reshape(height, width)
+        # img = np.dstack((r, g, b))
+
+        img = np.frombuffer(camera_data, np.uint8).reshape((height, width, 4))
+
+        return img
+
+
+def webots_entrypoint(robot, devices, timestep, with_control=False):
     logger.info(f'Started VSWRM-Webots interface app with timestep: {timestep}')
     simulation_start_time = '2000-01-01 12:00:01'
     logger.info(f'Freezing time to: {simulation_start_time}')
