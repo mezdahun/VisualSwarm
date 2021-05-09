@@ -39,3 +39,6 @@ WEBOTS_SAVE_SIMULATION_DATA = bool(int(os.getenv('WEBOTS_SAVE_SIMULATION_DATA', 
 
 # Saving simulation data to
 WEBOTS_SIM_SAVE_FOLDER = os.getenv('WEBOTS_SIM_SAVE_FOLDER')
+
+# Limit simulation end uniformly
+PAUSE_SIMULATION_AFTER = int(os.getenv('PAUSE_SIMULATION_AFTER'))
