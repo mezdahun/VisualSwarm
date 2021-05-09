@@ -51,12 +51,13 @@ class VSWRMParallelObject(object):
         self.runnable.join()
 
 
-def save_simulation_data(r_orientation, r_position, robot_name):
+def assure_data_folders(robot_name):
 
     save_folder = os.path.join(simulation.WEBOTS_SIM_SAVE_FOLDER, robot_name)
 
+    # creating main data folder
     if not os.path.isdir(save_folder):
-        os.mkdir(save_folder)
+        os.makedirs(save_folder)
         run_num = 1
     else:
         subfolders = [name for name in os.listdir(save_folder) if os.path.isdir(os.path.join(save_folder, name))]
@@ -68,13 +69,12 @@ def save_simulation_data(r_orientation, r_position, robot_name):
             run_num = np.max(subfolders) + 1
 
     save_folder = os.path.join(save_folder, str(run_num))
-    os.mkdir(save_folder)
+    os.makedirs(save_folder)
 
     filename_or = os.path.join(save_folder, f'{robot_name}_run{run_num}_or.npy')
     filename_pos = os.path.join(save_folder, f'{robot_name}_run{run_num}_pos.npy')
-    np.save(filename_or, r_orientation)
-    np.save(filename_pos, r_position)
 
+    return filename_pos, filename_or
 
 def unit_vector(vector):
     """ Returns the unit vector of the vector.  """
