@@ -17,6 +17,9 @@ os.environ['SPARE_RESCOURCES'] = str(int(True))
 # saving simulation data
 os.environ['WEBOTS_SAVE_SIMULATION_DATA'] = str(int(False))
 os.environ['WEBOTS_SIM_SAVE_FOLDER'] = 'path to folder'
+# performance measure
+os.environ['WEBOTS_LOG_PERFORMANCE'] = str(int(False))
+
 
 from visualswarm import app_simulation
 
