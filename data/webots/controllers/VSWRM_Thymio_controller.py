@@ -4,7 +4,7 @@
 """
 
 # You may need to import some classes of the controller module. Ex:
-from controller import Robot, Camera, GPS, Compass
+from controller import Camera, GPS, Compass, Supervisor
 
 import os
 
@@ -19,6 +19,8 @@ os.environ['WEBOTS_SAVE_SIMULATION_DATA'] = str(int(False))
 os.environ['WEBOTS_SIM_SAVE_FOLDER'] = 'path to folder'
 # performance measure
 os.environ['WEBOTS_LOG_PERFORMANCE'] = str(int(False))
+# simulation time limit
+os.environ['PAUSE_SIMULATION_AFTER'] = '25'
 
 
 from visualswarm import app_simulation
@@ -107,7 +109,7 @@ def setup_devices(robot):
 
 def main():
     # create the Robot instance.
-    robot = Robot()
+    robot = Supervisor()
 
     # get the time step of the current world.
     timestep = int(robot.getBasicTimeStep())

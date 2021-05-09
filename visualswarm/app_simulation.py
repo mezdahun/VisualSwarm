@@ -157,6 +157,10 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                     camera_get_time += timestep
                     simulation_time += timestep
 
+                    if simulation.PAUSE_SIMULATION_AFTER > 0:
+                        if simulation_time > simulation.PAUSE_SIMULATION_AFTER * 1000:
+                            robot.simulationSetMode(robot.SIMULATION_MODE_PAUSE)
+
                     # ticking virtual time with virtual time of Webots environment
                     freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
 
