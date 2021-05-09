@@ -1,10 +1,11 @@
 import logging
 import numpy as np
-from cv2 import rotate, flip, cvtColor, ROTATE_90_CLOCKWISE, COLOR_BGR2RGB
 import os
+import pickle
+from contextlib import ExitStack
 
 from visualswarm import env
-from visualswarm.vision import vacquire, vprocess
+from visualswarm.vision import vprocess
 from visualswarm.contrib import logparams, vision, simulation, control
 from visualswarm.behavior import behavior
 from visualswarm.control import motoroutput
@@ -17,7 +18,7 @@ else:
 
 from freezegun import freeze_time
 import datetime
-from time import sleep
+import time
 
 # setup logging
 logging.basicConfig()
