@@ -65,7 +65,7 @@ def plot_run_position(data_folder, robot_name, run_numbers, legends=None):
     plt.show()
 
 
-def plot_run_position_pendulum(data_folder, robot_name, run_numbers, legends=None):
+def plot_run_position_pendulum(data_folder, robot_name, run_numbers, legends=None, suptitle=None, simulation_time=None):
     """Plotting equilibrium distance according to an experimental data dict defined above"""
     if not isinstance(run_numbers, list):
         run_numbers = [run_numbers]
@@ -81,6 +81,8 @@ def plot_run_position_pendulum(data_folder, robot_name, run_numbers, legends=Non
             os.path.join(data_folder, robot_name, run_number, f'{robot_name}_run{run_number}_pos.npy'))
 
         fake_time = np.linspace(0, 1, len(position_array))
+        if simulation_time is not None:
+            fake_time = fake_time * simulation_time
 
         plt.axes(ax[0])
         plt.plot(fake_time, position_array[:, 0])
@@ -88,18 +90,27 @@ def plot_run_position_pendulum(data_folder, robot_name, run_numbers, legends=Non
         plt.axes(ax[1])
         plt.plot(fake_time, position_array[:, 2])
 
-    plt.suptitle('Pendulum movement for different simulation timesteps')
+    if suptitle is None:
+        plt.suptitle('Pendulum movement for different simulation timesteps')
+    else:
+        plt.suptitle(suptitle)
 
     plt.axes(ax[0])
     plt.title(f'{robot_name} x coordinate')
-    plt.xlabel('simulation time [AU]')
+    if simulation_time is not None:
+        plt.xlabel('simulation time [V-sec]')
+    else:
+        plt.xlabel('simulation time [AU]')
     plt.ylabel('position [x]')
     if legends is not None:
         plt.legend(legends)
 
     plt.axes(ax[1])
     plt.title(f'{robot_name} y coordinate')
-    plt.xlabel('simulation time [AU]')
+    if simulation_time is not None:
+        plt.xlabel('simulation time [V-sec]')
+    else:
+        plt.xlabel('simulation time [AU]')
     plt.ylabel('position [y]')
     if legends is not None:
         plt.legend(legends)
