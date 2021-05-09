@@ -219,68 +219,116 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} sentinel/emergency process')
         emergency_proc.start()
 
-        # The main thread to interact with non-pickleable objects that can not be passed
-        # to subprocesses
-        sensor_get_time = 0  # virtual time increment in ms
+        # to control frquency of given actions we use counters with simulation time
+        sensor_get_time = 0
         camera_sampling_period = devices['camera'].getSamplingPeriod()
         camera_get_time = 0
         frame_id = 0
+        simulation_time = 0  # keep up with virtual time in simulation (in ms)
 
-        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision from main thread/process')
-        while robot.step(timestep) != -1:
+        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision (webots) from main thread/process')
+        avg_times = np.zeros(5)
+        timer_counts = np.zeros(5)
+        t_end = time.perf_counter()
 
-            if simulation.WEBOTS_SAVE_SIMULATION_DATA:
-                if frame_id == 0:
-                    r_orientation = np.array([robot_orientation(devices['monitor']['orientation'].getValues())])
-                    r_position = np.array(devices['monitor']['gps'].getValues())
-                else:
-                    r_orientation = np.concatenate((r_orientation,
-                                                    np.array([robot_orientation(devices['monitor']['orientation'].getValues())])))
-                    r_position = np.vstack((r_position, np.array(devices['monitor']['gps'].getValues())))
-
-            # Fetching camera image on a predefined frequency
-            if camera_get_time > camera_sampling_period:
-                logger.info(f'capturing frame_id: {frame_id}')
-                try:
-                    raw_vision_stream.get_nowait()
-                except:
-                    pass
-
-                img = getWebotsCameraImage(devices)
-                raw_vision_stream.put((img, frame_id, datetime.datetime.utcnow()))
-
-                frame_id += 1
-                camera_get_time = camera_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
-
-            # Thymio updates sensor values on predefined frequency
-            if (sensor_get_time / 1000) > (1 / simulation.UPFREQ_PROX_HORIZONTAL):
-                prox_vals = [i.getValue() for i in sensors['prox']['horizontal']]
-                try:
-                    sensor_stream.get_nowait()
-                except:
-                    pass
-                sensor_stream.put(prox_vals)
-                sensor_get_time = sensor_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
-
-            # Acting on robot devices according to controller
-            if webots_do_stream.qsize() > 0:
-                # command_set = motoroutput.get_latest_element(webots_do_stream)
-                command_set = webots_do_stream.get_nowait()
-                logger.debug(command_set)
-                webots_do(command_set, devices)
-
-            # increment virtual time counters
-            sensor_get_time += timestep
-            camera_get_time += timestep
-
-            # ticking virtual time with virtual time of Webots environment
-            freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
-
-            # sleeping with physical time so that all processes can calculate until the next simulation timestep
-            # sleep(0.01)
-
+        # getting filenames to save simulation data and creating folders
         if simulation.WEBOTS_SAVE_SIMULATION_DATA:
-            save_simulation_data(r_orientation, r_position, robot.getName())
+            position_fpath, orientation_fpath = assure_data_folders(robot.getName())
+
+        with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(position_fpath, 'ab') as pos_f:
+            with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(orientation_fpath, 'ab') as or_f:
+                while robot.step(timestep) != -1:
+
+                    t_start = time.perf_counter()
+                    dt_tick = t_start - t_end
+                    avg_times[4] += dt_tick
+                    timer_counts[4] += 1
+
+                    t0 = time.perf_counter()
+
+                    # saving simulation data if requested
+                    if simulation.WEBOTS_SAVE_SIMULATION_DATA:
+
+                        raw_or_vals = devices['monitor']['orientation'].getValues()
+                        r_orientation = np.concatenate((np.array([simulation_time]),
+                                                        np.array([robot_orientation(raw_or_vals)])))
+                        r_position = np.concatenate((np.array([simulation_time]),
+                                                     np.array(devices['monitor']['gps'].getValues())))
+
+                        pickle.dump(r_position, pos_f)
+                        pickle.dump(r_orientation, or_f)
+
+                    t1 = time.perf_counter()
+                    dt_save = t1-t0
+                    avg_times[0] += dt_save
+                    timer_counts[0] += 1
+
+                    # Fetching camera image on a predefined frequency
+                    if camera_get_time > camera_sampling_period:
+                        t0 = time.perf_counter()
+
+                        try:
+                            raw_vision_stream.get_nowait()
+                        except:
+                            pass
+
+                        img = getWebotsCameraImage(devices)
+                        raw_vision_stream.put((img, frame_id, datetime.datetime.utcnow()))
+
+                        frame_id += 1
+                        camera_get_time = camera_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
+
+                        t1 = time.perf_counter()
+                        dt_image = t1 - t0
+                        avg_times[1] += dt_image
+                        timer_counts[1] += 1
+
+                    # Thymio updates sensor values on predefined frequency
+                    if (sensor_get_time / 1000) > (1 / simulation.UPFREQ_PROX_HORIZONTAL):
+                        t0 = time.perf_counter()
+
+                        prox_vals = [i.getValue() for i in devices['sensors']['prox']['horizontal']]
+                        try:
+                            sensor_stream.get_nowait()
+                        except:
+                            pass
+                        sensor_stream.put(prox_vals)
+                        sensor_get_time = sensor_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
+
+                        t1 = time.perf_counter()
+                        dt_prox = t1 - t0
+                        avg_times[2] += dt_prox
+                        timer_counts[2] += 1
+
+                    # Acting on robot devices according to controller
+                    if webots_do_stream.qsize() > 0:
+                        t0 = time.perf_counter()
+
+                        command_set = webots_do_stream.get_nowait()
+                        logger.debug(command_set)
+                        webots_do(command_set, devices)
+
+                        t1 = time.perf_counter()
+                        dt_webotsdo = t1 - t0
+                        avg_times[3] += dt_webotsdo
+                        timer_counts[3] += 1
+
+                    # increment virtual time counters
+                    sensor_get_time += timestep
+                    camera_get_time += timestep
+                    simulation_time += timestep
+
+                    # ticking virtual time with virtual time of Webots environment
+                    freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
+
+                    t_end = time.perf_counter()
+                    used_times = avg_times/timer_counts*1000
+                    logger.info(f'\nAVG Used times: \n'
+                                f'\t---data save: {used_times[0]} \n'
+                                f'\t---image passing: {used_times[1]}\n'
+                                f'\t---sensor passing: {used_times[2]}\n'
+                                f'\t---set devices: {used_times[3]}\n'
+                                f'\t---step world physics: {used_times[4]}\n')
 
         # End subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
