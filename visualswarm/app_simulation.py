@@ -72,7 +72,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
 
         # getting filenames to save simulation data and creating folders
         if simulation.WEBOTS_SAVE_SIMULATION_DATA:
-            position_fpath, orientation_fpath = processing_tools.assure_data_folders(robot.getName())
+            position_fpath, orientation_fpath, run_number = processing_tools.assure_data_folders(robot.getName())
 
         with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(position_fpath, 'ab') as pos_f:
             with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(orientation_fpath, 'ab') as or_f:
