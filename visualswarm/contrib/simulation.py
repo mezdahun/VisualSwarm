@@ -42,3 +42,5 @@ WEBOTS_SIM_SAVE_FOLDER = os.getenv('WEBOTS_SIM_SAVE_FOLDER')
 
 # Limit simulation end uniformly
 PAUSE_SIMULATION_AFTER = int(os.getenv('PAUSE_SIMULATION_AFTER'))
+
+WEBOTS_LOG_PERFORMANCE = bool(int(os.getenv('WEBOTS_LOG_PERFORMANCE', '0')))

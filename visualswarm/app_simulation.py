@@ -165,12 +165,14 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                     freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
 
                     t_end = time.perf_counter()
-                    used_times = avg_times/timer_counts*1000
-                    logger.info(f'\nAVG Used times: \n'
-                                f'\t---data save: {used_times[0]} \n'
-                                f'\t---image passing: {used_times[1]}\n'
-                                f'\t---sensor passing: {used_times[2]}\n'
-                                f'\t---set devices: {used_times[3]}\n'
-                                f'\t---step world physics: {used_times[4]}\n')
+
+                    if simulation.WEBOTS_LOG_PERFORMANCE:
+                        used_times = avg_times/timer_counts*1000
+                        logger.info(f'\nAVG Used times: \n'
+                                    f'\t---data save: {used_times[0]} \n'
+                                    f'\t---image passing: {used_times[1]}\n'
+                                    f'\t---sensor passing: {used_times[2]}\n'
+                                    f'\t---set devices: {used_times[3]}\n'
+                                    f'\t---step world physics: {used_times[4]}\n')
 
         processing_tools.stop_and_cleanup(processes, streams)
