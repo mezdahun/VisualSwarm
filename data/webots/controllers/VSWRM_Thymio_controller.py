@@ -11,20 +11,25 @@ import os
 # Set environment variables for configuration here!
 os.environ['ENABLE_SIMULATION'] = str(int(True))
 os.environ['SHOW_VISION_STREAMS'] = str(int(False))
+
+# logging and performance measure
 os.environ['LOG_LEVEL'] = 'INFO'
-# either using multithreading or multiprocessing
+os.environ['WEBOTS_LOG_PERFORMANCE'] = str(int(False))
+
+# either using multithreading (True) or multiprocessing (False)
 os.environ['SPARE_RESCOURCES'] = str(int(True))
+
 # saving simulation data
 os.environ['WEBOTS_SAVE_SIMULATION_DATA'] = str(int(False))
-os.environ['WEBOTS_SIM_SAVE_FOLDER'] = 'path to folder'
-# performance measure
-os.environ['WEBOTS_LOG_PERFORMANCE'] = str(int(False))
+os.environ['WEBOTS_SIM_SAVE_FOLDER'] = ''
+
 # simulation time limit
-os.environ['PAUSE_SIMULATION_AFTER'] = '25'
+os.environ['PAUSE_SIMULATION_AFTER'] = '0'
+# passing algorithm parameters using json file
+os.environ['BEHAVE_PARAMS_JSON_PATH'] = ''
 
 
 from visualswarm import app_simulation
-
 
 def setup_sensors(robot):
     # Creating sensor structure
