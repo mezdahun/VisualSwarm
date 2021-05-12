@@ -151,8 +151,9 @@ def assure_data_folders(robot_name):
 
     filename_or = os.path.join(save_folder, f'{robot_name}_run{run_num}_or.npy')
     filename_pos = os.path.join(save_folder, f'{robot_name}_run{run_num}_pos.npy')
+    filename_params = os.path.join(save_folder, f'{robot_name}_run{run_num}_params.json')
 
-    return filename_pos, filename_or, run_num
+    return filename_pos, filename_or, filename_params, run_num
 
 
 def unit_vector(vector):

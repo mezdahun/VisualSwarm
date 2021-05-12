@@ -1,10 +1,11 @@
+import json
 import logging
 import numpy as np
 import pickle
 from contextlib import ExitStack
 
 from visualswarm import env
-from visualswarm.contrib import logparams, simulation, control
+from visualswarm.contrib import logparams, simulation, control, behavior
 from visualswarm.simulation_tools import processing_tools
 
 from freezegun import freeze_time
@@ -72,7 +73,8 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
 
         # getting filenames to save simulation data and creating folders
         if simulation.WEBOTS_SAVE_SIMULATION_DATA:
-            position_fpath, orientation_fpath, run_number = processing_tools.assure_data_folders(robot.getName())
+            file_paths = processing_tools.assure_data_folders(robot.getName())
+            position_fpath, orientation_fpath, params_fpath, run_number = file_paths
 
         with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(position_fpath, 'ab') as pos_f:
             with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(orientation_fpath, 'ab') as or_f:
@@ -174,5 +176,16 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                                     f'\t---sensor passing: {used_times[2]}\n'
                                     f'\t---set devices: {used_times[3]}\n'
                                     f'\t---step world physics: {used_times[4]}\n')
+
+        # saving algorithm parameters into json file if requested
+        with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(params_fpath, 'w') as param_f:
+            json.dump({"GAM": behavior.GAM,
+                       "V0": behavior.V0,
+                       "ALP0": behavior.ALP0,
+                       "ALP1": behavior.ALP1,
+                       "ALP2": behavior.ALP2,
+                       "BET0": behavior.BET0,
+                       "BET1": behavior.BET1,
+                       "BET2": behavior.BET2}, param_f, indent=4)
 
         processing_tools.stop_and_cleanup(processes, streams)
