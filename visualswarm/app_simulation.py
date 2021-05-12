@@ -34,13 +34,13 @@ def webots_do(control_args, devices):
 
 
 def getWebotsCameraImage(devices):
-        rawString = devices['camera'].getImage()
-        width = devices['params']['c_width']
-        height = devices['params']['c_height']
+    rawString = devices['camera'].getImage()
+    width = devices['params']['c_width']
+    height = devices['params']['c_height']
 
-        camera_data = devices['camera'].getImage()
-        img = np.frombuffer(camera_data, np.uint8).reshape((height, width, 4))
-        return img
+    camera_data = devices['camera'].getImage()
+    img = np.frombuffer(camera_data, np.uint8).reshape((height, width, 4))
+    return img
 
 
 def webots_entrypoint(robot, devices, timestep, with_control=False):
@@ -89,7 +89,6 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
 
                     # saving simulation data if requested
                     if simulation.WEBOTS_SAVE_SIMULATION_DATA:
-
                         raw_or_vals = devices['monitor']['orientation'].getValues()
                         r_orientation = np.concatenate((np.array([simulation_time]),
                                                         np.array([processing_tools.robot_orientation(raw_or_vals)])))
@@ -100,7 +99,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         pickle.dump(r_orientation, or_f)
 
                     t1 = time.perf_counter()
-                    dt_save = t1-t0
+                    dt_save = t1 - t0
                     avg_times[0] += dt_save
                     timer_counts[0] += 1
 
@@ -169,7 +168,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                     t_end = time.perf_counter()
 
                     if simulation.WEBOTS_LOG_PERFORMANCE:
-                        used_times = avg_times/timer_counts*1000
+                        used_times = avg_times / timer_counts * 1000
                         logger.info(f'\nAVG Used times: \n'
                                     f'\t---data save: {used_times[0]} \n'
                                     f'\t---image passing: {used_times[1]}\n'
