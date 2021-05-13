@@ -61,7 +61,7 @@ def summarize_experiment(data_path, experiment_name):
                                    f'{robot_name}_run{run_name}_params.json')) as param_f:
                 param_dict[f'run{run_name}'] = json.load(param_f)
 
-            if j == 0:
+            if i == 0 and j == 0:
                 t = position_array[:, 0] / 1000
                 t_len = len(t)
                 data = np.zeros((num_runs, num_robots, num_attributes, t_len))
