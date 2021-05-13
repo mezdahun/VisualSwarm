@@ -140,7 +140,7 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
             [v_left, v_right]: motor velocity values of the agent
     """
     # Matching simulation scale with reality
-    v = v * control.MOTOR_SCALE_CORRECTION
+    v = v * behavior.KAP
 
     # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
