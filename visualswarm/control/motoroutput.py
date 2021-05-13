@@ -6,7 +6,7 @@ if not simulation.ENABLE_SIMULATION:
     from visualswarm.control import motorinterface
 
 import logging
-from visualswarm.contrib import logparams, control, physconstraints
+from visualswarm.contrib import logparams, control, behavior, physconstraints
 from visualswarm import env
 
 import numpy as np
