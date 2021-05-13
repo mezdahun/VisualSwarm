@@ -30,3 +30,19 @@ ALP2 = behave_params_dict.get('ALP2', 0)
 BET0 = behave_params_dict.get('BET0', 0.6)   # overall responsiveness of heading change (turning "speed") : irl 0.5 sim 0.75
 BET1 = behave_params_dict.get('BET1', 0.0025)
 BET2 = behave_params_dict.get('BET2', 0)
+
+# Motor scale heuristics Kappa
+KAP = behave_params_dict.get('KAP', 50)
+
+
+def get_params():
+    params = {"GAM": GAM,
+              "V0": V0,
+              "ALP0": ALP0,
+              "ALP1": ALP1,
+              "ALP2": ALP2,
+              "BET0": BET0,
+              "BET1": BET1,
+              "BET2": BET2,
+              "KAP": KAP}
+    return params
