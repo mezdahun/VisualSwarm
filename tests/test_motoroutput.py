@@ -335,7 +335,7 @@ class MotorInterfaceTest(TestCase):
             self.assertEqual(motoroutput.hardlimit_motor_speed(v_l, v_r), [-1, 0])
 
     def test_distribute_overall_speed(self):
-        with mock.patch('visualswarm.contrib.control.MOTOR_SCALE_CORRECTION', 1):
+        with mock.patch('visualswarm.contrib.behavior.KAP', 1):
             with mock.patch('numpy.pi', 1):
                 v = 100
 
