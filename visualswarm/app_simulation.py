@@ -178,13 +178,6 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
 
         # saving algorithm parameters into json file if requested
         with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(params_fpath, 'w') as param_f:
-            json.dump({"GAM": behavior.GAM,
-                       "V0": behavior.V0,
-                       "ALP0": behavior.ALP0,
-                       "ALP1": behavior.ALP1,
-                       "ALP2": behavior.ALP2,
-                       "BET0": behavior.BET0,
-                       "BET1": behavior.BET1,
-                       "BET2": behavior.BET2}, param_f, indent=4)
+            json.dump(behavior.get_params(), param_f, indent=4)
 
         processing_tools.stop_and_cleanup(processes, streams)
