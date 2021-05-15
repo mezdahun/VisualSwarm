@@ -13,23 +13,27 @@ os.environ['ENABLE_SIMULATION'] = str(int(True))
 os.environ['SHOW_VISION_STREAMS'] = str(int(False))
 
 # logging and performance measure
-os.environ['LOG_LEVEL'] = 'INFO'
+os.environ['LOG_LEVEL'] = 'DEBUG'
 os.environ['WEBOTS_LOG_PERFORMANCE'] = str(int(False))
 
 # either using multithreading (True) or multiprocessing (False)
 os.environ['SPARE_RESCOURCES'] = str(int(True))
 
 # saving simulation data
+EXPERIMENT_NAME = 'ExampleExperiment'
 os.environ['WEBOTS_SAVE_SIMULATION_DATA'] = str(int(False))
-os.environ['WEBOTS_SIM_SAVE_FOLDER'] = ''
+os.environ[
+    'WEBOTS_SIM_SAVE_FOLDER'] = f'path/to/folder/{EXPERIMENT_NAME}'
 
-# simulation time limit
+# simulation time limit if 0 then no limit is defined, if larger the simulation will be paused after this time
 os.environ['PAUSE_SIMULATION_AFTER'] = '0'
 # passing algorithm parameters using json file
-os.environ['BEHAVE_PARAMS_JSON_PATH'] = ''
+os.environ[
+    'BEHAVE_PARAMS_JSON_PATH'] = 'path/to/folder/example_params.json'
 
+# visualization
+USE_ROBOT_PEN = False
 
-from visualswarm import app_simulation
 
 def setup_sensors(robot):
     # Creating sensor structure
@@ -75,7 +79,7 @@ def setup_leds(robot):
 def setup_camera(robot):
     # create and enable the camera on the robot
     camera = Camera("rPi4_Camera_Module_v2.1")
-    sampling_freq = 16  # Hz
+    sampling_freq = 60  # Hz
     sampling_period = int(1 / sampling_freq * 1000)
     print(sampling_period)
     camera.enable(sampling_period)
@@ -109,18 +113,32 @@ def setup_devices(robot):
     devices['params']['c_height'] = devices['camera'].getHeight()
     devices['params']['c_width'] = devices['camera'].getWidth()
     devices['monitor'] = setup_monitors(robot)
+    enable_pen(robot, USE_ROBOT_PEN)
     return devices
+
+
+def enable_pen(robot, use_pen):
+    pen = robot.getDevice("pen")
+    pen.write(use_pen)
 
 
 def main():
     # create the Robot instance.
     robot = Supervisor()
 
+    # example to robot-specific configuration
+    if robot.getName() == "Bob":
+        os.environ['EXP_MOVEMENT'] = "NoExploration"
+    else:
+        os.environ['EXP_MOVEMENT'] = "Rotation"
+
     # get the time step of the current world.
     timestep = int(robot.getBasicTimeStep())
 
+    # setup actuators and sensors
     devices = setup_devices(robot)
 
+    from visualswarm import app_simulation
     app_simulation.webots_entrypoint(robot, devices, timestep, with_control=True)
 
 
