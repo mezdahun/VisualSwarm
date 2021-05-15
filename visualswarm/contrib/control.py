@@ -2,12 +2,14 @@
 @author: mezdahun
 @description: Motor Control related parameters
 """
+import os
+
 # MOTOR INTERFACE
 # Serial port on which the Thymio is available
 THYMIO_DEVICE_PORT = "/dev/ttyACM0"
 
 # Motor scale correction to put the motor scales into the right region
-MOTOR_SCALE_CORRECTION = 550
+# MOTOR_SCALE_CORRECTION = 25
 
 # Distance between 2 contact points of wheel and ground in m
 B = 0.11
@@ -18,7 +20,7 @@ MAX_MOTOR_SPEED = 500
 
 # EXPLORATION REGIMES
 # Exploration mode, possible values: 'RandomWalk', 'Rotation', 'NoExploration'
-EXP_MOVE_TYPE = 'NoExploration'
+EXP_MOVE_TYPE = os.getenv('EXP_MOVEMENT', 'NoExploration')
 
 # waiting some time before exploration if no input (sec)
 WAIT_BEFORE_SWITCH_MOVEMENT = 1
