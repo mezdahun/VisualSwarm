@@ -6,7 +6,7 @@ from contextlib import ExitStack
 
 from visualswarm import env
 from visualswarm.contrib import logparams, simulation, control, behavior
-from visualswarm.simulation_tools import processing_tools
+from visualswarm.simulation_tools import processing_tools, webots_tools
 
 from freezegun import freeze_time
 import datetime
@@ -97,6 +97,9 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
 
                         pickle.dump(r_position, pos_f)
                         pickle.dump(r_orientation, or_f)
+
+                        if control.BORDER_CONDITION == "Infinite":
+                            webots_tools.teleport_to_center_if_needed(robot, r_position)
 
                     t1 = time.perf_counter()
                     dt_save = t1 - t0
