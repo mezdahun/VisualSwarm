@@ -103,10 +103,10 @@ def velocity(position_array, orientation_array, time):
 
     for t in range(1, position_array.shape[1]):
         if -np.pi / 2 < orientation_array[t] < np.pi / 2:  # aligned with positive z direction
-            or_sign = np.sign(position_array[2, t] - position_array[2, t-1])
+            or_sign = np.sign(position_array[2, t] - position_array[2, t - 1])
         else:
             or_sign = - np.sign(position_array[2, t] - position_array[2, t - 1])
-        velocities.append(or_sign * distance(position_array[:, t], position_array[:, t-1]) / (time[t] - time[t - 1]))
+        velocities.append(or_sign * distance(position_array[:, t], position_array[:, t - 1]) / (time[t] - time[t - 1]))
 
     return np.array([velocities])
 
@@ -123,7 +123,6 @@ def distance(p1, p2):
 
 
 def calculate_velocity(summary, data):
-
     velocities = np.zeros((summary['num_runs'], summary['num_robots'], data.shape[-1] - 1))
 
     t_idx = summary['attributes'].index('t')
