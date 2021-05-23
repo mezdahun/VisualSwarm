@@ -163,3 +163,85 @@ def calculate_distance(summary, data, from_point):
 
     return distances
 
+
+def calculate_interindividual_distance(summary, data):
+    iid = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'], data.shape[-1]))
+
+    t_idx = summary['attributes'].index('t')
+    pos_x = summary['attributes'].index('pos_x')
+    pos_y = summary['attributes'].index('pos_y')
+    pos_z = summary['attributes'].index('pos_z')
+
+    for runi in range(summary['num_runs']):
+        for robi in range(summary['num_robots']):
+            for robj in range(summary['num_robots']):
+                pos_array_i = data[runi, robi, [pos_x, pos_y, pos_z], :]
+                pos_array_j = data[runi, robj, [pos_x, pos_y, pos_z], :]
+                iid[runi, robi, robj, :] = distance(pos_array_i, pos_array_j)
+
+    return iid
+
+
+def calculate_mean_iid(summary, data, window_width=100):
+    iid = calculate_interindividual_distance(summary, data)
+    for i in range(summary['num_robots']):
+        iid[:, i, i, :] = np.inf
+
+    miid = np.zeros((summary['num_runs'],))
+
+    for i in range(summary['num_runs']):
+        miid[i] = np.mean(np.min(np.min(iid[i, :, :, -window_width::], axis=0), axis=0))
+
+    return miid
+
+
+def calculate_ploarization_matrix(summary, data):
+
+    time = data[0, 0, 0, :]  # 1 step shorter because of diff
+
+    or_idx = summary['attributes'].index('or')
+    orientations = data[:, :, or_idx, :]
+
+    pol = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'],data.shape[-1]))
+
+    for i in range(summary['num_robots']):
+        pol[:, i, i, :] = np.nan
+
+    for i in range(summary['num_runs']):
+        for ri in range(summary['num_robots']):
+            for rj in range(summary['num_robots']):
+                diff = np.abs(orientations[i, ri, :] - orientations[i, rj, :])
+                pol[i, ri, rj, :] = ((2 / np.pi) * np.abs(diff - np.pi)) - 1
+
+    return pol
+
+
+def calculate_mean_polarization(summary, data, window_width=100):
+
+    pol = calculate_ploarization_matrix(summary, data)
+    mean_pol = np.zeros(summary['num_runs'])
+
+    for i in range(summary['num_runs']):
+        p_vec = np.zeros(window_width)
+        norm_fac = 0
+        for ri in range(summary['num_robots']):
+            for rj in range(ri, summary['num_robots']):
+                p_vec += pol[i, ri, rj, -window_width::]
+                norm_fac += 1
+        print(norm_fac)
+        mean_pol[i] = np.mean((p_vec/(norm_fac)))
+
+    return mean_pol
+
+
+def calculate_min_iid(summary, data):
+    iid = calculate_interindividual_distance(summary, data)
+    for i in range(summary['num_robots']):
+        iid[:, i, i, :] = np.inf
+
+    min_iid = np.zeros((summary['num_runs'],))
+
+    for i in range(summary['num_runs']):
+        min_iid[i] = np.min(iid[i, :, :, :])
+
+    return min_iid
