@@ -112,3 +112,98 @@ def plot_orientation(summary, data, changed_along=None, changed_along_alias=None
         plt.ylabel('orientation [rad]')
 
     plt.show()
+
+def plot_iid(summary, data, run_id):
+    iid = data_tools.calculate_interindividual_distance(summary, data)
+    fig, ax = plt.subplots(summary['num_robots'], summary['num_robots'], figsize=[10, 10], sharex=True, sharey=True)
+
+    time = data[0, 0, 0, :]
+
+    for i in range(summary['num_robots']):
+        for j in range(i + 1):
+            if summary['num_robots'] > 1:
+                plt.axes(ax[i, j])
+            plt.plot(time, iid[run_id, i, j, :])
+            if i == summary['num_robots']-1:
+                plt.xlabel('time [s]')
+            if j == 0:
+                plt.ylabel('ii distance [m]')
+
+    plt.suptitle(f'Interindividual distances in run {run_id}')
+
+    plt.show()
+
+def plot_mean_ploarization(summary, data, changed_along=None, changed_along_alias=None):
+    x_axis = []
+    mean_pol = data_tools.calculate_mean_polarization(summary, data)
+
+    if changed_along is not None:
+        for i in range(summary['num_runs']):
+            x_axis.append(summary['params'][f'run{i+1}'][changed_along])
+
+    else:
+        x_axis = [i+1 for i in range(summary['num_runs'])]
+
+    fig, ax = plt.subplots(1, 1, figsize=[10, 8])
+    plt.plot(x_axis, mean_pol)
+
+    if changed_along is not None:
+        plt.title(f'Mean polarization for changing {changed_along_alias}')
+        plt.xlabel(changed_along_alias)
+        plt.ylabel('Normalized Mean Polarization AU$\\in$[-1,1]')
+    else:
+        plt.title(f'Mean polarization of robots')
+        plt.xlabel('run number')
+        plt.ylabel('Normalized Mean Polarization AU$\\in$[-1,1]')
+
+    plt.show()
+
+def plot_mean_iid(summary, data, changed_along=None, changed_along_alias=None):
+    x_axis = []
+    mean_iid = data_tools.calculate_mean_iid(summary, data)
+
+    if changed_along is not None:
+        for i in range(summary['num_runs']):
+            x_axis.append(summary['params'][f'run{i+1}'][changed_along])
+
+    else:
+        x_axis = [i+1 for i in range(summary['num_runs'])]
+
+    fig, ax = plt.subplots(1, 1, figsize=[10, 8])
+    plt.plot(x_axis, mean_iid)
+
+    if changed_along is not None:
+        plt.title(f'Mean IID for changing {changed_along_alias}')
+        plt.xlabel(changed_along_alias)
+        plt.ylabel('Mean IID [m]')
+    else:
+        plt.title(f'Mean IID of robots')
+        plt.xlabel('run number')
+        plt.ylabel('Mean IID [m]')
+
+    plt.show()
+
+def plot_min_iid(summary, data, changed_along=None, changed_along_alias=None):
+    x_axis = []
+    min_iid = data_tools.calculate_min_iid(summary, data)
+
+    if changed_along is not None:
+        for i in range(summary['num_runs']):
+            x_axis.append(summary['params'][f'run{i+1}'][changed_along])
+
+    else:
+        x_axis = [i+1 for i in range(summary['num_runs'])]
+
+    fig, ax = plt.subplots(1, 1, figsize=[10, 8])
+    plt.plot(x_axis, min_iid)
+
+    if changed_along is not None:
+        plt.title(f'Minimum IID for changing {changed_along_alias}')
+        plt.xlabel(changed_along_alias)
+        plt.ylabel('Min IID [m]')
+    else:
+        plt.title(f'Minimum IID of robots')
+        plt.xlabel('run number')
+        plt.ylabel('Min IID [m]')
+
+    plt.show()
