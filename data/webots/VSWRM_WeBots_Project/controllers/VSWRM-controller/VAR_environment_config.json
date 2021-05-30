@@ -1,0 +1,15 @@
+{
+    "ENABLE_SIMULATION": "1",
+    "SHOW_VISION_STREAMS": "0",
+    "LOG_LEVEL": "DEBUG",
+    "WEBOTS_LOG_PERFORMANCE": "0",
+    "SPARE_RESCOURCES": "1",
+    "BORDER_CONDITIONS": "Infinite",
+    "WEBOTS_SAVE_SIMULATION_DATA": "1",
+    "WEBOTS_SIM_SAVE_FOLDER": "simulation_data",
+    "PAUSE_SIMULATION_AFTER": "15",
+    "PAUSE_BEHAVIOR": "Pause",
+    "BEHAVE_PARAMS_JSON_PATH": "VAR_behavior_params.json",
+    "INITIAL_CONDITION_PATH": "VAR_initial_conditions.json",
+    "USE_ROBOT_PEN": "0"
+}
