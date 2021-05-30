@@ -51,6 +51,8 @@ ROT_DIRECTION = 'Left'
 
 
 # OBSTACLE DETECTION
+# If set to "Infinite" the robots will teleport upon boundary condition
+BORDER_CONDITION = os.getenv('BORDER_CONDITIONS', 'Reality')
 # Emergency monitoring in Hz (maximum value is 10Hz, on which Thymio is updating these values)
 EMERGENCY_CHECK_FREQ = 8
 
