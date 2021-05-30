@@ -245,3 +245,23 @@ def calculate_min_iid(summary, data):
         min_iid[i] = np.min(iid[i, :, :, :])
 
     return min_iid
+
+
+def population_velocity(summary, data):
+    """Calculating the velocity and direction of velocity of the center of mass of agents
+
+    returns an (n_runs x (t-1)) shape matrix"""
+    pos_x = summary['attributes'].index('pos_x')
+    pos_y = summary['attributes'].index('pos_y')
+    pos_z = summary['attributes'].index('pos_z')
+    center_of_mass = np.mean(data[:, :, [pos_x, pos_y, pos_z], :], axis=1)
+
+    t = data[0, 0, 0, :]
+    dt = t[1] - t[0]
+
+    COMvelocity = np.zeros((summary['num_runs'], len(t)-1))
+    for i in range(len(t)-1):
+        for run_i in range(summary['num_runs']):
+            COMvelocity[run_i, i] = distance(center_of_mass[run_i, :, i], center_of_mass[run_i, :, i+1]) / dt
+
+    return COMvelocity
