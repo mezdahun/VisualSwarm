@@ -163,7 +163,16 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
 
                     if simulation.PAUSE_SIMULATION_AFTER > 0:
                         if simulation_time > simulation.PAUSE_SIMULATION_AFTER * 1000:
-                            robot.simulationSetMode(robot.SIMULATION_MODE_PAUSE)
+                            # saving algorithm parameters into json file if requested
+                            with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(params_fpath,
+                                                                                                     'w') as param_f:
+                                logger.info('SAVING DATA')
+                                json.dump(behavior.get_params(), param_f, indent=4)
+
+                            if simulation.PAUSE_BEHAVIOR == "Quit":
+                                robot.simulationQuit(0)
+                            elif simulation.PAUSE_BEHAVIOR == "Pause":
+                                robot.simulationSetMode(robot.SIMULATION_MODE_PAUSE)
 
                     # ticking virtual time with virtual time of Webots environment
                     freezer.tick(delta=datetime.timedelta(milliseconds=timestep))
@@ -178,9 +187,5 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                                     f'\t---sensor passing: {used_times[2]}\n'
                                     f'\t---set devices: {used_times[3]}\n'
                                     f'\t---step world physics: {used_times[4]}\n')
-
-        # saving algorithm parameters into json file if requested
-        with ExitStack() if not simulation.WEBOTS_SAVE_SIMULATION_DATA else open(params_fpath, 'w') as param_f:
-            json.dump(behavior.get_params(), param_f, indent=4)
 
         processing_tools.stop_and_cleanup(processes, streams)
