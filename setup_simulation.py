@@ -8,7 +8,7 @@ setup(
                 'PI for movement control of Thymio II robots. This is a version of the original setup.py that is used'
                 'to overwrite the package setup in case of WeBots simulations with venv environments. Check the readme'
                 'and the corresponding wiki pages for more details and correct usage.',
-    version='0.1.3',
+    version='0.1.4',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
     packages=find_packages(exclude=['tests']),
@@ -24,7 +24,8 @@ setup(
         'psutil==5.8.0',
         'webots>=0.0.1',
         'typing-extensions==3.7.4.3',
-        'freezegun==1.1.0'
+        'freezegun==1.1.0',
+        'matplotlib'
     ],
     extras_require={
         'test': [
