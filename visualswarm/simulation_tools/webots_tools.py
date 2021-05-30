@@ -5,6 +5,7 @@
 import json
 import logging
 import numpy as np
+import os
 from itertools import combinations
 from visualswarm import env
 
@@ -21,6 +22,26 @@ def read_robot_config(robot, config_path):
         robot_config = json.load(jf)
 
     return robot_config.get(robot.getName())
+
+def read_run_config(env_config_path):
+    """reading run configuration holding environmental variable values into a data structure from a json file
+    under env_config_path"""
+    with open(env_config_path, "r") as jf:
+        run_config = json.load(jf)
+        return run_config
+
+def write_config(env_config, env_config_path):
+    """simple wrapper around json.dump to make code cleaner"""
+    with open(env_config_path, 'w') as config_f:
+        json.dump(env_config, config_f, indent=4)
+
+
+def initialize_run_w_config(env_config_dict):
+    """setting all env variables according to a configuration divtionary in a batch"""
+    logger.info("Configuring run...")
+    for var_name, value in env_config_dict.items():
+        logger.info(f"Setting env var {var_name} to {value}")
+        os.environ[var_name] = value
 
 
 def generate_robot_config(robot_names, position_type, orientation_type, config_path,
@@ -70,8 +91,6 @@ def generate_robot_config(robot_names, position_type, orientation_type, config_p
         robot_config[robot_name] = {'translation': [P[i, 0], 0, P[i, 1]],
                                     'rotation': [0, 1, 0, O[i, 0]]}
 
-    from pprint import pprint
-    pprint(robot_config)
     with open(config_path, 'w') as param_f:
         json.dump(robot_config, param_f, indent=4)
 
