@@ -1,13 +1,8 @@
-"""VSWRM Thymio Controller. Will only run from Webots terminal!
-    -don't forget to setup a venv and install all the packages of visualswarm
-    -don't forget to set the python command in webots to the python in your venv
-"""
-
-# You may need to import some classes of the controller module. Ex:
-from controller import Camera, GPS, Compass, Supervisor, Pen
-from visualswarm.simulation_tools import webots_tools
-
 import os
+import string
+import random
+
+from visualswarm.simulation_tools import webots_tools
 
 basepath = os.path.dirname(os.path.abspath(__file__))
 
@@ -19,7 +14,7 @@ env_config_dict = webots_tools.read_run_config(env_config_path)
 
 ### manually
 
-# EXPERIMENT_NAME = 'EXPERIMENT'  # change it before recording data or programatucally with input config files
+# EXPERIMENT_NAME = 'EXPERIMENT'  # change it before recording data or programatically with input config files
 
 # env_config_dict = {
     # 'ENABLE_SIMULATION': str(int(True)),  # should be always true if using simulation instead of real robots
@@ -28,7 +23,8 @@ env_config_dict = webots_tools.read_run_config(env_config_path)
     # 'WEBOTS_LOG_PERFORMANCE': str(int(False)),  # if true, measured times between functional steps will be logged
     # 'SPARE_RESCOURCES': str(int(True)),  # Threading for true, multiprocessing for false
     # 'BORDER_CONDITIONS': "Infinite",  # or "Reality"
-    # 'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)), 
+    # 'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)),
+    # 'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(True)), # save video automatically
     # 'WEBOTS_SIM_SAVE_FOLDER': os.path.join(basepath, f'{EXPERIMENT_NAME}'),
     # 'PAUSE_SIMULATION_AFTER': '15',  # in seconds 
     # 'PAUSE_BEHAVIOR': 'Pause',  # or 'Quit'
@@ -39,13 +35,18 @@ env_config_dict = webots_tools.read_run_config(env_config_path)
 
 ######## END CONFIG #######
 
-# initialize according to config
 webots_tools.initialize_run_w_config(env_config_dict)
+
 INITIAL_CONDITION_PATH = os.getenv('INITIAL_CONDITION_PATH')
+WEBOTS_SIM_SAVE_FOLDER = os.getenv('WEBOTS_SIM_SAVE_FOLDER')
+EXPERIMENT_NAME = os.path.basename(WEBOTS_SIM_SAVE_FOLDER)
+VIDEO_HASH = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+VIDEO_PATH = os.path.join(WEBOTS_SIM_SAVE_FOLDER, f'{EXPERIMENT_NAME}_{VIDEO_HASH}.mp4')
+SAVE_VIDEO = bool(int(os.getenv('WEBOTS_SAVE_SIMULATION_VIDEO')))
+
+# visualization
 USE_ROBOT_PEN = bool(int(os.getenv('USE_ROBOT_PEN', '0')))
 
-
-# WEBOTS INIT METHODS
 def setup_sensors(robot):
     # Creating sensor structure
     sensors = {}
@@ -81,7 +82,6 @@ def setup_motors(robot):
 
 
 def setup_leds(robot):
-    # setting up thymio top leds
     leds = {}
     leds['top'] = robot.getDevice("leds.top")
 
@@ -127,21 +127,17 @@ def setup_devices(robot):
     enable_pen(robot, USE_ROBOT_PEN)
     return devices
 
-
 def enable_pen(robot, use_pen):
     pen = robot.getDevice("pen")
     pen.write(use_pen)
-
 
 def main():
     # create the Robot instance.
     robot = Supervisor()
     
     ## example to robot-specific configuration
-    # if robot.getName() == "robot0":
-        # os.environ['EXP_MOVEMENT'] = "NoExploration"
-    # else:
-        # os.environ['EXP_MOVEMENT'] = "Rotation"
+    if robot.getName() == "robot0" and SAVE_VIDEO:
+        robot.movieStartRecording(VIDEO_PATH, 800, 600, 1337, 100, 4, False)
 
     # get the time step of the current world.
     timestep = int(robot.getBasicTimeStep())
@@ -149,8 +145,6 @@ def main():
     # setup actuators and sensors
     devices = setup_devices(robot)
     
-    # after setting all env variables we can import the module that
-    # will automatically initialize module-wise parameters accordingly
     from visualswarm import app_simulation
     from visualswarm.simulation_tools import webots_tools
     
