@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 from visualswarm.simulation_tools import data_tools
+import matplotlib.patches as patches
 
 
 def plot_velocities(summary, data, changed_along=None, changed_along_alias=None):
@@ -208,7 +209,7 @@ def plot_min_iid(summary, data, changed_along=None, changed_along_alias=None):
 
     plt.show()
 
-def plot_mean_iid_over_runs(summary, data, stdcolor='#FF9848'):
+def plot_mean_iid_over_runs(summary, data, stdcolor='#FF9848', ax=None, with_legend=None):
     iid = data_tools.calculate_interindividual_distance(summary, data)
 
     population_mean = np.mean(np.mean(iid, 1), 1)
@@ -216,18 +217,27 @@ def plot_mean_iid_over_runs(summary, data, stdcolor='#FF9848'):
     run_std = np.std(population_mean, 0)
     t = data[0, 0, 0, :]
 
+    if ax is not None:
+        plt.axes(ax)
+
     for i in range(population_mean.shape[0]):
         individ_line, = plt.plot(t, population_mean[i, :], ls="--", color="gray", linewidth="0.2")
     mean_line, = plt.plot(t, run_mean, color="black", linewidth="1.2")
     error_band = plt.fill_between(t, run_mean - run_std, run_mean + run_std, alpha=0.5, edgecolor=stdcolor,
                                   facecolor=stdcolor)
-    plt.title("Mean inter-individual distance")
-    plt.xlabel("simulation time [s]")
-    plt.ylabel("I.I.D [m]$>$BL=0.11")
-    plt.legend([individ_line, mean_line, error_band], ["Single run population mean i.i.d.",
-                                                       "Mean population i.i.d. over runs",
-                                                       "Standard Deviation over runs"])
-    plt.show()
+    if ax is None:
+        plt.title("Mean inter-individual distance")
+        plt.xlabel("simulation time [s]")
+        plt.ylabel("I.I.D [m]$>$BL=0.11")
+        plt.legend([individ_line, mean_line, error_band], ["Single run population mean i.i.d.",
+                                                           "Mean population i.i.d. over runs",
+                                                           "Standard Deviation over runs"])
+        plt.show()
+    elif with_legend:
+        plt.legend([individ_line, mean_line, error_band], ["Single run population mean i.i.d.",
+                                                           "Mean population i.i.d. over runs",
+                                                           "Standard Deviation over runs"])
+
 
 
 def plot_mean_pol_over_runs(summary, data, stdcolor='#FF9848', ax=None, with_legend=None):
@@ -276,7 +286,7 @@ def plot_mean_pol_summary_perInit(paths, titles, colors, supertitle,
     plt.show()
 
 def plot_mean_pol_summary_perRegimeandInit(regime_dict, titles, colors, supertitle,
-                                           xlabel="time [s]", ylabel="polariuzation [AU]$\\in$[0, 1]"):
+                                           xlabel="time [s]", ylabel="polarization [AU]$\\in$[0, 1]"):
 
     fig, axs = plt.subplots(len(regime_dict), 1, figsize=[10, 8], sharex=True, sharey=True)
 
@@ -294,6 +304,7 @@ def plot_mean_pol_summary_perRegimeandInit(regime_dict, titles, colors, supertit
     plt.xlabel(xlabel)
     plt.suptitle(supertitle)
     plt.show()
+
 
 
 def plot_min_iid_over_runs(summary, data, stdcolor="#FF9848", ax=None, with_legend=None):
@@ -362,6 +373,7 @@ def plot_min_iid_summary_perRegimeandInit(regime_dict, titles, colors, supertitl
     plt.show()
 
 
+
 def plot_mean_COMvel_over_runs(summary, data, stdcolor="#FF9848", ax=None, with_legend=None):
     COMvelocity = data_tools.population_velocity(summary, data)
 
@@ -427,4 +439,156 @@ def plot_COMvelocity_summary_perRegimeandInit(regime_dict, titles, colors, super
 
     plt.xlabel(xlabel)
     plt.suptitle(supertitle)
+    plt.show()
+
+
+def plot_reflection_effect_polarization(summary, data, ax=None):
+    """Showing the effect of being reflected from walls in a single experiment with multiple runs"""
+    if ax is None:
+        show_plot = True
+        fig, ax = plt.subplots(1, summary['num_runs'], figsize=[10, 8])
+    else:
+        show_plot = False
+
+    pol_m = data_tools.calculate_ploarization_matrix(summary, data)
+    population_mean = np.mean(np.mean(pol_m, 1), 1)
+    collision_intervals, collision_times = data_tools.get_collision_time_intervals(summary)
+    t = data[0, 0, 0, :]
+
+    for i in range(summary['num_runs']):
+
+        if summary['num_runs'] > 1:
+            plt.axes(ax[i])
+        else:
+            plt.axes(ax)
+
+        # plotting ploarization over runs
+        N = 300
+        t_ma = t[int(N/2)-1:int(-N/2)]
+        ma = data_tools.moving_average(population_mean[i, :], N)
+        # moving_avg_line, = plt.plot(t_ma, ma, color="black", linewidth="1.5")
+
+        individ_line, = plt.plot(t, population_mean[i, :], color="black", linewidth="1.5")
+
+        # showing collision times
+        # if summary['num_runs'] > 1:
+        for rob_i in range(summary['num_robots']):
+            mask = [np.where(t==elem)[0][0] for elem in collision_times[i][rob_i] / 1000]
+            plt.scatter(t[mask], population_mean[i, mask], color="red")
+
+    if show_plot:
+        plt.show()
+
+def plot_reflection_effect_COMvelocity(summary, data, ax=None):
+    """Showing the effect of being reflected from walls in a single experiment with multiple runs"""
+    if ax is None:
+        show_plot = True
+        fig, ax = plt.subplots(1, summary['num_runs'], figsize=[10, 8])
+    else:
+        show_plot = False
+
+    COMvelocity = data_tools.population_velocity(summary, data)
+    collision_intervals, collision_times = data_tools.get_collision_time_intervals(summary)
+
+    cut_beginning = 3
+    t = data[0, 0, 0, cut_beginning:-1]
+
+    for i in range(summary['num_runs']):
+
+        if summary['num_runs'] > 1:
+            plt.axes(ax[i])
+        else:
+            plt.axes(ax)
+
+        # plotting ploarization over runs
+        # print('SHAPES')
+        N = 300
+        t_ma = t[int(N/2)-1:int(-N/2)]
+        ma = data_tools.moving_average(COMvelocity[i, cut_beginning:], N)
+        # moving_avg_line, = plt.plot(t_ma, ma, color="black", linewidth="1.5")
+
+        individ_line, = plt.plot(t, COMvelocity[i, cut_beginning:], color="black", linewidth="1.5")
+
+        # showing collision times
+        # if summary['num_runs'] > 1:
+        # for rob_i in range(summary['num_robots']):
+        #     mask = [np.where(t==elem)[0][0] for elem in collision_times[i][rob_i] / 1000]
+        #     plt.scatter(t[mask], COMvelocity[i, mask], color="red")
+
+        for rob_i in range(summary['num_robots']):
+            mask = [np.where(t == elem)[0][0] for elem in collision_times[i][rob_i] / 1000]
+            plt.scatter(t[mask], COMvelocity[i, mask], color="red")
+
+    if show_plot:
+        plt.show()
+
+def plot_reflection_effect_meanIID(summary, data, ax=None):
+    """Showing the effect of being reflected from walls in a single experiment with multiple runs"""
+    if ax is None:
+        show_plot = True
+        fig, ax = plt.subplots(1, summary['num_runs'], figsize=[10, 8])
+    else:
+        show_plot = False
+
+    iid = data_tools.calculate_interindividual_distance(summary, data)
+    population_mean = np.mean(np.mean(iid, 1), 1)
+    collision_intervals, collision_times = data_tools.get_collision_time_intervals(summary)
+    t = data[0, 0, 0, :]
+
+    for i in range(summary['num_runs']):
+
+        if summary['num_runs'] > 1:
+            plt.axes(ax[i])
+        else:
+            plt.axes(ax)
+
+        # plotting ploarization over runs
+        N = 300
+        t_ma = t[int(N/2)-1:int(-N/2)]
+        ma = data_tools.moving_average(population_mean[i, :], N)
+        # moving_avg_line, = plt.plot(t_ma, ma, color="black", linewidth="1.5")
+
+        individ_line, = plt.plot(t, population_mean[i, :], color="black", linewidth="1.5")
+
+        # showing collision times
+        # if summary['num_runs'] > 1:
+        for rob_i in range(summary['num_robots']):
+            mask = [np.where(t==elem)[0][0] for elem in collision_times[i][rob_i] / 1000]
+            plt.scatter(t[mask], population_mean[i, mask], color="red")
+
+    if show_plot:
+        plt.show()
+
+
+def plot_reflection_effect_summary(summary, data):
+    fig, ax = plt.subplots(3, summary['num_runs'], figsize=[10, 8], sharex='col', sharey='row')
+
+    if summary['num_runs'] > 1:
+        plot_reflection_effect_COMvelocity(summary, data, ax[0, :])
+        plot_reflection_effect_polarization(summary, data, ax[1, :])
+        plot_reflection_effect_meanIID(summary, data, ax[2, :])
+        plt.axes(ax[0, 0])
+        plt.ylabel("COM velocity [m/s]")
+        plt.axes(ax[1, 0])
+        plt.ylabel("Polarization [%]")
+        plt.axes(ax[2, 0])
+        plt.ylabel("Mean i-i.d. [m]")
+        for i in range(summary['num_runs']):
+            plt.axes(ax[2, i])
+            plt.xlabel("time [s]")
+    else:
+        plot_reflection_effect_COMvelocity(summary, data, ax[0])
+        plot_reflection_effect_polarization(summary, data, ax[1])
+        plot_reflection_effect_meanIID(summary, data, ax[2])
+        plt.axes(ax[0])
+        plt.ylabel("COM velocity [m/s]")
+        plt.axes(ax[1])
+        plt.ylabel("Polarization [%]")
+        plt.axes(ax[2])
+        plt.ylabel("Mean i-i.d. [m]")
+        plt.xlabel("time [s]")
+
+    plt.subplots_adjust(wspace=0.15, hspace=0.05)
+
+
     plt.show()

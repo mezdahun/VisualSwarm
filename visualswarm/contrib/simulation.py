@@ -36,6 +36,7 @@ WEBOTS_ORIENTATION_SIGN_IDX = np.nonzero(WEBOTS_ROBOT_FWD_AXIS[~np.isnan(np.arra
 
 # Saving simulation data if true
 WEBOTS_SAVE_SIMULATION_DATA = bool(int(os.getenv('WEBOTS_SAVE_SIMULATION_DATA', '0')))
+WEBOTS_SAVE_SIMULATION_VIDEO = bool(int(os.getenv('WEBOTS_SAVE_SIMULATION_VIDEO', '0')))
 
 # Saving simulation data to
 WEBOTS_SIM_SAVE_FOLDER = os.getenv('WEBOTS_SIM_SAVE_FOLDER')

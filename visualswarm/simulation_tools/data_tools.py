@@ -59,7 +59,15 @@ def summarize_experiment(data_path, experiment_name):
 
             with open(os.path.join(data_path, robot_name, run_name,
                                    f'{robot_name}_run{run_name}_params.json')) as param_f:
-                param_dict[f'run{run_name}'] = json.load(param_f)
+                if i == 0:
+                    param_dict[f'run{run_name}'] = json.load(param_f)
+                er_times_path = os.path.join(data_path, robot_name, run_name, f'{robot_name}_run{run_name}_ERtimes.json')
+                if os.path.isfile(er_times_path):
+                    with open(er_times_path) as erf:
+                        if param_dict[f'run{run_name}'].get('ERtimes') is None:
+                            param_dict[f'run{run_name}']['ERtimes'] = {}
+                        param_dict[f'run{run_name}']['ERtimes'][robot_name] = json.load(erf)
+
 
             if i == 0 and j == 0:
                 t = position_array[:, 0] / 1000
@@ -67,10 +75,10 @@ def summarize_experiment(data_path, experiment_name):
                 data = np.zeros((num_runs, num_robots, num_attributes, t_len))
 
             data[j, i, attributes.index('t'), :] = t
-            data[j, i, attributes.index('pos_x'), :] = position_array[:, 1]
-            data[j, i, attributes.index('pos_y'), :] = position_array[:, 2]
-            data[j, i, attributes.index('pos_z'), :] = position_array[:, 3]
-            data[j, i, attributes.index('or'), :] = or_array[:, 1]
+            data[j, i, attributes.index('pos_x'), :] = position_array[:t_len, 1]
+            data[j, i, attributes.index('pos_y'), :] = position_array[:t_len, 2]
+            data[j, i, attributes.index('pos_z'), :] = position_array[:t_len, 3]
+            data[j, i, attributes.index('or'), :] = or_array[:t_len, 1]
 
     experiment_summary = {'params': param_dict,
                           'num_runs': num_runs,
@@ -202,7 +210,7 @@ def calculate_ploarization_matrix(summary, data):
     or_idx = summary['attributes'].index('or')
     orientations = data[:, :, or_idx, :]
 
-    pol = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'],data.shape[-1]))
+    pol = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'], data.shape[-1]))
 
     for i in range(summary['num_robots']):
         pol[:, i, i, :] = np.nan
@@ -228,7 +236,6 @@ def calculate_mean_polarization(summary, data, window_width=100):
             for rj in range(ri, summary['num_robots']):
                 p_vec += pol[i, ri, rj, -window_width::]
                 norm_fac += 1
-        print(norm_fac)
         mean_pol[i] = np.mean((p_vec/(norm_fac)))
 
     return mean_pol
@@ -265,3 +272,40 @@ def population_velocity(summary, data):
             COMvelocity[run_i, i] = distance(center_of_mass[run_i, :, i], center_of_mass[run_i, :, i+1]) / dt
 
     return COMvelocity
+
+def get_collision_time_intervals(summary):
+    """Calculating larger collision time intervals for all robot and run according to raw recorded ERtimes
+    in summary data"""
+
+    collision_intervals = dict.fromkeys(range(0, summary['num_runs']),
+                                        dict.fromkeys(range(0, summary['num_robots']), []))
+    collision_times = dict.fromkeys(range(0, summary['num_runs']),
+                                        dict.fromkeys(range(0, summary['num_robots']), []))
+
+    r_i = 0
+    for run_name, r_sum in summary['params'].items():
+        col_times_dict = r_sum.get("ERtimes") # all collisions in run
+        col_times = []
+        if col_times_dict is not None:  # there were collisions during the experiment, looping through robots
+            for robi in range(summary['num_robots']):
+                rob_col_times = col_times_dict.get(f'robot{robi}')
+                if rob_col_times is not None:
+                    ctimes = np.array(rob_col_times.get("ERtimes"))
+                    collision_times[r_i][robi] = ctimes
+
+                    # time difference between 2 ER reports is larger than reporting frequency
+                    mask_temp = list(np.where(np.diff(ctimes) > 300)[0])
+                    mask = [0]  # first element always border
+                    mask.append(len(ctimes)-1)  # last element always border
+                    mask.extend(mask_temp)
+
+                    mask_temp = list(np.where(np.diff(ctimes) > 300)[0]+1)  # get end of intervals
+                    mask.extend(mask_temp)
+                    collision_intervals[r_i][robi] = np.array(sorted(list(ctimes[mask])))
+
+        r_i += 1
+
+    return collision_intervals, collision_times
+
+def moving_average(x, N, weights=1):
+    return np.convolve(x, np.ones(N) * weights, 'valid')/N

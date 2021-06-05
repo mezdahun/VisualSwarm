@@ -1,5 +1,5 @@
 """
-Example metaprotocol of changing configuration programatically and calling webots
+Metaprotocol of changing initial conditions programatically and calling webots to save simulation data
 @description: Script to run a webots world file multiple times with different initial conditions and/or parameters.
 """
 import os
@@ -10,7 +10,7 @@ experiment_names = ["EXP1", "EXP2"]
 
 base_path = "path-to-controller-folder"
 wbt_path = "absolute-path-of-world-file-to-run"
-num_robots = 6
+num_robots = 6 # should be matched with world file
 
 robot_names = [f"robot{i}" for i in range(num_robots)]
 behave_params_path = os.path.join(base_path, 'VAR_behavior_params.json')

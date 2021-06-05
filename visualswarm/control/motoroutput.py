@@ -187,7 +187,7 @@ def empty_queue(queue2empty):
     return True
 
 
-def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_mode=False,
+def turn_robot(network, angle, emergency_stream, turning_motor_speed=125, blind_mode=False,
                webots_do_stream=None):
     """
     turning robot with a specified speed to a particular physical angle according to the heuristics (multipliers)
@@ -255,7 +255,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=50, blind_m
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=50, blind_mode=False,
+def move_robot(network, direction, distance, emergency_stream, moving_motor_speed=125, blind_mode=False,
                webots_do_stream=None):
     """
     moving robot with a specified speed to a particular distance according to the heuristics (multipliers)
@@ -402,30 +402,37 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
         if np.any(prox_vals[5:7] > 0):
             logger.warning(f'Agent might be locked! Proximity values: {prox_vals}')
 
-        # check which direction we deviate from orthogonal to decide on turning direction
-        left_proximity = np.mean(prox_vals[0:2])
-        right_proximity = np.mean(prox_vals[3:5])
-        logger.debug(f'Frontal center prox: {prox_vals[2]}')
-        logger.debug(f'Left sum prox: {left_proximity} vs Right sum prox: {right_proximity}')
+        if control.AVOID_TURN_DIRECTION == 'Various':
+            # check which direction we deviate from orthogonal to decide on turning direction
+            left_proximity = np.mean(prox_vals[0:2])
+            right_proximity = np.mean(prox_vals[3:5])
+            logger.debug(f'Frontal center prox: {prox_vals[2]}')
+            logger.debug(f'Left sum prox: {left_proximity} vs Right sum prox: {right_proximity}')
 
-        # Pendulum Trap (corner or symmetric non-continuous obstacle around the robot)
-        if np.abs(left_proximity - right_proximity) < control.SYMMETRICITY_THRESHOLD and \
-                prox_vals[2] < control.UNCONTINOUTY_THRESHOLD:
-            logger.warning("Pendulum trap strategy initiated!")
-            # change orientation (always to the right) drastically to get out of pendulum trap
-            turn_robot(network, control.PENDULUM_TRAP_ANGLE, emergency_stream, blind_mode=True,
-                       webots_do_stream=webots_do_stream)
-            return "Move", "Forward", 20
+            # Pendulum Trap (corner or symmetric non-continuous obstacle around the robot)
+            if np.abs(left_proximity - right_proximity) < control.SYMMETRICITY_THRESHOLD and \
+                    prox_vals[2] < control.UNCONTINOUTY_THRESHOLD:
+                logger.warning("Pendulum trap strategy initiated!")
+                # change orientation (always to the right) drastically to get out of pendulum trap
+                turn_robot(network, control.PENDULUM_TRAP_ANGLE, emergency_stream, blind_mode=True,
+                           webots_do_stream=webots_do_stream)
+                return "Move", "Forward", 20
 
-        # Obstacle is closer to the left, turn right
-        elif left_proximity > right_proximity:
+            # Obstacle is closer to the left, turn right
+            elif left_proximity > right_proximity:
+                turn_robot(network, turn_avoid_angle, emergency_stream, webots_do_stream=webots_do_stream)
+                return "Move", "Forward", 20
+
+            # Obstacle is closer to the right, turn left
+            else:
+                turn_robot(network, -turn_avoid_angle, emergency_stream, webots_do_stream=webots_do_stream)
+                return "Move", "Forward", 20
+
+        elif control.AVOID_TURN_DIRECTION == 'Uniform':
+            # In case we always want the agent to turn the same direction during avoidance
+            # even if this yields a longer avoidance time
             turn_robot(network, turn_avoid_angle, emergency_stream, webots_do_stream=webots_do_stream)
-            return "Move", "Forward", 20
-
-        # Obstacle is closer to the right, turn left
-        else:
-            turn_robot(network, -turn_avoid_angle, emergency_stream, webots_do_stream=webots_do_stream)
-            return "Move", "Forward", 20
+            return "Move", "Forward", 40
 
     # IGNORED FOR NOW AS ONLY BACK SENSORS NEVER TRIGGER EMERGENCY MODE
     # none of the front sensors are on
