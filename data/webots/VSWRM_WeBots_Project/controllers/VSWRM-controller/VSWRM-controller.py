@@ -6,17 +6,18 @@ import random
 from controller import Camera, GPS, Compass, Supervisor, Pen
 from visualswarm.simulation_tools import webots_tools
 
-basepath = os.path.dirname(os.path.abspath(__file__))
+sbasepath = "/mnt/DATA/mezey/VSWRMSimulationData"  # os.path.dirname(os.path.abspath(__file__))
+confbasebath = os.path.dirname(os.path.abspath(__file__))
 
 ####### START CONFIG ######
 
 ### with external json file
-env_config_path = os.path.join(basepath, 'VAR_environment_config.json')
-env_config_dict = webots_tools.read_run_config(env_config_path)
+# env_config_path = os.path.join(confbasebath, 'VAR_environment_config.json')
+# env_config_dict = webots_tools.read_run_config(env_config_path)
 
 ### manually
 
-# EXPERIMENT_NAME = 'EXPERIMENT'  # change it before recording data or programatically with input config files
+# EXPERIMENT_NAME = 'TEST'  # change it before recording data or programatically with input config files
 
 # env_config_dict = {
     # 'ENABLE_SIMULATION': str(int(True)),  # should be always true if using simulation instead of real robots
@@ -27,11 +28,11 @@ env_config_dict = webots_tools.read_run_config(env_config_path)
     # 'BORDER_CONDITIONS': "Infinite",  # or "Reality"
     # 'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)),
     # 'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(True)), # save video automatically
-    # 'WEBOTS_SIM_SAVE_FOLDER': os.path.join(basepath, f'{EXPERIMENT_NAME}'),
-    # 'PAUSE_SIMULATION_AFTER': '15',  # in seconds
+    # 'WEBOTS_SIM_SAVE_FOLDER': os.path.join(sbasepath, f'{EXPERIMENT_NAME}'),
+    # 'PAUSE_SIMULATION_AFTER': '30',  # in seconds
     # 'PAUSE_BEHAVIOR': 'Pause',  # or 'Quit'
-    # 'BEHAVE_PARAMS_JSON_PATH': os.path.join(basepath, 'VAR_behavior_params.json'),
-    # 'INITIAL_CONDITION_PATH': os.path.join(basepath, 'VAR_initial_conditions.json'),
+    # 'BEHAVE_PARAMS_JSON_PATH': os.path.join(confbasebath, 'VAR_behavior_params.json'),
+    # 'INITIAL_CONDITION_PATH': os.path.join(confbasebath, 'VAR_initial_conditions.json'),
     # 'USE_ROBOT_PEN': str(int(False))  # enable or disable robot pens
 # }
 
