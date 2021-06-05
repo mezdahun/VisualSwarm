@@ -2,6 +2,8 @@ import os
 import string
 import random
 
+# You may need to import some classes of the controller module. Ex:
+from controller import Camera, GPS, Compass, Supervisor, Pen
 from visualswarm.simulation_tools import webots_tools
 
 basepath = os.path.dirname(os.path.abspath(__file__))
@@ -26,7 +28,7 @@ env_config_dict = webots_tools.read_run_config(env_config_path)
     # 'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)),
     # 'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(True)), # save video automatically
     # 'WEBOTS_SIM_SAVE_FOLDER': os.path.join(basepath, f'{EXPERIMENT_NAME}'),
-    # 'PAUSE_SIMULATION_AFTER': '15',  # in seconds 
+    # 'PAUSE_SIMULATION_AFTER': '15',  # in seconds
     # 'PAUSE_BEHAVIOR': 'Pause',  # or 'Quit'
     # 'BEHAVE_PARAMS_JSON_PATH': os.path.join(basepath, 'VAR_behavior_params.json'),
     # 'INITIAL_CONDITION_PATH': os.path.join(basepath, 'VAR_initial_conditions.json'),
