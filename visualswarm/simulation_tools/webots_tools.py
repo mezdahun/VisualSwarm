@@ -23,12 +23,14 @@ def read_robot_config(robot, config_path):
 
     return robot_config.get(robot.getName())
 
+
 def read_run_config(env_config_path):
     """reading run configuration holding environmental variable values into a data structure from a json file
     under env_config_path"""
     with open(env_config_path, "r") as jf:
         run_config = json.load(jf)
         return run_config
+
 
 def write_config(env_config, env_config_path):
     """simple wrapper around json.dump to make code cleaner"""
@@ -116,3 +118,19 @@ def teleport_to_center_if_needed(robot, position, threshold=1):
             or position[3] > tr_val[2] + (size_val[1] / 2) - threshold \
             or position[3] < tr_val[2] - (size_val[1] / 2) + threshold:
         trf.setSFVec3f([position[1], 0, position[3]])
+
+
+def write_ER_timestamp(robot_name, config_filepath, run_number, timestamp):
+    """Appending emergency timestamps to a json file in the saving directory"""
+    basepath = os.path.dirname(config_filepath)
+    filepath = os.path.join(basepath, f'{robot_name}_run{run_number}_ERtimes.json')
+
+    if os.path.isfile(filepath):
+        with open(filepath, "r") as jf:
+            timestamp_dict = json.load(jf)
+    else:
+        timestamp_dict = {'ERtimes': []}
+
+    timestamp_dict['ERtimes'].append(timestamp)
+    with open(filepath, 'w') as jf:
+        json.dump(timestamp_dict, jf, indent=4)

@@ -20,6 +20,7 @@ bcolors = logparams.BColors
 
 
 def webots_do(control_args, devices):
+    """Control interface towards webots"""
     command = control_args[0]
     command_arg = control_args[1]
     if command == "SET_MOTOR":
@@ -34,6 +35,7 @@ def webots_do(control_args, devices):
 
 
 def getWebotsCameraImage(devices):
+    """Fast way to get camera images from webots camera  objects"""
     rawString = devices['camera'].getImage()
     width = devices['params']['c_width']
     height = devices['params']['c_height']
@@ -44,6 +46,8 @@ def getWebotsCameraImage(devices):
 
 
 def webots_entrypoint(robot, devices, timestep, with_control=False):
+    """Main application entrypoint to be called from a webots controller script. This entrypoint already includes
+    the main simulation loop."""
     logger.info(f'Started VSWRM-Webots interface app with timestep: {timestep}')
     simulation_start_time = '2000-01-01 12:00:01'
     logger.info(f'Freezing time to: {simulation_start_time}')
@@ -136,6 +140,9 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         except:
                             pass
                         sensor_stream.put(prox_vals)
+                        if np.any(np.array(prox_vals[0:5]) > control.EMERGENCY_PROX_THRESHOLD) and \
+                                simulation.WEBOTS_SAVE_SIMULATION_DATA:
+                            webots_tools.write_ER_timestamp(robot.getName(), params_fpath, run_number, simulation_time)
                         sensor_get_time = sensor_get_time % (1 / simulation.UPFREQ_PROX_HORIZONTAL)
 
                         t1 = time.perf_counter()
@@ -169,6 +176,16 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                                 logger.info('SAVING DATA')
                                 json.dump(behavior.get_params(), param_f, indent=4)
 
+                            if simulation.WEBOTS_SAVE_SIMULATION_VIDEO:
+                                # finishing and saving video, all robots shall wait with termination until finished
+                                if robot.getName() == "robot0":
+                                    # dedicated recorder robot stops video
+                                    robot.movieStopRecording()
+                                while not robot.movieIsReady():
+                                    time.sleep(0.5)
+                                    logger.info('Waiting for video to be ready before end simulation...')
+
+                            # termination of simulation (either pause or quit)
                             if simulation.PAUSE_BEHAVIOR == "Quit":
                                 robot.simulationQuit(0)
                             elif simulation.PAUSE_BEHAVIOR == "Pause":

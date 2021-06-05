@@ -44,7 +44,7 @@ DPSI_MAX_EXP = 3
 
 # ROTATION
 # Motor speed (per motor) during rotation (rotation speed)
-ROT_MOTOR_SPEED = 10
+ROT_MOTOR_SPEED = 50
 
 # Rotation direction, possible values: 'Left', 'Right', 'Random'
 ROT_DIRECTION = 'Left'
@@ -53,6 +53,9 @@ ROT_DIRECTION = 'Left'
 # OBSTACLE DETECTION
 # If set to "Infinite" the robots will teleport upon boundary condition
 BORDER_CONDITION = os.getenv('BORDER_CONDITIONS', 'Reality')
+# Avoidance turn direction
+AVOID_TURN_DIRECTION = 'Various'  # or 'Various'
+
 # Emergency monitoring in Hz (maximum value is 10Hz, on which Thymio is updating these values)
 EMERGENCY_CHECK_FREQ = 8
 
