@@ -452,7 +452,7 @@ def plot_reflection_effect_polarization(summary, data, ax=None):
 
     pol_m = data_tools.calculate_ploarization_matrix(summary, data)
     population_mean = np.mean(np.mean(pol_m, 1), 1)
-    collision_intervals, collision_times = data_tools.get_collision_time_intervals(summary)
+    col_types = data_tools.get_collisions_with_type(summary, data)
     t = data[0, 0, 0, :]
 
     for i in range(summary['num_runs']):
@@ -473,8 +473,11 @@ def plot_reflection_effect_polarization(summary, data, ax=None):
         # showing collision times
         # if summary['num_runs'] > 1:
         for rob_i in range(summary['num_robots']):
-            mask = [np.where(t==elem)[0][0] for elem in collision_times[i][rob_i] / 1000]
-            plt.scatter(t[mask], population_mean[i, mask], color="red")
+            types = [elem[1] for elem in col_types[i][rob_i]]
+            colors = ['red' if type == "withRobot" else 'gray' for type in types]
+            col_times = [elem[0] / 1000 for elem in col_types[i][rob_i]]
+            mask = [np.where(t == elem)[0][0] for elem in col_times]
+            plt.scatter(t[mask], population_mean[i, mask], color=colors)
 
     if show_plot:
         plt.show()
@@ -488,7 +491,7 @@ def plot_reflection_effect_COMvelocity(summary, data, ax=None):
         show_plot = False
 
     COMvelocity = data_tools.population_velocity(summary, data)
-    collision_intervals, collision_times = data_tools.get_collision_time_intervals(summary)
+    col_types = data_tools.get_collisions_with_type(summary, data)
 
     cut_beginning = 3
     t = data[0, 0, 0, cut_beginning:-1]
@@ -516,8 +519,11 @@ def plot_reflection_effect_COMvelocity(summary, data, ax=None):
         #     plt.scatter(t[mask], COMvelocity[i, mask], color="red")
 
         for rob_i in range(summary['num_robots']):
-            mask = [np.where(t == elem)[0][0] for elem in collision_times[i][rob_i] / 1000]
-            plt.scatter(t[mask], COMvelocity[i, mask], color="red")
+            types = [elem[1] for elem in col_types[i][rob_i]]
+            colors = ['red' if type == "withRobot" else 'gray' for type in types]
+            col_times = [elem[0] / 1000 for elem in col_types[i][rob_i]]
+            mask = [np.where(t == elem)[0][0] for elem in col_times]
+            plt.scatter(t[mask], COMvelocity[i, mask], color=colors)
 
     if show_plot:
         plt.show()
@@ -532,7 +538,7 @@ def plot_reflection_effect_meanIID(summary, data, ax=None):
 
     iid = data_tools.calculate_interindividual_distance(summary, data)
     population_mean = np.mean(np.mean(iid, 1), 1)
-    collision_intervals, collision_times = data_tools.get_collision_time_intervals(summary)
+    col_types = data_tools.get_collisions_with_type(summary, data)
     t = data[0, 0, 0, :]
 
     for i in range(summary['num_runs']):
@@ -553,8 +559,11 @@ def plot_reflection_effect_meanIID(summary, data, ax=None):
         # showing collision times
         # if summary['num_runs'] > 1:
         for rob_i in range(summary['num_robots']):
-            mask = [np.where(t==elem)[0][0] for elem in collision_times[i][rob_i] / 1000]
-            plt.scatter(t[mask], population_mean[i, mask], color="red")
+            types = [elem[1] for elem in col_types[i][rob_i]]
+            colors = ['red' if type=="withRobot" else 'gray' for type in types]
+            col_times = [elem[0]/1000 for elem in col_types[i][rob_i]]
+            mask = [np.where(t==elem)[0][0] for elem in col_times]
+            plt.scatter(t[mask], population_mean[i, mask], color=colors)
 
     if show_plot:
         plt.show()
