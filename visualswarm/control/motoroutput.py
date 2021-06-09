@@ -237,7 +237,6 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=125, blind_
                 webots_do_stream.put(("SET_MOTOR", {'left': float(np.sign(angle) * turning_motor_speed),
                                                     'right': float(-np.sign(angle) * turning_motor_speed)}))
 
-
         else:
             # if the defined angle of turn was not enough to clear the proximity sensors we retry to recursively
             # call the turning maneuver according to the new proximity values. The frequency of this check is
