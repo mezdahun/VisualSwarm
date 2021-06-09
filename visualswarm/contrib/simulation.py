@@ -11,7 +11,7 @@ import numpy as np
 ENABLE_SIMULATION = bool(int(os.getenv('ENABLE_SIMULATION', '0')))
 
 # Update frequency of sensors
-UPFREQ_PROX_HORIZONTAL = 10  #in Hz
+UPFREQ_PROX_HORIZONTAL = 10  # in Hz
 
 # Switch to use either multithreading or multiprocessing module during
 # webots simulations. Advantage with multiprocessing module is that it
