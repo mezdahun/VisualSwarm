@@ -36,7 +36,6 @@ def webots_do(control_args, devices):
 
 def getWebotsCameraImage(devices):
     """Fast way to get camera images from webots camera  objects"""
-    rawString = devices['camera'].getImage()
     width = devices['params']['c_width']
     height = devices['params']['c_height']
 
