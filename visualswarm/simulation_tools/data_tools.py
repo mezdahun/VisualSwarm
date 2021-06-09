@@ -19,6 +19,30 @@ def load_VSWRM_data(path):
     return np.array(array2return)
 
 
+def find_min_t(data_path):
+    """as both different runs and different robots can yield slightly different number of measurement points
+    we should first find the minimum so that all others are limited to this minimum"""
+    robots = [name for name in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, name))]
+    min_ts = []
+    for i, robot_name in enumerate(robots):
+        robot_folder = os.path.join(data_path, robot_name)
+
+        if i == 0:
+            runs = [name for name in os.listdir(robot_folder) if os.path.isdir(os.path.join(robot_folder, name))]
+            num_runs = len(runs)
+
+        t_lens = []
+        for j, run_name in enumerate(runs):
+            position_array = load_VSWRM_data(
+                os.path.join(data_path, robot_name, run_name, f'{robot_name}_run{run_name}_pos.npy'))
+
+            t_lens.append(len(position_array[:, 0]))
+
+        min_ts.append(np.min(t_lens))
+
+    return np.min(min_ts)
+
+
 def summarize_experiment(data_path, experiment_name):
     """This method summarizes separated WeBots simulation data into a unified satastructure. All measurements must
     have the same length. To accomplish this you should use a positive non-zero PAUSE_SIMULATION_AFTER parameter
@@ -42,6 +66,8 @@ def summarize_experiment(data_path, experiment_name):
 
     param_dict = {}
 
+    t_len = find_min_t(data_path)
+
     for i, robot_name in enumerate(robots):
         robot_folder = os.path.join(data_path, robot_name)
 
@@ -49,36 +75,44 @@ def summarize_experiment(data_path, experiment_name):
             runs = [name for name in os.listdir(robot_folder) if os.path.isdir(os.path.join(robot_folder, name))]
             num_runs = len(runs)
 
+        positions = []
+        orientations = []
+        # t_lens = []
         for j, run_name in enumerate(runs):
 
             position_array = load_VSWRM_data(
                 os.path.join(data_path, robot_name, run_name, f'{robot_name}_run{run_name}_pos.npy'))
+            positions.append(position_array)
 
             or_array = load_VSWRM_data(
                 os.path.join(data_path, robot_name, run_name, f'{robot_name}_run{run_name}_or.npy'))
+            orientations.append(or_array)
+
+            # t_lens.append(len(position_array[:, 0]))
 
             with open(os.path.join(data_path, robot_name, run_name,
                                    f'{robot_name}_run{run_name}_params.json')) as param_f:
                 if i == 0:
                     param_dict[f'run{run_name}'] = json.load(param_f)
-                er_times_path = os.path.join(data_path, robot_name, run_name, f'{robot_name}_run{run_name}_ERtimes.json')
+                er_times_path = os.path.join(data_path, robot_name, run_name,
+                                             f'{robot_name}_run{run_name}_ERtimes.json')
                 if os.path.isfile(er_times_path):
                     with open(er_times_path) as erf:
                         if param_dict[f'run{run_name}'].get('ERtimes') is None:
                             param_dict[f'run{run_name}']['ERtimes'] = {}
                         param_dict[f'run{run_name}']['ERtimes'][robot_name] = json.load(erf)
 
+        if i == 0:
+            # t_len = np.min(t_lens)
+            t = positions[0][:t_len, 0] / 1000
+            data = np.zeros((num_runs, num_robots, num_attributes, t_len))
 
-            if i == 0 and j == 0:
-                t = position_array[:, 0] / 1000
-                t_len = len(t)
-                data = np.zeros((num_runs, num_robots, num_attributes, t_len))
-
+        for j, run_name in enumerate(runs):
             data[j, i, attributes.index('t'), :] = t
-            data[j, i, attributes.index('pos_x'), :] = position_array[:t_len, 1]
-            data[j, i, attributes.index('pos_y'), :] = position_array[:t_len, 2]
-            data[j, i, attributes.index('pos_z'), :] = position_array[:t_len, 3]
-            data[j, i, attributes.index('or'), :] = or_array[:t_len, 1]
+            data[j, i, attributes.index('pos_x'), :] = positions[j][:t_len, 1]
+            data[j, i, attributes.index('pos_y'), :] = positions[j][:t_len, 2]
+            data[j, i, attributes.index('pos_z'), :] = positions[j][:t_len, 3]
+            data[j, i, attributes.index('or'), :] = orientations[j][:t_len, 1]
 
     experiment_summary = {'params': param_dict,
                           'num_runs': num_runs,
