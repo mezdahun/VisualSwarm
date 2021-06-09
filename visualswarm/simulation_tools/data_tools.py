@@ -313,31 +313,42 @@ def get_collision_time_intervals(summary):
 
     collision_intervals = dict.fromkeys(range(0, summary['num_runs']),
                                         dict.fromkeys(range(0, summary['num_robots']), []))
-    collision_times = dict.fromkeys(range(0, summary['num_runs']),
-                                        dict.fromkeys(range(0, summary['num_robots']), []))
-
-    r_i = 0
-    for run_name, r_sum in summary['params'].items():
-        col_times_dict = r_sum.get("ERtimes") # all collisions in run
-        col_times = []
-        if col_times_dict is not None:  # there were collisions during the experiment, looping through robots
-            for robi in range(summary['num_robots']):
-                rob_col_times = col_times_dict.get(f'robot{robi}')
+    collision_times = {}
+    for i in range(summary['num_runs']):
+        collision_times[i] = {}
+        for j in range(summary['num_robots']):
+            r_sum = summary['params'][f'run{i + 1}']
+            col_times_dict = r_sum.get("ERtimes")
+            if col_times_dict is not None:
+                rob_col_times = col_times_dict.get(f'robot{j}')
                 if rob_col_times is not None:
-                    ctimes = np.array(rob_col_times.get("ERtimes"))
-                    collision_times[r_i][robi] = ctimes
+                    collision_times[i][j] = np.array(rob_col_times.get("ERtimes"))
 
-                    # time difference between 2 ER reports is larger than reporting frequency
-                    mask_temp = list(np.where(np.diff(ctimes) > 300)[0])
-                    mask = [0]  # first element always border
-                    mask.append(len(ctimes)-1)  # last element always border
-                    mask.extend(mask_temp)
-
-                    mask_temp = list(np.where(np.diff(ctimes) > 300)[0]+1)  # get end of intervals
-                    mask.extend(mask_temp)
-                    collision_intervals[r_i][robi] = np.array(sorted(list(ctimes[mask])))
-
-        r_i += 1
+    # from pprint import pprint
+    # r_i = 0
+    # for run_name, r_sum in summary['params'].items():
+    #     col_times_dict = r_sum.get("ERtimes")  # all collisions in run
+    #
+    #     if col_times_dict is not None:  # there were collisions during the experiment, looping through robots
+    #         for robi in range(summary['num_robots']):
+    #             rob_col_times = col_times_dict.get(f'robot{robi}')
+    #             if rob_col_times is not None:
+    #                 ctimes = np.array(rob_col_times.get("ERtimes"))
+    #                 # print(ctimes / 1000)
+    #                 collision_times[r_i][robi] = ctimes.copy()
+    #                 # print(collision_times[r_i][robi])
+    #
+    #                 # time difference between 2 ER reports is larger than reporting frequency
+    #                 mask_temp = list(np.where(np.diff(ctimes) > 300)[0])
+    #                 mask = [0]  # first element always border
+    #                 mask.append(len(ctimes) - 1)  # last element always border
+    #                 mask.extend(mask_temp)
+    #
+    #                 mask_temp = list(np.where(np.diff(ctimes) > 300)[0] + 1)  # get end of intervals
+    #                 mask.extend(mask_temp)
+    #                 collision_intervals[r_i][robi] = np.array(sorted(list(ctimes[mask])))
+    #
+    #     r_i += 1
 
     return collision_intervals, collision_times
 
