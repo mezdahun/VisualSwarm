@@ -238,7 +238,8 @@ def calculate_mean_iid(summary, data, window_width=100):
 
 
 def calculate_ploarization_matrix(summary, data):
-
+    """Calculating matrix including polariuzation values between 0 and 1 reflecting the
+    average match of the agents w.r.t. heaing angles"""
     time = data[0, 0, 0, :]  # 1 step shorter because of diff
 
     or_idx = summary['attributes'].index('or')
@@ -259,7 +260,6 @@ def calculate_ploarization_matrix(summary, data):
 
 
 def calculate_mean_polarization(summary, data, window_width=100):
-
     pol = calculate_ploarization_matrix(summary, data)
     mean_pol = np.zeros(summary['num_runs'])
 
@@ -270,7 +270,7 @@ def calculate_mean_polarization(summary, data, window_width=100):
             for rj in range(ri, summary['num_robots']):
                 p_vec += pol[i, ri, rj, -window_width::]
                 norm_fac += 1
-        mean_pol[i] = np.mean((p_vec/(norm_fac)))
+        mean_pol[i] = np.mean((p_vec / (norm_fac)))
 
     return mean_pol
 
