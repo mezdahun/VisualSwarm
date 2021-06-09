@@ -307,6 +307,7 @@ def population_velocity(summary, data):
 
     return COMvelocity
 
+
 def get_collision_time_intervals(summary):
     """Calculating larger collision time intervals for all robot and run according to raw recorded ERtimes
     in summary data"""
@@ -352,5 +353,184 @@ def get_collision_time_intervals(summary):
 
     return collision_intervals, collision_times
 
+
+def get_collisions_with_type(summary, data, range_around_col=0.3, BL_thr=0.18):
+    """Returns the collision data from the experiments including the type of the collisions, that can be
+    robot-robot vs robot-static. The former one is defined according to any robot-robot distance did go below
+    BL_thr within <range_around_col> timerange (in sec) from the timepoint of collision"""
+    t = data[0, 0, 0, :]
+    dt = t[1] - t[0]
+    range_steps = int(range_around_col / dt)
+
+    coll_intervals, coll_times = get_collision_time_intervals(summary)
+
+    iid_matrix = calculate_interindividual_distance(summary, data)
+    for i in range(summary['num_runs']):
+        for j in range(summary['num_robots']):
+            iid_matrix[i, j, j, :] = np.inf
+
+    collision_times = dict.fromkeys(range(0, summary['num_runs']),
+                                    dict.fromkeys(range(0, summary['num_robots']), []))
+
+    for i in range(summary['num_runs']):
+        if i in coll_times.keys():
+            for j in range(summary['num_robots']):
+                if j in coll_times[i].keys():
+                    for ct in sorted(coll_times[i][j]):
+                        t_start, = np.where(np.isclose(t, ct / 1000))
+                        if len(t_start) == 0:
+                            print(i, j, 'WARNING: skip step with ', ct / 1000)
+                            continue
+                        t_start = int(t_start)
+                        t_end = np.min([t_start + range_steps, len(t) - 1])
+                        t_end = int(t_end)
+                        if np.min(iid_matrix[i, j, :, t_start:t_end]) < BL_thr:
+                            # print('COLLISION WITH ROBOT')
+                            # print(f"run{i}@{ct / 1000}")
+                            # print(np.min(iid_matrix[i, j, :, t_start:t_end]))
+                            collision_times[i][j].append((ct, 'withRobot'))
+                        else:
+                            collision_times[i][j].append((ct, 'withStatic'))
+
+    return collision_times
+
+
+def get_robot_collision_ratio(summary, data):
+    """Returns the ratio of robot-robot vs robot-static collisions throughout the whole experiment with all runs"""
+    collisions = get_collisions_with_type(summary, data)
+    with_robot = []
+    with_static = []
+    for i in range(summary['num_runs']):
+        for j in range(summary['num_robots']):
+            with_robot.extend([elem[0] for elem in collisions[i][j] if elem[1] == 'withRobot'])
+            with_static.extend([elem[0] for elem in collisions[i][j] if elem[1] == 'withStatic'])
+    if (len(with_static) + len(with_robot)) > 0:
+        return len(with_robot) / (len(with_static) + len(with_robot)), len(with_robot), len(with_static)
+    else:
+        return 0, len(with_robot), len(with_static)
+
+
 def moving_average(x, N, weights=1):
-    return np.convolve(x, np.ones(N) * weights, 'valid')/N
+    """Simple moving average with window length N"""
+    return np.convolve(x, np.ones(N) * weights, 'valid') / N
+
+
+def is_crystallized(summary, data, num_run, time_window=5, vel_thr=0.003, polvar_thr=0.3, pol_thr=0.5):
+    """Returns a bool showing if a given run in an experiment was stuck in a crystallized state according to the
+    population velocity and the variance of the polarization of agents in the last <time_window> seconds"""
+
+    t = data[0, 0, 0, :-1]
+    dt = t[1] - t[0]
+    num_timesteps = int(time_window / dt)
+
+    COM_vel = population_velocity(summary, data)[num_run, :]
+    polarization = calculate_ploarization_matrix(summary, data)
+    population_mean = np.mean(np.mean(polarization, 1), 1)[num_run, :]
+
+    # print('mean COM velocity: ', np.mean(COM_vel[-num_timesteps:]))
+    # print('std polarization: ', np.std(population_mean[-num_timesteps:]))
+    # print('men polarization: ', np.mean(population_mean[-num_timesteps:]))
+    if np.mean(COM_vel[-num_timesteps:]) < vel_thr and np.std(population_mean[-num_timesteps:]) < polvar_thr \
+            and np.mean(population_mean[-num_timesteps:]) < pol_thr:
+        return True
+    else:
+        return False
+
+
+def return_mean_polarization_at_end(summary, data, time_window=5):
+    """Returns the mean polarization in the last <time_window> seconds of the experiment"""
+    t = data[0, 0, 0, :-1]
+    dt = t[1] - t[0]
+    num_timesteps = int(time_window / dt)
+
+    polarization = calculate_ploarization_matrix(summary, data)
+    population_mean = np.mean(np.mean(np.mean(polarization, 1), 1), axis=0)[-num_timesteps:]
+    return np.mean(population_mean)
+
+
+def t_without_collision(summary, data, collision_removal_range=1):
+    """Returning a time axis for each run from which timepoints are excluded
+     where at least one of the agents collided"""
+
+    t = data[0, 0, 0, :]
+    dt = t[1] - t[0]
+    num_timesteps = int(collision_removal_range / dt)
+
+    ctimes = get_collisions_with_type(summary, data)
+    filtered_ts = {}
+    for i in range(summary['num_runs']):
+        filtered_ts[i] = None
+
+    for i in range(summary['num_runs']):
+        if i in ctimes.keys():
+            filtered_t = t.copy()
+            for j in range(summary['num_robots']):
+                if j in ctimes[i].keys():
+                    for ct in ctimes[i][j]:
+                        t_start, = np.where(np.isclose(t, ct[0] / 1000))
+                        if len(t_start) == 0:
+                            print(i, j, 'WARNING: skip step with ', ct[0] / 1000)
+                            continue
+                        t_start = int(t_start)
+                        t_end = np.min([t_start + num_timesteps, len(t) - 1])
+                        t_end = int(t_end)
+                        filtered_t[t_start:t_end] = -1
+            filtered_t2 = filtered_t.copy()
+            filtered_t2 = filtered_t2[filtered_t2 > -1]
+            filtered_ts[i] = filtered_t2
+        else:
+            filtered_ts[i] = t.copy()
+
+    return filtered_ts
+
+
+def return_mean_polarization_without_collision(summary, data, collision_removal_range=1):
+    """Calculating the mean polarization of the group in those times when none of the robots collided"""
+    noc_t = t_without_collision(summary, data, collision_removal_range=collision_removal_range)
+    pol_matrix = calculate_ploarization_matrix(summary, data)
+
+    t = data[0, 0, 0, :]
+
+    run_means = []
+
+    for i in range(summary['num_runs']):
+        if i in noc_t.keys():
+            _, _, x_ind = np.intersect1d(t, noc_t[i] / 1000, return_indices=True)
+            polarization = pol_matrix[i, :, :, x_ind]
+            run_means.append(np.mean(np.mean(np.mean(polarization, 1), 1)))
+
+    return np.mean(run_means)
+
+
+def time_spent_undesired_state(summary, data, vel_thr=0.02):
+    """calculating time spent in an undesired state where the average COM velocity is zero of the group."""
+    t = data[0, 0, 0, :-1]
+    dt = t[1] - t[0]
+
+    COM_vel = population_velocity(summary, data)
+
+    times = []
+
+    for i in range(summary['num_runs']):
+        undes_state_mask = COM_vel[i, :] < vel_thr
+        times.append(len(t[undes_state_mask]))
+
+    return (np.mean(times) * dt) / t[-1]
+
+
+def overall_COM_travelled_distance_while_polarized(summary, data, polarization_thr=0.7):
+    """Calculating the overall travelled distance of the COM of the group while the group was polarized.
+    This excludes those undesired states when the group is unpolarized but still pulling andpushing each other
+    away and by that moving the COMN of the group."""
+    t = data[0, 0, 0, :-1]
+    dt = t[1] - t[0]
+
+    polarization = calculate_ploarization_matrix(summary, data)
+    mean_polarization = np.mean(np.mean(polarization, 1), 1)
+    travelled_distances = []
+    for i in range(summary['num_runs']):
+        high_pol_mask = mean_polarization[i, :-1] > polarization_thr
+        pop_distance = population_velocity(summary, data) * dt
+        travelled_distances.append(np.sum(pop_distance[i, high_pol_mask]))
+
+    return np.sum(travelled_distances)
