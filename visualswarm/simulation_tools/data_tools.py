@@ -300,10 +300,10 @@ def population_velocity(summary, data):
     t = data[0, 0, 0, :]
     dt = t[1] - t[0]
 
-    COMvelocity = np.zeros((summary['num_runs'], len(t)-1))
-    for i in range(len(t)-1):
+    COMvelocity = np.zeros((summary['num_runs'], len(t) - 1))
+    for i in range(len(t) - 1):
         for run_i in range(summary['num_runs']):
-            COMvelocity[run_i, i] = distance(center_of_mass[run_i, :, i], center_of_mass[run_i, :, i+1]) / dt
+            COMvelocity[run_i, i] = distance(center_of_mass[run_i, :, i], center_of_mass[run_i, :, i + 1]) / dt
 
     return COMvelocity
 
