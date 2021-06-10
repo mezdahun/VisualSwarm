@@ -20,20 +20,21 @@ confbasebath = os.path.dirname(os.path.abspath(__file__))
 # EXPERIMENT_NAME = 'TEST'  # change it before recording data or programatically with input config files
 
 # env_config_dict = {
-    # 'ENABLE_SIMULATION': str(int(True)),  # should be always true if using simulation instead of real robots
-    # 'SHOW_VISION_STREAMS': str(int(False)),  # visualize what robots see in external openCV window
-    # 'LOG_LEVEL': 'DEBUG',  # verbosity of logging
-    # 'WEBOTS_LOG_PERFORMANCE': str(int(False)),  # if true, measured times between functional steps will be logged
-    # 'SPARE_RESCOURCES': str(int(True)),  # Threading for true, multiprocessing for false
-    # 'BORDER_CONDITIONS': "Infinite",  # or "Reality"
-    # 'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)),
-    # 'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(True)), # save video automatically
-    # 'WEBOTS_SIM_SAVE_FOLDER': os.path.join(sbasepath, f'{EXPERIMENT_NAME}'),
-    # 'PAUSE_SIMULATION_AFTER': '30',  # in seconds
-    # 'PAUSE_BEHAVIOR': 'Pause',  # or 'Quit'
-    # 'BEHAVE_PARAMS_JSON_PATH': os.path.join(confbasebath, 'VAR_behavior_params.json'),
-    # 'INITIAL_CONDITION_PATH': os.path.join(confbasebath, 'VAR_initial_conditions.json'),
-    # 'USE_ROBOT_PEN': str(int(False))  # enable or disable robot pens
+#     'ENABLE_SIMULATION': str(int(True)),  # should be always true if using simulation instead of real robots
+#     'SHOW_VISION_STREAMS': str(int(False)),  # visualize what robots see in external openCV window
+#     'LOG_LEVEL': 'DEBUG',  # verbosity of logging
+#     'WEBOTS_LOG_PERFORMANCE': str(int(False)),  # if true, measured times between functional steps will be logged
+#     'SPARE_RESCOURCES': str(int(True)),  # Threading for true, multiprocessing for false
+#     'BORDER_CONDITIONS': "Infinite",  # or "Reality"
+#     'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)),
+#     'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(True)), # save video automatically
+#     'WEBOTS_SIM_SAVE_FOLDER': os.path.join(sbasepath, f'{EXPERIMENT_NAME}'),
+#     'PAUSE_SIMULATION_AFTER': '30',  # in seconds
+#     'PAUSE_BEHAVIOR': 'Pause',  # or 'Quit'
+#     'BEHAVE_PARAMS_JSON_PATH': os.path.join(confbasebath, 'VAR_behavior_params.json'),
+#     'INITIAL_CONDITION_PATH': os.path.join(confbasebath, 'VAR_initial_conditions.json'),
+#     'USE_ROBOT_PEN': str(int(False)),  # enable or disable robot pens
+#     'ROBOT_FOV': '3.14'
 # }
 
 ######## END CONFIG #######

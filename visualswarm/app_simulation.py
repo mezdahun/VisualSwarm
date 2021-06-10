@@ -5,7 +5,7 @@ import pickle
 from contextlib import ExitStack
 
 from visualswarm import env
-from visualswarm.contrib import logparams, simulation, control, behavior
+from visualswarm.contrib import logparams, simulation, control, behavior, vision
 from visualswarm.simulation_tools import processing_tools, webots_tools
 
 from freezegun import freeze_time
@@ -41,7 +41,12 @@ def getWebotsCameraImage(devices):
 
     camera_data = devices['camera'].getImage()
     img = np.frombuffer(camera_data, np.uint8).reshape((height, width, 4))
-    return img
+
+    use_pixel_w = int(width * (vision.FOV / 6.28))
+    w_start = int((width - use_pixel_w)/2)
+    w_end = w_start + use_pixel_w
+
+    return img[:, w_start:w_end, :]
 
 
 def webots_entrypoint(robot, devices, timestep, with_control=False):

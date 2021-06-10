@@ -40,7 +40,8 @@ MEDIAN_BLUR_WIDTH = 5  # 9
 MIN_BLOB_AREA = 0
 
 # Visual Projection
+FOV = float(os.getenv('ROBOT_FOV', '6.28'))
 H_MARGIN = 1  # 10
 W_MARGIN = 1  # 10
-PHI_START = -pi  # -0.5394 * pi
-PHI_END = pi  # 0.5394 * pi
+PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
+PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
