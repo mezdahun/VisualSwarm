@@ -6,6 +6,11 @@ import os
 import pickle
 import json
 import numpy as np
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
 
 
 def load_VSWRM_data(path):
@@ -43,7 +48,20 @@ def find_min_t(data_path):
     return np.min(min_ts)
 
 
-def summarize_experiment(data_path, experiment_name):
+def is_summarized(data_path, experiment_name):
+    """Checking if a given experiment is already summarized into data and summary files so we can skip the rather
+    long summary time for already summed experiments"""
+    is_summary = os.path.isfile(os.path.join(data_path, f'{experiment_name}_summaryp.json'))
+    is_data = os.path.isfile(os.path.join(data_path, f'{experiment_name}_summaryd.npy'))
+    if is_summary and is_data:
+        logger.info(f"{experiment_name} is already summarized...")
+        return True
+    else:
+        logger.info("Experiment not yet summarized")
+        return False
+
+
+def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
     """This method summarizes separated WeBots simulation data into a unified satastructure. All measurements must
     have the same length. To accomplish this you should use a positive non-zero PAUSE_SIMULATION_AFTER parameter
     passed from webots.  All robot folders should contain the same number of run folders. Mixed folders resulting from
@@ -57,6 +75,10 @@ def summarize_experiment(data_path, experiment_name):
             (number of runs) x (number of robots) x (number of saved attributes) x (simulation timesteps)
 
     and the first attribute is always the simulation time"""
+
+    if is_summarized(data_path, experiment_name) and skip_already_summed:
+        logger.info(f"Skipping already summed experiment as requested!")
+        return True
 
     attributes = ['t', 'pos_x', 'pos_y', 'pos_z', 'or']
     num_attributes = len(attributes)
