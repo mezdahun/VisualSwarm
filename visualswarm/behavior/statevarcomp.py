@@ -87,11 +87,13 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
 
     # Calculating change in velocity and heading direction
     dPhi = Phi[-1] - Phi[-2]
+    FOV_rescaling_cos = 1
+    FOV_rescaling_sin = 1
 
     dvel = behavior.GAM * (behavior.V0 - vel_now) + \
-           behavior.ALP0 * integrate.trapz(np.cos(Phi) * G_vel, Phi) + \
+           behavior.ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
            behavior.ALP0 * behavior.ALP1 * np.sum(np.cos(Phi) * G_vel_spike) * dPhi
     dpsi = behavior.BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
-           behavior.BET0 * behavior.BET1 * np.sum(np.sin(Phi) * G_psi_spike) * dPhi
+           behavior.BET0 * behavior.BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike) * dPhi
 
     return dvel, dpsi
