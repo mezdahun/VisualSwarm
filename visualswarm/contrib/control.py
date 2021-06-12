@@ -33,10 +33,10 @@ EMERGENCY_STATUS_RGB = (32, 0, 0)
 
 # RANDOM WALK
 # Random walk time step to change direction (sec)
-RW_DT = 1
+RW_DT = 3.5
 
 # Fixed speed during random walk exploration
-V_EXP_RW = 0.4
+V_EXP_RW = 125
 
 # Possible absolute angle change in a given timestep during RW exploration (in radian)
 # if zero the exploration is just moving in a straight line
