@@ -33,8 +33,10 @@ confbasebath = os.path.dirname(os.path.abspath(__file__))
 #     'PAUSE_BEHAVIOR': 'Pause',  # or 'Quit'
 #     'BEHAVE_PARAMS_JSON_PATH': os.path.join(confbasebath, 'VAR_behavior_params.json'),
 #     'INITIAL_CONDITION_PATH': os.path.join(confbasebath, 'VAR_initial_conditions.json'),
-#     'USE_ROBOT_PEN': str(int(False)),  # enable or disable robot pens
-#     'ROBOT_FOV': '3.14'
+#     'USE_ROBOT_PEN': str(int(True)),  # enable or disable robot pens
+#     'ROBOT_FOV': '3',
+#     'EXP_MOVEMENT': 'RandomWalk',
+#     'WITH_LEADER': str(int(True))
 # }
 
 ######## END CONFIG #######
@@ -140,9 +142,12 @@ def main():
     robot = Supervisor()
     
     ## example to robot-specific configuration
-    if robot.getName() == "robot0" and SAVE_VIDEO:
-        robot.movieStartRecording(VIDEO_PATH, 800, 600, 1337, 100, 4, False)
-
+    if robot.getName() == "robot0": 
+        if SAVE_VIDEO:
+            robot.movieStartRecording(VIDEO_PATH, 800, 600, 1337, 100, 4, False)
+        if bool(int(os.getenv('WITH_LEADER', '1'))):
+            os.environ['EXP_MOVEMENT'] = 'NoExploration'
+        
     # get the time step of the current world.
     timestep = int(robot.getBasicTimeStep())
 
