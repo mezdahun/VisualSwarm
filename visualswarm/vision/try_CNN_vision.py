@@ -34,9 +34,10 @@ from picamera import PiCamera
 from picamera.array import PiRGBArray
 from picamera.exc import PiCameraValueError
 
-from visualswarm.contrib import camera
+from visualswarm.contrib import camera, logparams
 
 logger = logging.getLogger('visualswarm.app')
+bcolors = logparams.BColors
 
 def CNN_vision():
     picam = PiCamera()
