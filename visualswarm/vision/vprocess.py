@@ -32,6 +32,21 @@ else:
 def nothing(x):
     pass
 
+def get_latest_element(queue):
+    """
+    emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
+        Args:
+            queue2empty (multiprocessing.Queue): queue object to be emptied
+        Returns:
+            status: True if successful
+    """
+    val = None
+    while not queue.empty():
+        try:
+            val = queue.get_nowait()
+        except Empty:
+            return val
+    return val
 
 def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
                       target_config_stream=None):
@@ -90,9 +105,10 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             logger.info('Model loaded!')
 
         while True:
-            (img, frame_id, capture_timestamp) = raw_vision_stream.get()
 
             if vision.RECOGNITION_TYPE == "Color":
+
+                (img, frame_id, capture_timestamp) = raw_vision_stream.get()
                 # logger.info(raw_vision_stream.qsize())
                 if vision.FIND_COLOR_INTERACTIVE:
                     if target_config_stream is not None:
@@ -131,6 +147,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
             elif vision.RECOGNITION_TYPE == "CNN":
+
+                value = get_latest_element(raw_vision_stream)
+                if value is not None:
+                    (img, frame_id, capture_timestamp) = value
+                else:
+                    (img, frame_id, capture_timestamp) = raw_vision_stream.get()
 
                 frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 frame_resized = cv2.resize(frame_rgb, (width, height))
