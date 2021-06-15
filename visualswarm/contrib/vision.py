@@ -7,7 +7,7 @@ from numpy import uint8
 import os
 
 # Recognition Type, supported: 'Color' or 'CNN'
-RECOGNITION_TYPE = "Color"
+RECOGNITION_TYPE = "CNN"
 
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
