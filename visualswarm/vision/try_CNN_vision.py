@@ -16,7 +16,7 @@ def CNN_vision():
     configPath = '/home/pi/VisualSwarm/data/tflite_model/tflite_graph.pbtxt'
     weightsPath = '/home/pi/VisualSwarm/data/tflite_model/tflite_graph.pb'
 
-    net = cv2.dnn_DetectionModel(weightsPath, configPath)
+    net = cv2.dnn.readNetFromTensorflow(weightsPath) #dnn_DetectionModel(weightsPath, configPath)
     net.setInputSize(320,320)
     net.setInputScale(1.0/ 127.5)
     net.setInputMean((127.5, 127.5, 127.5))
