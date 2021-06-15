@@ -58,7 +58,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             MODEL_NAME = '/home/pi/VisualSwarm/data/tflite_model'
             GRAPH_NAME = 'ssdnet2_tf2.tflite'
             LABELMAP_NAME = 'labelmap.txt'
-            min_conf_threshold = 0.95
+            min_conf_threshold = 0.85
 
             resW, resH = camera.RESOLUTION
             imW, imH = int(resW), int(resH)
@@ -161,6 +161,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         xmax = int(min(imW, (boxes[i][3] * imW)))
 
                         cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                        logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
             # Forwarding result to VPF extraction
             high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
