@@ -81,7 +81,9 @@ def raw_vision(raw_vision_stream):
             raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
             # Wait a certain number of seconds to allow the camera time to warmup
-            time.sleep(0.1)
+            logger.info('Waiting for camera warmup!')
+            time.sleep(6)
+            logger.info('--proceed--')
             frame_id = 0
             for frame in picam.capture_continuous(raw_capture,
                                                   format=camera.CAPTURE_FORMAT,
