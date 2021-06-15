@@ -165,6 +165,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
             # Forwarding result to VPF extraction
+            logger.info(f'CNN {frame_id}')
             high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
 
             # Forwarding result for visualization if requested
