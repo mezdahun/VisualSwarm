@@ -100,7 +100,6 @@ def raw_vision(raw_vision_stream):
                 # Clear the raw capture stream in preparation for the next frame
                 raw_capture.truncate(0)
                 frame_id += 1
-                logger.info(f'vision frame: {frame_id}')
         except KeyboardInterrupt:
             try:
                 pass
