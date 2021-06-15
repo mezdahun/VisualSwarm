@@ -202,7 +202,7 @@ def start_application_with_control():
 
 def start_CNN_vision():
     try:
-        raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
+        raw_vision = Process(target=vacquire.raw_vision)
         raw_vision.start()
         raw_vision.join()
     except KeyboardInterrupt:
