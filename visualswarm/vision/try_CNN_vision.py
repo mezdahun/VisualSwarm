@@ -40,6 +40,7 @@ logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
 
 def CNN_vision():
+
     picam = PiCamera()
     picam.resolution = camera.RESOLUTION
     picam.framerate = camera.FRAMERATE
@@ -204,10 +205,8 @@ def CNN_vision():
         time1 = (t2 - t1) / freq
         frame_rate_calc = 1 / time1
 
+        raw_capture.truncate(0)
+
         # Press 'q' to quit
         if cv2.waitKey(1) == ord('q'):
             break
-
-    # Clean up
-    cv2.destroyAllWindows()
-    videostream.stop()
