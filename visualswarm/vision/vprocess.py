@@ -64,10 +64,10 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             imW, imH = int(resW), int(resH)
 
             # Path to .tflite file, which contains the model that is used for object detection
-            PATH_TO_CKPT = os.path.join(CWD_PATH, MODEL_NAME, GRAPH_NAME)
+            PATH_TO_CKPT = os.path.join(MODEL_NAME, GRAPH_NAME)
 
             # Path to label map file
-            PATH_TO_LABELS = os.path.join(CWD_PATH, MODEL_NAME, LABELMAP_NAME)
+            PATH_TO_LABELS = os.path.join(MODEL_NAME, LABELMAP_NAME)
 
             # Load the label map
             with open(PATH_TO_LABELS, 'r') as f:
