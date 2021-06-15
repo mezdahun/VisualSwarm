@@ -94,7 +94,7 @@ def CNN_vision():
                          f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
             MODEL_NAME = '/home/pi/VisualSwarm/data/tflite_model'
-            GRAPH_NAME = 'model.tflite'
+            GRAPH_NAME = 'ssdnet2_tf2.tflite'
             LABELMAP_NAME = 'labelmap.txt'
             min_conf_threshold = 0.85
 
