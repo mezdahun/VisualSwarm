@@ -47,9 +47,7 @@ def CNN_vision():
                  f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
                  f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
-    curr_dir = os.path.dirname(os.path.abspath(__file__))
-
-    MODEL_NAME = os.path.join(curr_dir, 'tflite_model')
+    MODEL_NAME = '/home/pi/VisualSwarm/data/tflite_model'
     GRAPH_NAME = 'model.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     min_conf_threshold = 0.85
