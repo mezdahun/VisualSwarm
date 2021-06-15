@@ -132,8 +132,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             elif vision.RECOGNITION_TYPE == "CNN":
 
-                frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                frame_resized = cv2.resize(frame_rgb, (width, height))
+                # frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                frame_resized = cv2.resize(img, (width, height))
                 input_data = np.expand_dims(frame_resized, axis=0)
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
@@ -145,12 +145,13 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 interpreter.invoke()
 
                 # Retrieve detection results
-                boxes = interpreter.get_tensor(output_details[0]['index'])[
-                    0]  # Bounding box coordinates of detected objects
+                boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
                 classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
 
                 blurred = img.copy()
+                logger.info(f'Detected {len(boxes)} boxes')
+
                 for i in range(len(scores)):
                     if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
                         # Get bounding box coordinates and draw box
