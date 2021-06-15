@@ -52,6 +52,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             hsv_low = visualswarm.contrib.vision.HSV_LOW
             hsv_high = visualswarm.contrib.vision.HSV_HIGH
         elif vision.RECOGNITION_TYPE == "CNN":
+
+            logger.info('Loading tensorflow model...')
             MODEL_NAME = '/home/pi/VisualSwarm/data/tflite_model'
             GRAPH_NAME = 'ssdnet2_tf2.tflite'
             LABELMAP_NAME = 'labelmap.txt'
@@ -83,6 +85,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             input_mean = 127.5
             input_std = 127.5
+
+            logger.info('Model loaded!')
 
         while True:
             (img, frame_id, capture_timestamp) = raw_vision_stream.get()
