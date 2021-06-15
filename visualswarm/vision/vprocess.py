@@ -150,7 +150,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
 
                 blurred = img.copy()
-                logger.info(f'Detected {len(boxes)} boxes')
+                logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
                 for i in range(len(scores)):
                     if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
