@@ -132,8 +132,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             elif vision.RECOGNITION_TYPE == "CNN":
 
-                # frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                frame_resized = cv2.resize(img, (width, height))
+                frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                frame_resized = cv2.resize(frame_rgb, (width, height))
                 input_data = np.expand_dims(frame_resized, axis=0)
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
