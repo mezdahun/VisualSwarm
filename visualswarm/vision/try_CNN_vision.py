@@ -4,7 +4,7 @@ import cv2
 def CNN_vision():
     thres = 0.45 # Threshold to detect object
 
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cap.set(3,1280)
     cap.set(4,720)
     cap.set(10,70)
@@ -13,7 +13,7 @@ def CNN_vision():
 
     MODEL_NAME = '/home/pi/VisualSwarm/data/tflite_model'
 
-    configPath = '/home/pi/VisualSwarm/data/tflite_model/tflite_graph.pbtx'
+    configPath = '/home/pi/VisualSwarm/data/tflite_model/tflite_graph.pbtxt'
     weightsPath = '/home/pi/VisualSwarm/data/tflite_model/tflite_graph.pb'
 
     net = cv2.dnn_DetectionModel(weightsPath, configPath)
