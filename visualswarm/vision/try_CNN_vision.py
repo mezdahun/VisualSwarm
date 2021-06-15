@@ -56,7 +56,7 @@ def CNN_vision():
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
-    use_TPU = True
+    use_TPU = False
 
     # Generates a 3D RGB array and stores it in rawCapture
     raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
