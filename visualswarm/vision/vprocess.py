@@ -14,6 +14,9 @@ from visualswarm import env
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import camera, vision, monitoring, simulation
 
+if vision.RECOGNITION_TYPE == "CNN":
+    from tflite_runtime.interpreter import Interpreter
+
 # using main logger
 if not simulation.ENABLE_SIMULATION:
     # setup logging
@@ -45,47 +48,114 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             -shall not return-
     """
     try:
-        hsv_low = visualswarm.contrib.vision.HSV_LOW
-        hsv_high = visualswarm.contrib.vision.HSV_HIGH
+        if vision.RECOGNITION_TYPE == "Color":
+            hsv_low = visualswarm.contrib.vision.HSV_LOW
+            hsv_high = visualswarm.contrib.vision.HSV_HIGH
+        elif vision.RECOGNITION_TYPE == "CNN":
+            MODEL_NAME = '/home/pi/VisualSwarm/data/tflite_model'
+            GRAPH_NAME = 'ssdnet2_tf2.tflite'
+            LABELMAP_NAME = 'labelmap.txt'
+            min_conf_threshold = 0.95
+
+            resW, resH = camera.RESOLUTION
+            imW, imH = int(resW), int(resH)
+
+            # Path to .tflite file, which contains the model that is used for object detection
+            PATH_TO_CKPT = os.path.join(CWD_PATH, MODEL_NAME, GRAPH_NAME)
+
+            # Path to label map file
+            PATH_TO_LABELS = os.path.join(CWD_PATH, MODEL_NAME, LABELMAP_NAME)
+
+            # Load the label map
+            with open(PATH_TO_LABELS, 'r') as f:
+                labels = [line.strip() for line in f.readlines()]
+
+            interpreter = Interpreter(model_path=PATH_TO_CKPT)
+            interpreter.allocate_tensors()
+
+            # Get model details
+            input_details = interpreter.get_input_details()
+            output_details = interpreter.get_output_details()
+            height = input_details[0]['shape'][1]
+            width = input_details[0]['shape'][2]
+
+            floating_model = (input_details[0]['dtype'] == np.float32)
+
+            input_mean = 127.5
+            input_std = 127.5
 
         while True:
             (img, frame_id, capture_timestamp) = raw_vision_stream.get()
-            # logger.info(raw_vision_stream.qsize())
-            if vision.FIND_COLOR_INTERACTIVE:
-                if target_config_stream is not None:
-                    if target_config_stream.qsize() > 1:
-                        (R, B, G, hue_range, sv_min, sv_max) = target_config_stream.get()
-                        target_hsv = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
-                        hsv_low = np.uint8([target_hsv[0][0][0] - hue_range, sv_min, sv_min])
-                        hsv_high = np.uint8([target_hsv[0][0][0] + hue_range, sv_max, sv_max])
 
-            # logger.info(raw_vision_stream.qsize())
-            hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            if vision.RECOGNITION_TYPE == "Color":
+                # logger.info(raw_vision_stream.qsize())
+                if vision.FIND_COLOR_INTERACTIVE:
+                    if target_config_stream is not None:
+                        if target_config_stream.qsize() > 1:
+                            (R, B, G, hue_range, sv_min, sv_max) = target_config_stream.get()
+                            target_hsv = cv2.cvtColor(np.uint8([[[B, G, R]]]), cv2.COLOR_BGR2HSV)
+                            hsv_low = np.uint8([target_hsv[0][0][0] - hue_range, sv_min, sv_min])
+                            hsv_high = np.uint8([target_hsv[0][0][0] + hue_range, sv_max, sv_max])
 
-            # Threshold the HSV image to get only blue colors
-            mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
+                # logger.info(raw_vision_stream.qsize())
+                hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-            # Gaussian blur
-            blurred = cv2.GaussianBlur(mask, (
-                visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
-            blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
+                # Threshold the HSV image to get only blue colors
+                mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
-            # Find contours
-            conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
+                # Gaussian blur
+                blurred = cv2.GaussianBlur(mask, (
+                    visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
+                blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
 
-            # Selecting appropriate contours
-            fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= visualswarm.contrib.vision.MIN_BLOB_AREA]
+                # Find contours
+                conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
 
-            # Creating convex hull from selected contours
-            hull_list = []
-            for i in range(len(fconts)):
-                hull = cv2.convexHull(fconts[i])
-                hull_list.append(hull)
+                # Selecting appropriate contours
+                fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= visualswarm.contrib.vision.MIN_BLOB_AREA]
 
-            # visualize contours and convex hull on the original image and the area on the new mask
-            cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
-            cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
-            cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
+                # Creating convex hull from selected contours
+                hull_list = []
+                for i in range(len(fconts)):
+                    hull = cv2.convexHull(fconts[i])
+                    hull_list.append(hull)
+
+                # visualize contours and convex hull on the original image and the area on the new mask
+                cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
+                cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
+                cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
+
+            elif vision.RECOGNITION_TYPE == "CNN":
+
+                frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                frame_resized = cv2.resize(frame_rgb, (width, height))
+                input_data = np.expand_dims(frame_resized, axis=0)
+
+                # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
+                if floating_model:
+                    input_data = (np.float32(input_data) - input_mean) / input_std
+
+                # Perform the actual detection by running the model with the image as input
+                interpreter.set_tensor(input_details[0]['index'], input_data)
+                interpreter.invoke()
+
+                # Retrieve detection results
+                boxes = interpreter.get_tensor(output_details[0]['index'])[
+                    0]  # Bounding box coordinates of detected objects
+                classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+                scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+
+                blurred = img.copy()
+                for i in range(len(scores)):
+                    if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                        # Get bounding box coordinates and draw box
+                        # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                        ymin = int(max(1, (boxes[i][0] * imH)))
+                        xmin = int(max(1, (boxes[i][1] * imW)))
+                        ymax = int(min(imH, (boxes[i][2] * imH)))
+                        xmax = int(min(imW, (boxes[i][3] * imW)))
+
+                        cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
 
             # Forwarding result to VPF extraction
             high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))

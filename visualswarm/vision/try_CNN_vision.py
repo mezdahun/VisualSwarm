@@ -96,7 +96,7 @@ def CNN_vision():
             MODEL_NAME = '/home/pi/VisualSwarm/data/tflite_model'
             GRAPH_NAME = 'ssdnet2_tf2.tflite'
             LABELMAP_NAME = 'labelmap.txt'
-            min_conf_threshold = 0.85
+            min_conf_threshold = 0.95
 
             resW, resH = camera.RESOLUTION
             imW, imH = int(resW), int(resH)

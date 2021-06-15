@@ -6,6 +6,9 @@ from cv2 import cvtColor, COLOR_BGR2HSV
 from numpy import uint8
 import os
 
+# Recognition Type, supported: 'Color' or 'CNN'
+RECOGNITION_TYPE = "CNN"
+
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
 
@@ -20,7 +23,10 @@ CONVEX_CONTOUR_COLOR = (0, 255, 0)
 CONVEX_CONTOUR_WIDTH = 3
 
 # Color Space Segmentation
-NUM_SEGMENTATION_PROCS = 6
+if RECOGNITION_TYPE == "Color":
+    NUM_SEGMENTATION_PROCS = 6
+else:
+    NUM_SEGMENTATION_PROCS = 1
 
 # Target color normal
 # TARGET_RGB_COLOR = (207, 207, 0)
