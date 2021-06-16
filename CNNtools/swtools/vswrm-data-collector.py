@@ -99,8 +99,6 @@ try:
             k = cv2.waitKey(1) & 0xFF
             raw_capture.truncate(0)
 
-            logger.info(k)
-
             if k == ord("q"):
                 # ESC pressed
                 logger.info("'q' was hit, closing...")
