@@ -106,7 +106,7 @@ try:
             elif k == ord("s"):
                 # s pressed
                 image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                img_name = os.path.join(SAVE_FOLDER, f"opencv_frame_{frame_id}.jpg")
+                img_name = os.path.join(SAVE_FOLDER, f"VSWRM_img_{frame_id}.jpg")
                 cv2.imwrite(img_name, image)
                 logger.info(f"{img_name} saved!")
 
