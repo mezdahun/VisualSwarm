@@ -53,7 +53,7 @@ parser.add_argument('-f', '--framerate', help='Framerate of the camera in [fps] 
 args = parser.parse_args()
 
 SAVE_FOLDER = args.savedir
-os.makedirs(SAVE_FOLDER)
+os.makedirs(SAVE_FOLDER, exist_ok=True)
 
 RESOLUTION = [int(i) for i in args.resolution.split('x')]
 FRAMERATE = int(args.framerate)
