@@ -26,13 +26,16 @@ HELP_MESSAGE = """
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser(add_help=False)
-parser.add_argument('--help', help=HELP_MESSAGE)
-parser.add_argument('--savedir', help='Folder the .jpg images are being saved. Default is current directory',
+parser.add_argument('-v', '--version', action='version',
+                    version='v1.0', help="Show program's version number and exit.")
+parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                    help=HELP_MESSAGE)
+parser.add_argument('-s', '--savedir', help='Folder the .jpg images are being saved. Default is current directory',
                     required=True, default=os.getcwd())
-parser.add_argument('--resolution',
+parser.add_argument('-r', '--resolution',
                     help='Desired webcam resolution in WxH. If the webcam does not support the resolution entered, errors may occur.',
                     default='1280x720')
-parser.add_argument('--framerate', help='Framerate of the camera in [fps] as integer. Default is 30.',
+parser.add_argument('-f', '--framerate', help='Framerate of the camera in [fps] as integer. Default is 30.',
                     default=30)
 
 args = parser.parse_args()
