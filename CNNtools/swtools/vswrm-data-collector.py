@@ -93,14 +93,14 @@ for frame in picam.capture_continuous(raw_capture,
     image = frame.array
 
     cv2.imshow('Camera Stream', image)
-    k = cv2.waitKey(50)
+    k = cv2.waitKey(1) & 0xFF
     logger.info(k)
 
-    if k % 256 == 27:
+    if k == ord("q"):
         # ESC pressed
         logger.info("Escape was hit, closing...")
         break
-    elif k % 256 == 32:
+    elif k == ord("s"):
         # SPACE pressed
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         img_name = os.path.join(SAVE_FOLDER, f"opencv_frame_{frame_id}.jpg")
