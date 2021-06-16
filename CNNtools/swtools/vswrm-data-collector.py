@@ -67,12 +67,12 @@ FRAMERATE = int(args.framerate)
 picam = PiCamera()
 picam.resolution = RESOLUTION
 picam.framerate = FRAMERATE
-logger.info(f'\n{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
-            f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
-            f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
-            f'-- images are saved in {SAVE_FOLDER}'
-            f'-- press {bcolors.OKBLUE}Space{bcolors.ENDC} to save frame.'
-            f'-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.')
+logger.info(f'\n\t\t{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
+            f'\t\t{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
+            f'\t\t{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
+            f'\n\t\t-- images are saved in {SAVE_FOLDER}'
+            f'\t\t-- press {bcolors.OKBLUE}Space{bcolors.ENDC} to save frame.'
+            f'\t\t-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.')
 
 # Generates a 3D RGB array and stores it in rawCapture
 raw_capture = PiRGBArray(picam, size=RESOLUTION)
