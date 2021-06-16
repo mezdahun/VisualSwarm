@@ -1,3 +1,15 @@
+"""
+
+    VSWRM Data Collector to train Single-Shot Detector CNNs
+
+    The SW collects images in JPG format into a given directory (savedir).
+    The framerate (framerate) and resolution of the camera (resolution) can
+    be changed via flags. After starting the software hit Space to capture image or
+    Esc to quit.
+
+"""
+
+
 import os
 import argparse
 import cv2
