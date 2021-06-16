@@ -25,7 +25,7 @@ HELP_MESSAGE = """
 
 
 # Define and parse input arguments
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('--help', help=HELP_MESSAGE)
 parser.add_argument('--savedir', help='Folder the .jpg images are being saved. Default is current directory',
                     required=True, default=os.getcwd())
