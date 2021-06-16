@@ -17,7 +17,6 @@ import time
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 from picamera.exc import PiCameraValueError
-from threading import Thread
 import logging
 
 from visualswarm.contrib import logparams
@@ -41,50 +40,6 @@ HELP_MESSAGE = """
 """
 
 
-# Define VideoStream class to handle streaming of video from webcam in separate processing thread
-# Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
-class VideoStream:
-    """Camera object that controls video streaming from the Picamera"""
-
-    def __init__(self, resolution=(640, 480), framerate=30):
-        # Initialize the PiCamera and the camera image stream
-        self.stream = cv2.VideoCapture(0)
-        ret = self.stream.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-        ret = self.stream.set(3, resolution[0])
-        ret = self.stream.set(4, resolution[1])
-
-        # Read first frame from the stream
-        (self.grabbed, self.frame) = self.stream.read()
-
-        # Variable to control when the camera is stopped
-        self.stopped = False
-
-    def start(self):
-        # Start the thread that reads frames from the video stream
-        Thread(target=self.update, args=()).start()
-        return self
-
-    def update(self):
-        # Keep looping indefinitely until the thread is stopped
-        while True:
-            # If the camera is stopped, stop the thread
-            if self.stopped:
-                # Close camera resources
-                self.stream.release()
-                return
-
-            # Otherwise, grab the next frame from the stream
-            (self.grabbed, self.frame) = self.stream.read()
-
-    def read(self):
-        # Return the most recent frame
-        return self.frame
-
-    def stop(self):
-        # Indicate that the camera and thread should be stopped
-        self.stopped = True
-
-
 # Define and parse input arguments
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument('-v', '--version', action='version',
@@ -105,16 +60,13 @@ SAVE_FOLDER = args.savedir
 os.makedirs(SAVE_FOLDER, exist_ok=True)
 
 RESOLUTION = [int(i) for i in args.resolution.split('x')]
-resW, resH = args.resolution.split('x')
-imW, imH = int(resW), int(resH)
-
 FRAMERATE = int(args.framerate)
 
 # try:
 #     try:
-# picam = PiCamera()
-# picam.resolution = RESOLUTION
-# picam.framerate = FRAMERATE
+picam = PiCamera()
+picam.resolution = RESOLUTION
+picam.framerate = FRAMERATE
 logger.info(f'\n\t{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
             f'\t{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
             f'\t{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
@@ -123,7 +75,7 @@ logger.info(f'\n\t{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
             f'\t-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.\n')
 
 # Generates a 3D RGB array and stores it in rawCapture
-# raw_capture = PiRGBArray(picam, size=RESOLUTION)
+raw_capture = PiRGBArray(picam, size=RESOLUTION)
 
 # Wait a certain number of seconds to allow the camera time to warmup
 logger.info('--Waiting 8 seconds for PI-camera to warmup!')
@@ -132,21 +84,16 @@ logger.info('--Start Video Stream')
 
 cv2.namedWindow('Camera Stream', cv2.WINDOW_NORMAL)
 
-# cam = cv2.VideoCapture(0)
-videostream = VideoStream(resolution=(imW, imH), framerate=FRAMERATE).start()
-time.sleep(1)
-
 frame_id = 0
-# for frame in picam.capture_continuous(raw_capture,
-#                                       format='bgr',
-#                                       use_video_port=True):
-while True:
-    ret, image = videostream.read()
+for frame in picam.capture_continuous(raw_capture,
+                                      format='bgr',
+                                      use_video_port=True):
     # Grab the raw NumPy array representing the image
-    # image = frame.array
+    image = frame.array
 
     cv2.imshow('Camera Stream', image)
     k = cv2.waitKey(1)
+    logger.info(k)
 
     if k % 256 == 27:
         # ESC pressed
@@ -159,7 +106,7 @@ while True:
         cv2.imwrite(img_name, image)
         logger.info(f"{img_name} saved!")
 
-    # raw_capture.truncate(0)
+    raw_capture.truncate(0)
     frame_id += 1
 
 f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
