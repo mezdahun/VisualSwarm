@@ -62,56 +62,56 @@ os.makedirs(SAVE_FOLDER, exist_ok=True)
 RESOLUTION = [int(i) for i in args.resolution.split('x')]
 FRAMERATE = int(args.framerate)
 
-try:
-    try:
-        picam = PiCamera()
-        picam.resolution = RESOLUTION
-        picam.framerate = FRAMERATE
-        logger.info(f'\n{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
-                    f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
-                    f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
-                    f'-- images are saved in {SAVE_FOLDER}'
-                    f'-- press {bcolors.OKBLUE}Space{bcolors.ENDC} to save frame.'
-                    f'-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.')
+# try:
+#     try:
+picam = PiCamera()
+picam.resolution = RESOLUTION
+picam.framerate = FRAMERATE
+logger.info(f'\n{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
+            f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
+            f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
+            f'-- images are saved in {SAVE_FOLDER}'
+            f'-- press {bcolors.OKBLUE}Space{bcolors.ENDC} to save frame.'
+            f'-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.')
 
-        # Generates a 3D RGB array and stores it in rawCapture
-        raw_capture = PiRGBArray(picam, size=RESOLUTION)
+# Generates a 3D RGB array and stores it in rawCapture
+raw_capture = PiRGBArray(picam, size=RESOLUTION)
 
-        # Wait a certain number of seconds to allow the camera time to warmup
-        logger.info('Waiting 8 seconds for PI-camera to warmup!')
-        time.sleep(8)
-        logger.info('--proceed--')
+# Wait a certain number of seconds to allow the camera time to warmup
+logger.info('Waiting 8 seconds for PI-camera to warmup!')
+time.sleep(8)
+logger.info('--proceed--')
 
-        frame_id = 0
-        for frame in picam.capture_continuous(raw_capture,
-                                              format='bgr',
-                                              use_video_port=True):
-            # Grab the raw NumPy array representing the image
-            image = frame.array
+frame_id = 0
+for frame in picam.capture_continuous(raw_capture,
+                                      format='bgr',
+                                      use_video_port=True):
+    # Grab the raw NumPy array representing the image
+    image = frame.array
 
-            k = cv2.waitKey(1)
+    k = cv2.waitKey(1)
 
-            if k % 256 == 27:
-                # ESC pressed
-                logger.info("Escape was hit, closing...")
-                break
-            elif k % 256 == 32:
-                # SPACE pressed
-                image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                img_name = os.path.join(SAVE_FOLDER, f"opencv_frame_{frame_id}.jpg")
-                cv2.imwrite(img_name, image)
-                logger.info(f"{img_name} saved!")
+    if k % 256 == 27:
+        # ESC pressed
+        logger.info("Escape was hit, closing...")
+        break
+    elif k % 256 == 32:
+        # SPACE pressed
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        img_name = os.path.join(SAVE_FOLDER, f"opencv_frame_{frame_id}.jpg")
+        cv2.imwrite(img_name, image)
+        logger.info(f"{img_name} saved!")
 
-            frame_id += 1
+    frame_id += 1
 
-        f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
-    except KeyboardInterrupt:
-        try:
-            f'-- {bcolors.FAIL}KeyboardInterrupt!{bcolors.ENDC} Exiting gracefully...'
-            f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
-            pass
-        except PiCameraValueError:
-            pass
-except PiCameraValueError:
-    logger.warning(f'-- {bcolors.FAIL}PiCameraError detected!{bcolors.ENDC}')
-    pass
+f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
+#     except KeyboardInterrupt:
+#         try:
+#             f'-- {bcolors.FAIL}KeyboardInterrupt!{bcolors.ENDC} Exiting gracefully...'
+#             f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
+#             pass
+#         except PiCameraValueError:
+#             pass
+# except PiCameraValueError:
+#     logger.warning(f'-- {bcolors.FAIL}PiCameraError detected!{bcolors.ENDC}')
+#     pass
