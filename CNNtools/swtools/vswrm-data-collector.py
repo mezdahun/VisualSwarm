@@ -93,7 +93,7 @@ try:
                                               format='bgr',
                                               use_video_port=True):
             # Grab the raw NumPy array representing the image
-            image = frame.array
+            image = cv2.flip(frame.array, 0)
 
             cv2.imshow('Camera Stream', image)
             k = cv2.waitKey(1) & 0xFF
