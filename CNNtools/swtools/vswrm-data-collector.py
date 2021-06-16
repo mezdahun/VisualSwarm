@@ -55,8 +55,8 @@ args = parser.parse_args()
 SAVE_FOLDER = args.savedir
 os.makedirs(SAVE_FOLDER)
 
-RESOLUTION = args.resolution.split('x')
-FRAMERATE = args.framerate
+RESOLUTION = [int(i) for i in args.resolution.split('x')]
+FRAMERATE = int(args.framerate)
 
 try:
     try:
