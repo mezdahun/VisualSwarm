@@ -92,7 +92,7 @@ for frame in picam.capture_continuous(raw_capture,
     image = frame.array
 
     cv2.imshow('Camera Stream', image)
-    k = cv2.waitKey(1)
+    k = cv2.waitKey(33)
     logger.info(k)
 
     if k % 256 == 27:
