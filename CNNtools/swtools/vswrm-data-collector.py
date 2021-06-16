@@ -82,6 +82,8 @@ logger.info('Waiting 8 seconds for PI-camera to warmup!')
 time.sleep(8)
 logger.info('--proceed--')
 
+cv2.namedWindow('Camera Stream', cv2.WINDOW_NORMAL)
+
 frame_id = 0
 for frame in picam.capture_continuous(raw_capture,
                                       format='bgr',
@@ -89,6 +91,7 @@ for frame in picam.capture_continuous(raw_capture,
     # Grab the raw NumPy array representing the image
     image = frame.array
 
+    cv2.imshow('Camera Stream', frame)
     k = cv2.waitKey(1)
 
     if k % 256 == 27:
@@ -102,6 +105,7 @@ for frame in picam.capture_continuous(raw_capture,
         cv2.imwrite(img_name, image)
         logger.info(f"{img_name} saved!")
 
+    raw_capture.truncate(0)
     frame_id += 1
 
 f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
