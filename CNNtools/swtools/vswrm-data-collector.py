@@ -83,7 +83,7 @@ time.sleep(8)
 logger.info('--Start Video Stream')
 
 
-cv2.namedWindow('Camera Stream')
+cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
 
 frame_id = 0
 for frame in picam.capture_continuous(raw_capture,
