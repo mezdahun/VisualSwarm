@@ -13,6 +13,7 @@ if not simulation.ENABLE_SIMULATION:
 else:
     import numpy as np   # pragma: simulation no cover
 
+import cv2
 import time
 from datetime import datetime
 
@@ -89,7 +90,7 @@ def raw_vision(raw_vision_stream):
                                                   format=camera.CAPTURE_FORMAT,
                                                   use_video_port=camera.USE_VIDEO_PORT):
                 # Grab the raw NumPy array representing the image
-                image = frame.array
+                image = cv2.flip(frame.array, -1)
 
                 # Adding time of capture for delay measurement
                 capture_timestamp = datetime.utcnow()
