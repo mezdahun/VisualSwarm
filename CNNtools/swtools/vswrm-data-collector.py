@@ -67,20 +67,20 @@ FRAMERATE = int(args.framerate)
 picam = PiCamera()
 picam.resolution = RESOLUTION
 picam.framerate = FRAMERATE
-logger.info(f'\n\t\t{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
-            f'\t\t{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
-            f'\t\t{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
-            f'\n\t\t-- images are saved in {SAVE_FOLDER}'
-            f'\t\t-- press {bcolors.OKBLUE}Space{bcolors.ENDC} to save frame.'
-            f'\t\t-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.')
+logger.info(f'\n\t{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
+            f'\t{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
+            f'\t{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
+            f'\n\t-- images are saved in {SAVE_FOLDER}\n'
+            f'\t-- press {bcolors.OKBLUE}Space{bcolors.ENDC} to save frame.\n'
+            f'\t-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.\n')
 
 # Generates a 3D RGB array and stores it in rawCapture
 raw_capture = PiRGBArray(picam, size=RESOLUTION)
 
 # Wait a certain number of seconds to allow the camera time to warmup
-logger.info('Waiting 8 seconds for PI-camera to warmup!')
+logger.info('--Waiting 8 seconds for PI-camera to warmup!')
 time.sleep(8)
-logger.info('--proceed--')
+logger.info('--Start Video Stream')
 
 cv2.namedWindow('Camera Stream', cv2.WINDOW_NORMAL)
 
