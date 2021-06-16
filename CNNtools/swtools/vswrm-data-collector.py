@@ -21,7 +21,11 @@ import logging
 
 from visualswarm.contrib import logparams
 bcolors = logparams.BColors
+
+logging.basicConfig()
 logger = logging.getLogger('VSWRM-dataCollector')
+logger.setLevel('INFO')
+
 
 
 HELP_MESSAGE = """
