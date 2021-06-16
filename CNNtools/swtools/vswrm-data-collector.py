@@ -11,8 +11,22 @@ from visualswarm.contrib import logparams
 bcolors = logparams.BColors
 logger = logging.getLogger('VSWRM-dataCollector')
 
+
+HELP_MESSAGE = """
+
+    VSWRM Data Collector to train Single-Shot Detector CNNs
+    
+    The SW collects images in JPG format into a given directory (savedir). 
+    The framerate (framerate) and resolution of the camera (resolution) can
+    be changed via flags. After starting the software hit Space to capture image or
+    Esc to quit.
+
+"""
+
+
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
+parser.add_argument('--help', help=HELP_MESSAGE)
 parser.add_argument('--savedir', help='Folder the .jpg images are being saved. Default is current directory',
                     required=True, default=os.getcwd())
 parser.add_argument('--resolution',
@@ -20,8 +34,6 @@ parser.add_argument('--resolution',
                     default='1280x720')
 parser.add_argument('--framerate', help='Framerate of the camera in [fps] as integer. Default is 30.',
                     default=30)
-parser.add_argument('--edgetpu', help='Use Coral Edge TPU Accelerator to speed up detection',
-                    action='store_true')
 
 args = parser.parse_args()
 
