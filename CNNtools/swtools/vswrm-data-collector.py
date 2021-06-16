@@ -82,6 +82,7 @@ logger.info('--Waiting 8 seconds for PI-camera to warmup!')
 time.sleep(8)
 logger.info('--Start Video Stream')
 
+
 cv2.namedWindow('Camera Stream', cv2.WINDOW_NORMAL)
 
 frame_id = 0
@@ -92,7 +93,7 @@ for frame in picam.capture_continuous(raw_capture,
     image = frame.array
 
     cv2.imshow('Camera Stream', image)
-    k = cv2.waitKey(33)
+    k = cv2.waitKey(50)
     logger.info(k)
 
     if k % 256 == 27:
