@@ -123,7 +123,7 @@ logger.info(f'\n\t{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
             f'\t-- press {bcolors.FAIL}Esc{bcolors.ENDC} or {bcolors.FAIL}Ctrl+C{bcolors.ENDC} to quit.\n')
 
 # Generates a 3D RGB array and stores it in rawCapture
-raw_capture = PiRGBArray(picam, size=RESOLUTION)
+# raw_capture = PiRGBArray(picam, size=RESOLUTION)
 
 # Wait a certain number of seconds to allow the camera time to warmup
 logger.info('--Waiting 8 seconds for PI-camera to warmup!')
