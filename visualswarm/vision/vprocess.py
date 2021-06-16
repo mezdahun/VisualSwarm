@@ -71,7 +71,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             logger.info('Loading tensorflow model...')
             MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model'
-            GRAPH_NAME = 'ssdnet2_tf2.tflite'
+            GRAPH_NAME = 'ssdnet2_tf2_NoIR.tflite'
             LABELMAP_NAME = 'labelmap.txt'
 
             # TODO: do this automatically somehow or check if file exists and askteh user to configure properly if not
