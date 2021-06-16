@@ -83,7 +83,7 @@ time.sleep(8)
 logger.info('--Start Video Stream')
 
 
-# cv2.namedWindow('Camera Stream', cv2.WINDOW_NORMAL)
+cv2.namedWindow('Camera Stream')
 
 frame_id = 0
 for frame in picam.capture_continuous(raw_capture,
@@ -93,7 +93,9 @@ for frame in picam.capture_continuous(raw_capture,
     image = frame.array
 
     cv2.imshow('Camera Stream', image)
-    k = cv2.waitKey(33) & 0xFF
+    k = cv2.waitKey(1) & 0xFF
+    raw_capture.truncate(0)
+
     logger.info(k)
 
     if k == ord("q"):
@@ -107,7 +109,7 @@ for frame in picam.capture_continuous(raw_capture,
         cv2.imwrite(img_name, image)
         logger.info(f"{img_name} saved!")
 
-    raw_capture.truncate(0)
+
     frame_id += 1
 
 f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
