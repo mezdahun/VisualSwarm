@@ -84,12 +84,16 @@ logger.info('--Start Video Stream')
 
 cv2.namedWindow('Camera Stream', cv2.WINDOW_NORMAL)
 
+cam = cv2.VideoCapture(0)
+
 frame_id = 0
-for frame in picam.capture_continuous(raw_capture,
-                                      format='bgr',
-                                      use_video_port=True):
+# for frame in picam.capture_continuous(raw_capture,
+#                                       format='bgr',
+#                                       use_video_port=True):
+while True:
+    ret, image = cam.read()
     # Grab the raw NumPy array representing the image
-    image = frame.array
+    # image = frame.array
 
     cv2.imshow('Camera Stream', image)
     k = cv2.waitKey(1)
@@ -105,7 +109,7 @@ for frame in picam.capture_continuous(raw_capture,
         cv2.imwrite(img_name, image)
         logger.info(f"{img_name} saved!")
 
-    raw_capture.truncate(0)
+    # raw_capture.truncate(0)
     frame_id += 1
 
 f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
