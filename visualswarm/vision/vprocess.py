@@ -120,9 +120,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             # Get model details
             input_details = interpreter.get_input_details()
-            logger.info(input_details['quantization'])
+            logger.info(pformat(input_details))
             output_details = interpreter.get_output_details()
-            logger.info(output_details['quantization'])
+            logger.info(pformat(output_details))
             logger.info(pformat(output_details))
             height = input_details[0]['shape'][1]
             width = input_details[0]['shape'][2]
