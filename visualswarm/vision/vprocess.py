@@ -201,9 +201,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 interpreter.invoke()
 
                 # Retrieve detection results
-                boxes = output_tensor(interpreter, 0) #interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                classes = output_tensor(interpreter, 1) #interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                scores = output_tensor(interpreter, 2) #interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
+                classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+                scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
                 t2 = datetime.utcnow()
                 delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}")#
