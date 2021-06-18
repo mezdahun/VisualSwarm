@@ -190,9 +190,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 input_data = np.expand_dims(frame_resized, axis=0)
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-                if floating_model:
-                    logger.info('float')
-                    input_data = (np.float32(input_data) - input_mean) / input_std
+                # if floating_model:
+                #     logger.info('float')
+                input_data = (np.float32(input_data) - input_mean) / input_std
 
                 t1 = datetime.utcnow()
                 logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
@@ -201,9 +201,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 interpreter.invoke()
 
                 # Retrieve detection results
-                boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                boxes = output_tensor(interpreter, 0) #interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
+                classes = output_tensor(interpreter, 1) #interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+                scores = output_tensor(interpreter, 2) #interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
                 t2 = datetime.utcnow()
                 delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}")#
