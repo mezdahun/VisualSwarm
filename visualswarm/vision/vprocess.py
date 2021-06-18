@@ -173,13 +173,13 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 interpreter.invoke()
 
                 # Retrieve detection results
-                boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                boxes = interpreter.get_tensor(output_details[0]['index'])  # Bounding box coordinates of detected objects
+                classes = interpreter.get_tensor(output_details[1]['index'])  # Class index of detected objects
+                scores = interpreter.get_tensor(output_details[2]['index'])  # Confidence of detected objects
 
-                logger.info(pformat(output_details))
-                logger.info(interpreter.get_tensor(output_details[0]['index']))
                 logger.info(boxes)
+                logger.info(classes)
+                logger.info(scores)
 
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
