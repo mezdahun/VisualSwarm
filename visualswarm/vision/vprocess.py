@@ -192,7 +192,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 frame_resized = cv2.resize(frame_rgb, (width, height))
                 image_np =  frame_resized.astype("uint8")
-                input_data = tf.convert_to_tensor(np.expand_dims(image_np, 0), dtype=tf.float32)
+                input_data = np.expand_dims(image_np, 0).astype('float32')
 
                 logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
 
