@@ -74,9 +74,13 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         elif vision.RECOGNITION_TYPE == "CNN":
 
             logger.info('Loading tensorflow model...')
-            MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model'
-            GRAPH_NAME = 'ssdnet2_tf2_NoIR.tflite'
+            MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
+            GRAPH_NAME = 'model_quant.tflite'
             LABELMAP_NAME = 'labelmap.txt'
+            USE_TPU = True
+
+            if USE_TPU:
+                from tflite_runtime.interpreter import load_delegate
 
             # TODO: do this automatically somehow or check if file exists and askteh user to configure properly if not
 
@@ -95,7 +99,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             with open(PATH_TO_LABELS, 'r') as f:
                 labels = [line.strip() for line in f.readlines()]
 
-            interpreter = Interpreter(model_path=PATH_TO_CKPT)
+            if use_TPU:
+                interpreter = Interpreter(model_path=PATH_TO_CKPT,
+                                          experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
+                print(PATH_TO_CKPT)
+            else:
+                interpreter = Interpreter(model_path=PATH_TO_CKPT)
             interpreter.allocate_tensors()
 
             # Get model details
