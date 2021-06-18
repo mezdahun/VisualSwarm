@@ -155,13 +155,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             elif vision.RECOGNITION_TYPE == "CNN":
 
+                t0 = datetime.utcnow()
                 value = get_latest_element(raw_vision_stream)
                 if value is not None:
                     (img, frame_id, capture_timestamp) = value
                 else:
                     (img, frame_id, capture_timestamp) = raw_vision_stream.get()
 
-                logger.info(frame_id)
+                t0_get = datetime.utcnow()
+                logger.info(f'access time {(t0_get-t0).total_seconds()}')
 
                 frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 frame_resized = cv2.resize(frame_rgb, (width, height))
@@ -172,6 +174,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                     input_data = (np.float32(input_data) - input_mean) / input_std
 
                 t1 = datetime.utcnow()
+                logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
                 # Perform the actual detection by running the model with the image as input
                 interpreter.set_tensor(input_details[0]['index'], input_data)
                 interpreter.invoke()
