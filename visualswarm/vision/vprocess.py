@@ -99,7 +99,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             with open(PATH_TO_LABELS, 'r') as f:
                 labels = [line.strip() for line in f.readlines()]
 
-            if use_TPU:
+            if USE_TPU:
                 interpreter = Interpreter(model_path=PATH_TO_CKPT,
                                           experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
                 print(PATH_TO_CKPT)
