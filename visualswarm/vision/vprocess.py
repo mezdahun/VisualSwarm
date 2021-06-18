@@ -157,6 +157,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 else:
                     (img, frame_id, capture_timestamp) = raw_vision_stream.get()
 
+                logger.info(frame_id)
+
                 frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 frame_resized = cv2.resize(frame_rgb, (width, height))
                 input_data = np.expand_dims(frame_resized, axis=0)
