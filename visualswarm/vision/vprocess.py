@@ -89,6 +89,11 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             GRAPH_NAME = 'model_test_edgetpu.tflite'
             LABELMAP_NAME = 'labelmap.txt'
             USE_TPU = True
+            # it takes a little longer on the first run and then runs at normal speed.
+            import random
+            import glob
+            TEST_IMAGE_PATHS = glob.glob(f'/home/pi/VisualSwarm/training_data/train/*.jpg')
+
 
             if USE_TPU:
                 from tflite_runtime.interpreter import load_delegate
@@ -184,7 +189,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 # if value is not None:
                 #     (img, frame_id, capture_timestamp) = value
                 # else:
-                (img, frame_id, capture_timestamp) = raw_vision_stream.get()
+                #(img, frame_id, capture_timestamp) = raw_vision_stream.get()
+                frame_id = 0
+                capture_timestamp = datetime.utcnow()
+                img_path = random.choice(TEST_IMAGE_PATHS)
+
+                img = cv2.imread(img_path)
 
                 t0_get = datetime.utcnow()
                 logger.info(f'access time {(t0_get-t0).total_seconds()}')
