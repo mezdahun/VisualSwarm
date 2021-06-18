@@ -33,6 +33,17 @@ else:
 from time import sleep
 
 
+def output_tensor(interpreter, i):
+    """Returns dequantized output tensor if quantized before."""
+    output_details = interpreter.get_output_details()[i]
+    output_data = np.squeeze(interpreter.tensor(output_details['index'])())
+    if 'quantization' not in output_details:
+        return output_data
+    scale, zero_point = output_details['quantization']
+    if scale == 0:
+        return output_data - zero_point
+    return scale * (output_data - zero_point)
+
 def nothing(x):
     pass
 
@@ -190,9 +201,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 interpreter.invoke()
 
                 # Retrieve detection results
-                boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                boxes = output_tensor(interpreter, 0) #interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
+                classes = output_tensor(interpreter, 1) #interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+                scores = output_tensor(interpreter, 2) #interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
                 t2 = datetime.utcnow()
                 delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}")#
