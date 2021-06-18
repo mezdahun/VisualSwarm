@@ -15,6 +15,8 @@ from visualswarm import env
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import camera, vision, monitoring, simulation
 
+from datetime import datetime
+
 if vision.RECOGNITION_TYPE == "CNN":
     from tflite_runtime.interpreter import Interpreter
 
@@ -168,6 +170,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 if floating_model:
                     input_data = (np.float32(input_data) - input_mean) / input_std
 
+                t1 = datetime.utcnow()
                 # Perform the actual detection by running the model with the image as input
                 interpreter.set_tensor(input_details[0]['index'], input_data)
                 interpreter.invoke()
@@ -176,24 +179,26 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
                 classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                t2 = datetime.utcnow()
+                delta = (t2 - t1).total_second()
+                logger.info(f"Inference time: {delta}")
 
-                logger.info(scores)
 
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
                 for i in range(len(scores)):
-                    #if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                    # if scores[i] == np.max(scores):
-                    # Get bounding box coordinates and draw box
-                    # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                    ymin = int(max(1, (boxes[i][0] * imH)))
-                    xmin = int(max(1, (boxes[i][1] * imW)))
-                    ymax = int(min(imH, (boxes[i][2] * imH)))
-                    xmax = int(min(imW, (boxes[i][3] * imW)))
+                    if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                        # if scores[i] == np.max(scores):
+                        # Get bounding box coordinates and draw box
+                        # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                        ymin = int(max(1, (boxes[i][0] * imH)))
+                        xmin = int(max(1, (boxes[i][1] * imW)))
+                        ymax = int(min(imH, (boxes[i][2] * imH)))
+                        xmax = int(min(imW, (boxes[i][3] * imW)))
 
-                    cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                    logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                        cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                        logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
             # Forwarding result to VPF extraction
             logger.info(f'queue {raw_vision_stream.qsize()}')
