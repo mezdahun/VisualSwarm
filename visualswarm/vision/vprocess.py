@@ -203,7 +203,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 image_np =  frame_resized.astype("uint8")
                 input_data = np.expand_dims(image_np, 0).astype('float32')
 
-                logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
+                #logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
                 # if floating_model:
@@ -225,9 +225,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}")#
 
-                logger.info(boxes)
-                logger.info(classes)
-                logger.info(scores)
+                #logger.info(boxes)
+                #logger.info(classes)
+                #logger.info(scores)
 
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
