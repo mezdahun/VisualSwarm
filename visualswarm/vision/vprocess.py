@@ -207,9 +207,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-                if floating_model:
-                    logger.info('float')
-                    input_data = (np.float32(input_data) - input_mean) / input_std
+                # if floating_model:
+                #     logger.info('float')
+                input_data = (np.float32(input_data) - input_mean) / input_std
 
                 t1 = datetime.utcnow()
                 logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
