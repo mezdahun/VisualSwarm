@@ -86,7 +86,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             logger.info('Loading tensorflow model...')
             MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-            GRAPH_NAME = 'model_quant_int_with_fallback_edgetpu.tflite'
+            GRAPH_NAME = 'model_quant_full_integer_edgetpu.tflite'
             LABELMAP_NAME = 'labelmap.txt'
             USE_TPU = True
 
