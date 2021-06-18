@@ -180,7 +180,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
                 t2 = datetime.utcnow()
-                delta = (t2 - t1).total_second()
+                delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}")
 
 
