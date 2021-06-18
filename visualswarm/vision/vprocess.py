@@ -208,7 +208,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 scale, zero_point = output_details['quantization']
                 logger.info(f"scale: {scale}, zero point: {zero_point}")
                 tflite_output = tflite_integer_output.astype(np.float32)
-                tflite_output = (tflite_output - zero_point) * scale
+                boxes = (tflite_output - zero_point) * scale
                 logger.info(tflite_output)
 
                 # boxes = output_tensor(interpreter, 0) #interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
@@ -222,18 +222,18 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
-                # for i in range(len(scores)):
-                #     #if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                #         # if scores[i] == np.max(scores):
-                #         # Get bounding box coordinates and draw box
-                #         # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                #     ymin = int(max(1, (boxes[i][0] * imH)))
-                #     xmin = int(max(1, (boxes[i][1] * imW)))
-                #     ymax = int(min(imH, (boxes[i][2] * imH)))
-                #     xmax = int(min(imW, (boxes[i][3] * imW)))
-                #
-                #     cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                #     logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                for i in range(len(boxes)):
+                    #if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                        # if scores[i] == np.max(scores):
+                        # Get bounding box coordinates and draw box
+                        # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                    ymin = int(max(1, (boxes[i][0] * imH)))
+                    xmin = int(max(1, (boxes[i][1] * imW)))
+                    ymax = int(min(imH, (boxes[i][2] * imH)))
+                    xmax = int(min(imW, (boxes[i][3] * imW)))
+
+                    cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                    logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                 t3 = datetime.utcnow()
                 logger.info(f"Withfiltering: {(t3-t1).total_seconds()}")
