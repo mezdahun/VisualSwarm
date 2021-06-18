@@ -227,13 +227,13 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         # if scores[i] == np.max(scores):
                         # Get bounding box coordinates and draw box
                         # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                    ymin = int(max(1, (boxes[i,0] * imH)))
-                    xmin = int(max(1, (boxes[i,1] * imW)))
-                    ymax = int(min(imH, (boxes[i,2] * imH)))
-                    xmax = int(min(imW, (boxes[i,3] * imW)))
+                        ymin = int(max(1, (boxes[i,0] * imH)))
+                        xmin = int(max(1, (boxes[i,1] * imW)))
+                        ymax = int(min(imH, (boxes[i,2] * imH)))
+                        xmax = int(min(imW, (boxes[i,3] * imW)))
 
-                    cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                    logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                        cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                        logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                 t3 = datetime.utcnow()
                 logger.info(f"Withfiltering: {(t3-t1).total_seconds()}")
