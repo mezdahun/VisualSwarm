@@ -186,7 +186,6 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                     if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
                     # Get bounding box coordinates and draw box
                     # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                        i = -1
                         ymin = int(max(1, (boxes[i][0] * imH)))
                         xmin = int(max(1, (boxes[i][1] * imW)))
                         ymax = int(min(imH, (boxes[i][2] * imH)))
