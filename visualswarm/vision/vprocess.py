@@ -156,11 +156,11 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             elif vision.RECOGNITION_TYPE == "CNN":
 
                 t0 = datetime.utcnow()
-                value = get_latest_element(raw_vision_stream)
-                if value is not None:
-                    (img, frame_id, capture_timestamp) = value
-                else:
-                    (img, frame_id, capture_timestamp) = raw_vision_stream.get()
+                # value = get_latest_element(raw_vision_stream)
+                # if value is not None:
+                #     (img, frame_id, capture_timestamp) = value
+                # else:
+                (img, frame_id, capture_timestamp) = raw_vision_stream.get()
 
                 t0_get = datetime.utcnow()
                 logger.info(f'access time {(t0_get-t0).total_seconds()}')
