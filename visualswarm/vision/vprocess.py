@@ -223,7 +223,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
                 t2 = datetime.utcnow()
                 delta = (t2 - t1).total_seconds()
-                logger.info(f"Inference time: {delta}")#
+                logger.info(f"Inference time: {delta}, rate={1/delta}")#
 
                 #logger.info(boxes)
                 #logger.info(classes)
@@ -251,6 +251,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             # Forwarding result to VPF extraction
             logger.info(f'queue {raw_vision_stream.qsize()}')
             high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+            t4 = datetime.utcnow()
+            logger.info(f'total vision_rate: {1/(t4-t0).total_seconds()}')
 
             # Forwarding result for visualization if requested
             if visualization_stream is not None:
