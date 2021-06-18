@@ -209,7 +209,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 logger.info(f"scale: {scale}, zero point: {zero_point}")
                 tflite_output = tflite_integer_output.astype(np.float32)
                 boxes = (tflite_output - zero_point) * scale
-                logger.info(tflite_output)
+                logger.info(boxes)
 
                 # boxes = output_tensor(interpreter, 0) #interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
                 # classes = output_tensor(interpreter, 1) #interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
@@ -227,10 +227,10 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         # if scores[i] == np.max(scores):
                         # Get bounding box coordinates and draw box
                         # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                    ymin = int(max(1, (boxes[i][0] * imH)))
-                    xmin = int(max(1, (boxes[i][1] * imW)))
-                    ymax = int(min(imH, (boxes[i][2] * imH)))
-                    xmax = int(min(imW, (boxes[i][3] * imW)))
+                    ymin = int(max(1, (boxes[i,0] * imH)))
+                    xmin = int(max(1, (boxes[i,1] * imW)))
+                    ymax = int(min(imH, (boxes[i,2] * imH)))
+                    xmax = int(min(imW, (boxes[i,3] * imW)))
 
                     cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                     logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
