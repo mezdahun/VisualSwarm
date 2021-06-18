@@ -6,6 +6,7 @@
 from multiprocessing import Process, Queue
 import sys
 import signal
+import time
 
 import visualswarm.contrib.vision
 from visualswarm import env
@@ -89,7 +90,7 @@ def start_application(with_control=False):
                                       args=(raw_vision_stream,
                                             high_level_vision_stream,
                                             visualization_stream,
-                                            target_config_stream,(i-1)*0.5)) for i in range(
+                                            target_config_stream,)) for i in range(
         visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
@@ -104,9 +105,11 @@ def start_application(with_control=False):
         # Start subprocesses
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
         raw_vision.start()
+        time.sleep(10)
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
         for proc in high_level_vision_pool:
             proc.start()
+            time.sleep(0.5)
         visualizer.start()
         VPF_extractor.start()
         behavior_proc.start()
