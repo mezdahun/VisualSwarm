@@ -177,26 +177,21 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 classes = interpreter.get_tensor(output_details[1]['index'])  # Class index of detected objects
                 scores = interpreter.get_tensor(output_details[2]['index'])  # Confidence of detected objects
 
-                logger.info(pformat(interpreter.get_tensor_details()))
-                logger.info(boxes)
-                logger.info(classes)
-                logger.info(scores)
-
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
-                # for i in range(len(scores)):
-                #     if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                #     # Get bounding box coordinates and draw box
-                #     # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                #         i = -1
-                #         ymin = int(max(1, (boxes[i][0] * imH)))
-                #         xmin = int(max(1, (boxes[i][1] * imW)))
-                #         ymax = int(min(imH, (boxes[i][2] * imH)))
-                #         xmax = int(min(imW, (boxes[i][3] * imW)))
-                #
-                #         cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                #         logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                for i in range(len(scores)):
+                    if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                    # Get bounding box coordinates and draw box
+                    # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                        i = -1
+                        ymin = int(max(1, (boxes[i][0] * imH)))
+                        xmin = int(max(1, (boxes[i][1] * imW)))
+                        ymax = int(min(imH, (boxes[i][2] * imH)))
+                        xmax = int(min(imW, (boxes[i][3] * imW)))
+
+                        cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                        logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
             # Forwarding result to VPF extraction
             logger.info(f'queue {raw_vision_stream.qsize()}')
