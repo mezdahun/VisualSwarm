@@ -201,9 +201,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                         logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
+                t3 = datetime.utcnow()
+                logger.info(f"Withfiltering: {(t3-t1).total_seconds()}")
+
             # Forwarding result to VPF extraction
             logger.info(f'queue {raw_vision_stream.qsize()}')
-            # high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+            high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
 
             # Forwarding result for visualization if requested
             if visualization_stream is not None:
