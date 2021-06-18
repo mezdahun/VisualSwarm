@@ -175,20 +175,22 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
                 classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                logger.info(boxes)
+                logger.info(classes)
                 logger.info(scores)
 
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
-                # for i in range(len(scores)):
-                #     if (scores[i] > -1) and (scores[i] <= 1.0):
+                for i in range(len(scores)):
+                    if (scores[i] > -1) and (scores[i] <= 1.0):
                     # Get bounding box coordinates and draw box
                     # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                i = -1
-                ymin = int(max(1, (boxes[i][0] * imH)))
-                xmin = int(max(1, (boxes[i][1] * imW)))
-                ymax = int(min(imH, (boxes[i][2] * imH)))
-                xmax = int(min(imW, (boxes[i][3] * imW)))
+                        i = -1
+                        ymin = int(max(1, (boxes[i][0] * imH)))
+                        xmin = int(max(1, (boxes[i][1] * imW)))
+                        ymax = int(min(imH, (boxes[i][2] * imH)))
+                        xmax = int(min(imW, (boxes[i][3] * imW)))
 
                 cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                 logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
