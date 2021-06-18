@@ -86,7 +86,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             logger.info('Loading tensorflow model...')
             MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-            GRAPH_NAME = 'model_quant_full_integer.tflite'
+            GRAPH_NAME = 'model_test_edgetpu.tflite'
             LABELMAP_NAME = 'labelmap.txt'
             USE_TPU = False
 
@@ -123,7 +123,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             logger.info(pformat(input_details))
             output_details = interpreter.get_output_details()
             logger.info(pformat(output_details))
-            logger.info(pformat(output_details))
+
             height = input_details[0]['shape'][1]
             width = input_details[0]['shape'][2]
 
@@ -192,6 +192,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 frame_resized = cv2.resize(frame_rgb, (width, height))
                 input_data = np.expand_dims(frame_resized, axis=0)
+
+                logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
                 if floating_model:
