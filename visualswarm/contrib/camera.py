@@ -4,7 +4,7 @@
 """
 # Basic parameters
 RESOLUTION = (480, 360)
-FRAMERATE = 15
+FRAMERATE = 10
 CAPTURE_FORMAT = "bgr"
 USE_VIDEO_PORT = True
 
