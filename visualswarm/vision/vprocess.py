@@ -195,6 +195,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 t2 = datetime.utcnow()
                 delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}")
+                logger.info(scores)
 
 
                 blurred = img.copy()
