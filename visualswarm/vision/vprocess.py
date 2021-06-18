@@ -18,6 +18,7 @@ from visualswarm.contrib import camera, vision, monitoring, simulation
 if vision.RECOGNITION_TYPE == "CNN":
     from tflite_runtime.interpreter import Interpreter
 
+from pprint import pformat
 # using main logger
 if not simulation.ENABLE_SIMULATION:
     # setup logging
@@ -175,7 +176,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
                 classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
-                logger.info(output_details)
+
+                logger.info(pformat(output_details))
 
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
@@ -190,8 +192,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         ymax = int(min(imH, (boxes[i][2] * imH)))
                         xmax = int(min(imW, (boxes[i][3] * imW)))
 
-                cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                        cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                        logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
             # Forwarding result to VPF extraction
             logger.info(f'queue {raw_vision_stream.qsize()}')
