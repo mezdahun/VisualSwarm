@@ -121,10 +121,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             # Get model details
             input_details = interpreter.get_input_details()
             output_details = interpreter.get_output_details()
+            logger.info(pformat(output_details))
             height = input_details[0]['shape'][1]
             width = input_details[0]['shape'][2]
 
             floating_model = (input_details[0]['dtype'] == np.float32)
+            print(floating_model)
 
             input_mean = 127.5
             input_std = 127.5
@@ -190,9 +192,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 input_data = np.expand_dims(frame_resized, axis=0)
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-                # if floating_model:
-                #     logger.info('float')
-                input_data = (np.float32(input_data) - input_mean) / input_std
+                if floating_model:
+                    logger.info('float')
+                    input_data = (np.float32(input_data) - input_mean) / input_std
 
                 t1 = datetime.utcnow()
                 logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
@@ -200,16 +202,21 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 interpreter.set_tensor(input_details[0]['index'], input_data)
                 interpreter.invoke()
 
-                # Retrieve detection results
-                boxes = output_tensor(interpreter, 0) #interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                classes = output_tensor(interpreter, 1) #interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                scores = output_tensor(interpreter, 2) #interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                output_details = interpreter.get_output_details()[0]
+                tflite_integer_output = interpreter.get_tensor(output_details['index'])
+                # Manually dequantize the output from integer to float
+                scale, zero_point = output_details['quantization']
+                logger.info(f"scale: {scale}, zero point: {zero_point}")
+                tflite_output = tflite_integer_output.astype(np.float32)
+                tflite_output = (tflite_output - zero_point) * scale
+                logger.info(tflite_output)
+
+                # boxes = output_tensor(interpreter, 0) #interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
+                # classes = output_tensor(interpreter, 1) #interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+                # scores = output_tensor(interpreter, 2) #interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
                 t2 = datetime.utcnow()
                 delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}")#
-                logger.info(boxes)
-                logger.info(classes)
-                logger.info(scores)
 
 
                 blurred = img.copy()
