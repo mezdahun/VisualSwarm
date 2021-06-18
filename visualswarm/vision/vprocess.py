@@ -88,7 +88,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
             GRAPH_NAME = 'model_test_edgetpu.tflite'
             LABELMAP_NAME = 'labelmap.txt'
-            USE_TPU = False
+            USE_TPU = True
 
             if USE_TPU:
                 from tflite_runtime.interpreter import load_delegate
