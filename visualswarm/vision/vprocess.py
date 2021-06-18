@@ -30,6 +30,7 @@ if not simulation.ENABLE_SIMULATION:
     logger.setLevel(monitoring.LOG_LEVEL)
 else:
     logger = logging.getLogger('visualswarm.app_simulation')   # pragma: simulation no cover
+from time import sleep
 
 
 def nothing(x):
@@ -52,7 +53,7 @@ def get_latest_element(queue):
     return val
 
 def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
-                      target_config_stream=None):
+                      target_config_stream=None, start_delay=0):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
     processes can consume this stream

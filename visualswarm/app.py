@@ -89,7 +89,7 @@ def start_application(with_control=False):
                                       args=(raw_vision_stream,
                                             high_level_vision_stream,
                                             visualization_stream,
-                                            target_config_stream,)) for i in range(
+                                            target_config_stream,(i-1)*0.5)) for i in range(
         visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS)]
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
