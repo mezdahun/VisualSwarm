@@ -178,6 +178,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
 
                 logger.info(pformat(output_details))
+                logger.info(interpreter.get_tensor(output_details[0]['index']))
+                logger.info(boxes)
 
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
