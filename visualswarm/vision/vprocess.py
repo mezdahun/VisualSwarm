@@ -255,7 +255,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         ymax = int(min(imH, (boxes[i,2] * imH)))
                         xmax = int(min(imW, (boxes[i,3] * imW)))
 
-                        blurred[xmin:xmax, ymin:ymax] = 1
+                        blurred[ymin:ymax, xmin:xmax] = 1
                         #cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                         logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
