@@ -241,6 +241,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 #logger.info(classes)
                 #logger.info(scores)
 
+                logger.info(img.shape)
                 blurred = img.copy()
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
