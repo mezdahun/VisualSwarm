@@ -348,7 +348,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
     # TODO: do this automatically somehow or check if file exists and askteh user to configure properly if not
 
-    min_conf_threshold = 0.35
+    min_conf_threshold = 0.1
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
