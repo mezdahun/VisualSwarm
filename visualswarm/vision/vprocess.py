@@ -334,10 +334,10 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
     logger.info('Loading tensorflow model...')
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'model_test_2_edgetpu.tflite'
+    GRAPH_NAME = 'model_test_fullinteger_edgetpu.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
-    INTQUANT = False
+    INTQUANT = True
     # it takes a little longer on the first run and then runs at normal speed.
     import random
     import glob
