@@ -235,7 +235,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                     # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
                     scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
                 else:
-                    image = Image.open(img)
+                    image = Image.fromarray(img)
                     _, scale = common.set_resized_input(
                         interpreter, image.size, lambda size: image.resize(size, Image.ANTIALIAS))
 
