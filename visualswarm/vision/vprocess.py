@@ -208,8 +208,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
                 # if floating_model:
                 #     logger.info('float')
-                if INTQUANT:
-                    input_data = input_data.astype('uint8')
+                # if INTQUANT:
+                #     input_data = input_data.astype('uint8')
                 # input_data = (np.float32(input_data) - input_mean) / input_std
 
                 t1 = datetime.utcnow()
