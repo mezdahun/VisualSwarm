@@ -265,7 +265,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             logger.info(f'queue {raw_vision_stream.qsize()}')
             high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
             t4 = datetime.utcnow()
-            logger.info(f'put time: {1/(t4-t0).total_seconds()}')
+            logger.info(f'put time: {(t4-t0).total_seconds()}')
 
             # Forwarding result for visualization if requested
             if visualization_stream is not None:
