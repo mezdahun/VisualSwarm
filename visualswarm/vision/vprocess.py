@@ -242,7 +242,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 #logger.info(scores)
 
                 logger.info(img.shape)
-                blurred = img.copy()
+                blurred = np.zeros([img.shape[0], img.shape[1]])
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
                 for i in range(len(boxes)):
@@ -255,7 +255,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                         ymax = int(min(imH, (boxes[i,2] * imH)))
                         xmax = int(min(imW, (boxes[i,3] * imW)))
 
-                        cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                        blurred[xmin:xmax, ymin:ymax] = 1
+                        #cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                         logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                 t3 = datetime.utcnow()
