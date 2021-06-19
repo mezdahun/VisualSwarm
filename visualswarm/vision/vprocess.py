@@ -243,7 +243,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                     start = time.perf_counter()
                     interpreter.invoke()
                     inference_time = time.perf_counter() - start
-                    objs = detect.get_objects(interpreter, args.threshold, scale)
+                    objs = detect.get_objects(interpreter, min_conf_threshold, scale)
                     logger.info('%.2f ms' % (inference_time * 1000))
 
                     if not objs:
