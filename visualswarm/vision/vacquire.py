@@ -95,6 +95,13 @@ def raw_vision(raw_vision_stream):
                 # Adding time of capture for delay measurement
                 capture_timestamp = datetime.utcnow()
 
+                # clear vision stream if polluted to avoid delay
+                try:
+                    raw_vision_stream.get_nowait()
+                    logger.warning('Queue in raw vision processing.')
+                except:
+                    pass
+
                 # pushing the captured image to the vision stream
                 raw_vision_stream.put((image, frame_id, capture_timestamp))
 
