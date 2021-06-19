@@ -275,7 +275,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             if env.EXIT_CONDITION:
                 break
 
-            t5 = datetime.utcnow((t4-t_put).total_seconds())
+            t5 = datetime.utcnow()
             logger.info(f'total vision_rate: {1/(t5-t0).total_seconds()}')
 
     except KeyboardInterrupt:
