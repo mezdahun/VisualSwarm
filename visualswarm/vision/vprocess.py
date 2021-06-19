@@ -438,7 +438,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                         input_data = input_data.astype('uint8')
 
                     t1 = datetime.utcnow()
-                    logger.info(f'preprocess time {(t1 - t0_get).total_seconds()}')
+                    logger.info(f'preprocess time {(t1 - t0).total_seconds()}')
                     # Perform the actual detection by running the model with the image as input
                     interpreter.set_tensor(input_details[0]['index'], input_data)
                     interpreter.invoke()
@@ -483,14 +483,13 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                             logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                     t3 = datetime.utcnow()
-                    logger.info(f"Withfiltering: {(t3 - t1).total_seconds()}")
+                    logger.info(f"Postprocess time: {(t3 - t1).total_seconds()}")
 
                     # Forwarding result to VPF extraction
-                    t_put = datetime.utcnow()
                     logger.info(f'queue {raw_vision_stream.qsize()}')
                     high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
                     t4 = datetime.utcnow()
-                    logger.info(f'put time: {(t4 - t0).total_seconds()}')
+                    logger.info(f'Transferring time: {(t4 - t3).total_seconds()}')
 
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
