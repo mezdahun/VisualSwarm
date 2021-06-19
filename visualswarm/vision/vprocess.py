@@ -17,6 +17,7 @@ from visualswarm.monitoring import ifdb
 from visualswarm.contrib import camera, vision, monitoring, simulation
 
 from datetime import datetime
+import time
 
 if vision.RECOGNITION_TYPE == "CNN":
     from tflite_runtime.interpreter import Interpreter
@@ -238,6 +239,12 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                     image = Image.fromarray(img)
                     _, scale = common.set_resized_input(
                         interpreter, image.size, lambda size: image.resize(size, Image.ANTIALIAS))
+
+                    start = time.perf_counter()
+                    interpreter.invoke()
+                    inference_time = time.perf_counter() - start
+                    objs = detect.get_objects(interpreter, args.threshold, scale)
+                    logger.info('%.2f ms' % (inference_time * 1000))
 
                     if not objs:
                         print('No objects detected')
