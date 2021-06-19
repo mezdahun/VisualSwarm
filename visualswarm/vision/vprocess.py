@@ -6,6 +6,7 @@ import datetime
 import logging
 from math import floor
 import os
+from PIL import Image
 
 import cv2
 import numpy as np
@@ -98,6 +99,11 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             if USE_TPU:
                 from tflite_runtime.interpreter import load_delegate
+                if INTQUANT:
+                    from pycoral.adapters import common
+                    from pycoral.adapters import detect
+                    from pycoral.utils.dataset import read_label_file
+                    from pycoral.utils.edgetpu import make_interpreter
 
             # TODO: do this automatically somehow or check if file exists and askteh user to configure properly if not
 
@@ -113,13 +119,20 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             PATH_TO_LABELS = os.path.join(MODEL_NAME, LABELMAP_NAME)
 
             # Load the label map
-            with open(PATH_TO_LABELS, 'r') as f:
-                labels = [line.strip() for line in f.readlines()]
+            if not INTQUANT:
+                with open(PATH_TO_LABELS, 'r') as f:
+                    labels = [line.strip() for line in f.readlines()]
+            else:
+                labels = read_label_file(PATH_TO_LABELS)
 
             if USE_TPU:
-                interpreter = Interpreter(model_path=PATH_TO_CKPT,
-                                          experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
-                print(PATH_TO_CKPT)
+                if not INTQUANT:
+                    interpreter = Interpreter(model_path=PATH_TO_CKPT,
+                                              experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
+                    print(PATH_TO_CKPT)
+                else:
+                    # using pycoral for fully integer quantized models
+                    interpreter = make_interpreter(PATH_TO_CKPT)
             else:
                 interpreter = Interpreter(model_path=PATH_TO_CKPT)
             interpreter.allocate_tensors()
