@@ -208,47 +208,60 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 # capture_timestamp = datetime.utcnow()
                 # img_path = random.choice(TEST_IMAGE_PATHS)
                 # img = cv2.imread(img_path)
+                if not INTQUANT:
+                    t0_get = datetime.utcnow()
+                    logger.info(f'access time {(t0_get-t0).total_seconds()}')
 
-                t0_get = datetime.utcnow()
-                logger.info(f'access time {(t0_get-t0).total_seconds()}')
+                    frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    frame_resized = cv2.resize(frame_rgb, (width, height))
+                    input_data = np.expand_dims(frame_resized, 0).astype('float32')
 
-                frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                frame_resized = cv2.resize(frame_rgb, (width, height))
-                input_data = np.expand_dims(frame_resized, 0).astype('float32')
+                    #logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
 
-                #logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
+                    # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
+                    if floating_model:
+                        logger.info('float')
+                        input_data = (np.float32(input_data) - input_mean) / input_std
+                    if INTQUANT:
+                        input_data = input_data.astype('uint8')
 
-                # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-                if floating_model:
-                    logger.info('float')
-                    input_data = (np.float32(input_data) - input_mean) / input_std
-                if INTQUANT:
-                    input_data = input_data.astype('uint8')
+                    t1 = datetime.utcnow()
+                    logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
+                    # Perform the actual detection by running the model with the image as input
+                    interpreter.set_tensor(input_details[0]['index'], input_data)
+                    interpreter.invoke()
 
-                t1 = datetime.utcnow()
-                logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
-                # Perform the actual detection by running the model with the image as input
-                interpreter.set_tensor(input_details[0]['index'], input_data)
-                interpreter.invoke()
+                    boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
+                    # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+                    scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                else:
+                    image = Image.open(img)
+                    _, scale = common.set_resized_input(
+                        interpreter, image.size, lambda size: image.resize(size, Image.ANTIALIAS))
 
-                boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                    if not objs:
+                        print('No objects detected')
+                    else:
+                        for obj in objs:
+                            print(labels.get(obj.id, obj.id))
+                            print('  id:    ', obj.id)
+                            print('  score: ', obj.score)
+                            print('  bbox:  ', obj.bbox)
 
-                # DEQUANTIZE
-                if INTQUANT:
-                    scale, zero_point = output_details[0]['quantization']
-                    boxes = scale * (boxes - zero_point)
-
-                    # scale, zero_point = output_details[1]['quantization']
-                    # classes = scale * (classes - zero_point)
-
-                    scale, zero_point = output_details[2]['quantization']
-                    scores = scale * (scores - zero_point)
-
-                t2 = datetime.utcnow()
-                delta = (t2 - t1).total_seconds()
-                logger.info(f"Inference time: {delta}, rate={1/delta}")#
+                # # DEQUANTIZE
+                # if INTQUANT:
+                #     scale, zero_point = output_details[0]['quantization']
+                #     boxes = scale * (boxes - zero_point)
+                #
+                #     # scale, zero_point = output_details[1]['quantization']
+                #     # classes = scale * (classes - zero_point)
+                #
+                #     scale, zero_point = output_details[2]['quantization']
+                #     scores = scale * (scores - zero_point)
+                #
+                # t2 = datetime.utcnow()
+                # delta = (t2 - t1).total_seconds()
+                # logger.info(f"Inference time: {delta}, rate={1/delta}")#
 
                 #logger.info(boxes)
                 #logger.info(classes)
@@ -258,22 +271,22 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 blurred = np.zeros([img.shape[0], img.shape[1]])
                 # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
-                for i in range(len(boxes)):
-                    if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                        # if scores[i] == np.max(scores):
-                        # Get bounding box coordinates and draw box
-                        # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                        ymin = int(max(1, (boxes[i,0] * imH)))
-                        xmin = int(max(1, (boxes[i,1] * imW)))
-                        ymax = int(min(imH, (boxes[i,2] * imH)))
-                        xmax = int(min(imW, (boxes[i,3] * imW)))
-
-                        blurred[ymin:ymax, xmin:xmax] = 1
-                        #cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                        logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
-
-                t3 = datetime.utcnow()
-                logger.info(f"Withfiltering: {(t3-t1).total_seconds()}")
+                # for i in range(len(boxes)):
+                #     if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                #         # if scores[i] == np.max(scores):
+                #         # Get bounding box coordinates and draw box
+                #         # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                #         ymin = int(max(1, (boxes[i,0] * imH)))
+                #         xmin = int(max(1, (boxes[i,1] * imW)))
+                #         ymax = int(min(imH, (boxes[i,2] * imH)))
+                #         xmax = int(min(imW, (boxes[i,3] * imW)))
+                #
+                #         blurred[ymin:ymax, xmin:xmax] = 1
+                #         #cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                #         logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                #
+                # t3 = datetime.utcnow()
+                # logger.info(f"Withfiltering: {(t3-t1).total_seconds()}")
 
             # Forwarding result to VPF extraction
             t_put = datetime.utcnow()
