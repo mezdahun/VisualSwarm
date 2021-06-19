@@ -201,15 +201,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
                 frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 frame_resized = cv2.resize(frame_rgb, (width, height))
-                input_data = np.expand_dims(frame_resized, 0).astype('float32')/255
+                input_data = np.expand_dims(frame_resized, 0).astype('float32')
 
                 #logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
 
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
                 # if floating_model:
                 #     logger.info('float')
-                # if INTQUANT:
-                #     input_data = input_data.astype('uint8')
+                if INTQUANT:
+                    input_data = input_data.astype('uint8')
                 # input_data = (np.float32(input_data) - input_mean) / input_std
 
                 t1 = datetime.utcnow()
