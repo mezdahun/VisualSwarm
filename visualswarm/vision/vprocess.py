@@ -482,7 +482,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                             img = cv2.putText(img, f'score={scores[i]}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
                                                 1, (255, 0, 0), 2, cv2.LINE_AA)
-                            logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                            #logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                     t3 = datetime.utcnow()
                     logger.info(f"Postprocess time: {(t3 - t1).total_seconds()}")
