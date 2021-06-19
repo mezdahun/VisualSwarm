@@ -86,9 +86,10 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             logger.info('Loading tensorflow model...')
             MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-            GRAPH_NAME = 'model_test_2_edgetpu.tflite'
+            GRAPH_NAME = 'model_test_fullinteger_edgetpu.tflite'
             LABELMAP_NAME = 'labelmap.txt'
             USE_TPU = True
+            INTQUANT = True
             # it takes a little longer on the first run and then runs at normal speed.
             import random
             import glob
@@ -208,7 +209,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
                 # if floating_model:
                 #     logger.info('float')
-                input_data = (np.float32(input_data) - input_mean) / input_std
+                if INTQUANT:
+                    input_data = input_data.astype('uint8')
+                # input_data = (np.float32(input_data) - input_mean) / input_std
 
                 t1 = datetime.utcnow()
                 logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
@@ -216,11 +219,20 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 interpreter.set_tensor(input_details[0]['index'], input_data)
                 interpreter.invoke()
 
-
-
                 boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
+                # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
                 scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+
+                # DEQUANTIZE
+                scale, zero_point = output_details[0]['quantization']
+                boxes = scale * (boxes - zero_point)
+
+                # scale, zero_point = output_details[1]['quantization']
+                # classes = scale * (classes - zero_point)
+
+                scale, zero_point = output_details[2]['quantization']
+                scores = scale * (scores - zero_point)
+
                 t2 = datetime.utcnow()
                 delta = (t2 - t1).total_seconds()
                 logger.info(f"Inference time: {delta}, rate={1/delta}")#
