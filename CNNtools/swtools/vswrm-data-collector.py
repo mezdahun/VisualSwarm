@@ -18,6 +18,7 @@ from picamera import PiCamera
 from picamera.array import PiRGBArray
 from picamera.exc import PiCameraValueError
 import logging
+from datetime import datetime
 
 from visualswarm.contrib import logparams
 bcolors = logparams.BColors
@@ -91,11 +92,11 @@ try:
         frame_id = 0
         for frame in picam.capture_continuous(raw_capture,
                                               format='bgr',
-                                              use_video_port=True,
-                                              resize=RESOLUTION):
+                                              use_video_port=True):
+            t0 = datetime.now()
             # Grab the raw NumPy array representing the image
             image = cv2.flip(frame.array, -1)
-            #image = cv2.resize(image, (RESOLUTION[0], RESOLUTION[1]))
+            image = cv2.resize(image, (RESOLUTION[0], RESOLUTION[1]))
 
             cv2.imshow('Camera Stream', image)
             k = cv2.waitKey(1) & 0xFF
@@ -114,6 +115,8 @@ try:
 
 
             frame_id += 1
+            t1 = datetime.now()
+            logger.info(f'Would have framerate: {(t1-t0).total_seconds()}')
 
         f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
     except KeyboardInterrupt:
