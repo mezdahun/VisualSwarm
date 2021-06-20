@@ -91,10 +91,11 @@ try:
         frame_id = 0
         for frame in picam.capture_continuous(raw_capture,
                                               format='bgr',
-                                              use_video_port=True):
+                                              use_video_port=True,
+                                              resize=RESOLUTION):
             # Grab the raw NumPy array representing the image
             image = cv2.flip(frame.array, -1)
-            image = cv2.resize(image, (RESOLUTION[0], RESOLUTION[1]))
+            #image = cv2.resize(image, (RESOLUTION[0], RESOLUTION[1]))
 
             cv2.imshow('Camera Stream', image)
             k = cv2.waitKey(1) & 0xFF
