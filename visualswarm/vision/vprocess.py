@@ -443,10 +443,9 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                     interpreter.set_tensor(input_details[0]['index'], input_data)
                     interpreter.invoke()
 
-                    boxes = interpreter.get_tensor(output_details[0]['index'])[
-                        0]  # Bounding box coordinates of detected objects
+                    boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
                     # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                    scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                    scores = np.array(interpreter.get_tensor(output_details[2]['index'])[0])  # Confidence of detected objects
 
                     # DEQUANTIZE
                     if INTQUANT:
@@ -468,21 +467,21 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                     blurred = np.zeros([img.shape[0], img.shape[1]])
                     # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
-                    for i in range(len(boxes)):
-                        if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                            # if scores[i] == np.max(scores):
-                            # Get bounding box coordinates and draw box
-                            # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                            ymin = int(max(1, (boxes[i, 0] * imH)))
-                            xmin = int(max(1, (boxes[i, 1] * imW)))
-                            ymax = int(min(imH, (boxes[i, 2] * imH)))
-                            xmax = int(min(imW, (boxes[i, 3] * imW)))
+                    indices = scores>min_conf_threshold
+                    for i in indices:
+                        # if scores[i] == np.max(scores):
+                        # Get bounding box coordinates and draw box
+                        # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                        ymin = int(max(1, (boxes[i, 0] * imH)))
+                        xmin = int(max(1, (boxes[i, 1] * imW)))
+                        ymax = int(min(imH, (boxes[i, 2] * imH)))
+                        xmax = int(min(imW, (boxes[i, 3] * imW)))
 
-                            blurred[ymin:ymax, xmin:xmax] = 1
-                            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                            img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
-                                                0.5, (255, 0, 0), 2, cv2.LINE_AA)
-                            #logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
+                        blurred[ymin:ymax, xmin:xmax] = 1
+                        cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                        img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
+                                            0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                        #logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                     t3 = datetime.utcnow()
                     logger.info(f"Postprocess time: {(t3 - t1).total_seconds()}")
