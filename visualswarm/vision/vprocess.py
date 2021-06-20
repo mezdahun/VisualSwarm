@@ -334,7 +334,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
     logger.info('Loading tensorflow model...')
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'model_test_fullinteger_edgetpu.tflite'
+    GRAPH_NAME = 'ssdnet2_64_fullinteger_edgetpu.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
     INTQUANT = True
