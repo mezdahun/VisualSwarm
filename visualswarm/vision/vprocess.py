@@ -479,9 +479,9 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                             xmax = int(min(imW, (boxes[i, 3] * imW)))
 
                             blurred[ymin:ymax, xmin:xmax] = 1
-                            # cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                            # img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
-                            #                     0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                            img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
+                                                0.5, (255, 0, 0), 2, cv2.LINE_AA)
                             #logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                     t3 = datetime.utcnow()
