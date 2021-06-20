@@ -94,7 +94,7 @@ try:
                                               use_video_port=True):
             # Grab the raw NumPy array representing the image
             image = cv2.flip(frame.array, -1)
-            image = cv2.resize(image, RESOLUTION)
+            image = cv2.resize(image, (RESOLUTION[0], RESOLUTION[1]))
 
             cv2.imshow('Camera Stream', image)
             k = cv2.waitKey(1) & 0xFF
