@@ -116,7 +116,7 @@ try:
 
             frame_id += 1
             t1 = datetime.now()
-            logger.info(f'Would have framerate: {1/(t1-t0).total_seconds()} fps')
+            # logger.info(f'Max possible framerate: {1/(t1-t0).total_seconds()} fps')
 
         f'-- {bcolors.OKBLUE}Bye Bye!{bcolors.ENDC}'
     except KeyboardInterrupt:
