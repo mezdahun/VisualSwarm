@@ -91,7 +91,7 @@ try:
         frame_id = 0
         for frame in picam.capture_continuous(raw_capture,
                                               format='bgr',
-                                              use_video_port=True):
+                                              use_video_port=False):
             # Grab the raw NumPy array representing the image
             image = cv2.flip(frame.array, -1)
 
