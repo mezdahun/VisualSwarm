@@ -445,7 +445,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
                     boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
                     # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                    scores = np.array(interpreter.get_tensor(output_details[2]['index'])[0])  # Confidence of detected objects
+                    scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
 
                     # DEQUANTIZE
                     if INTQUANT:
@@ -467,7 +467,8 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                     blurred = np.zeros([img.shape[0], img.shape[1]])
                     # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
-                    indices = list(np.where(scores > min_conf_threshold))
+                    indices = list(np.where(np.array(scores) > min_conf_threshold)[0])
+                    logger.info(indices)
                     for i in indices:
                         # if scores[i] == np.max(scores):
                         # Get bounding box coordinates and draw box
