@@ -78,7 +78,7 @@ try:
                     f'\t-- {bcolors.WARNING}IMPORTANT:{bcolors.ENDC} keep the focus on the video window to catch key strokes!')
 
         # Generates a 3D RGB array and stores it in rawCapture
-        raw_capture = PiRGBArray(picam, size=[1280, 720])#RESOLUTION)
+        raw_capture = PiRGBArray(picam, size=[int(1280), int(720)])#RESOLUTION)
 
         # Wait a certain number of seconds to allow the camera time to warmup
         logger.info('--Waiting 8 seconds for PI-camera to warmup!')
