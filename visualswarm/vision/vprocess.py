@@ -467,7 +467,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                     blurred = np.zeros([img.shape[0], img.shape[1]])
                     # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
-                    indices = np.where(scores > min_conf_threshold)
+                    indices = list(np.where(scores > min_conf_threshold))
                     for i in indices:
                         # if scores[i] == np.max(scores):
                         # Get bounding box coordinates and draw box
