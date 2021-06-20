@@ -468,6 +468,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                     # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
                     indices = scores>min_conf_threshold
+                    logger.info(indices)
                     for i in indices:
                         # if scores[i] == np.max(scores):
                         # Get bounding box coordinates and draw box
