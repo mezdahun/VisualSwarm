@@ -78,7 +78,7 @@ try:
                     f'\t-- {bcolors.WARNING}IMPORTANT:{bcolors.ENDC} keep the focus on the video window to catch key strokes!')
 
         # Generates a 3D RGB array and stores it in rawCapture
-        raw_capture = PiRGBArray(picam, size=RESOLUTION)
+        raw_capture = PiRGBArray(picam, size=[1280, 720])#RESOLUTION)
 
         # Wait a certain number of seconds to allow the camera time to warmup
         logger.info('--Waiting 8 seconds for PI-camera to warmup!')
@@ -91,9 +91,10 @@ try:
         frame_id = 0
         for frame in picam.capture_continuous(raw_capture,
                                               format='bgr',
-                                              use_video_port=False):
+                                              use_video_port=True):
             # Grab the raw NumPy array representing the image
             image = cv2.flip(frame.array, -1)
+            image = cv2.resize(image, RESOLUTION)
 
             cv2.imshow('Camera Stream', image)
             k = cv2.waitKey(1) & 0xFF
