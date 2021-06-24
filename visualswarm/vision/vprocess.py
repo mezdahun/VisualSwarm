@@ -334,10 +334,10 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
     logger.info('Loading tensorflow model...')
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'fisheye_fullinteger.tflite'
+    GRAPH_NAME = 'fisheye_float.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = False
-    INTQUANT = True
+    INTQUANT = False
     # it takes a little longer on the first run and then runs at normal speed.
     import random
     import glob
