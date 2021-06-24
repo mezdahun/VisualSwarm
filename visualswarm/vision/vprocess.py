@@ -334,9 +334,9 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
     logger.info('Loading tensorflow model...')
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'fisheye_fullinteger.tflite'
+    GRAPH_NAME = 'fisheye_fullinteger_edgetpu.tflite'
     LABELMAP_NAME = 'labelmap.txt'
-    USE_TPU = False
+    USE_TPU = True
     INTQUANT = True
     # it takes a little longer on the first run and then runs at normal speed.
     import random
@@ -348,7 +348,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
     # TODO: do this automatically somehow or check if file exists and askteh user to configure properly if not
 
-    min_conf_threshold = 0.1
+    min_conf_threshold = 0.25
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
