@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(env.LOG_LEVEL)
 bcolors = logparams.BColors
 
+import newrelic.agent
 
+@newrelic.agent.background_task()
 def health():
     """Entrypoint to start high level application"""
     logger.info("VisualSwarm application OK!")
