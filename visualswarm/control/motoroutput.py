@@ -557,20 +557,20 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     try:
                         if not simulation.ENABLE_SIMULATION:
                             (emergency_mode, proximity_values) = emergency_stream.get_nowait()
-                        else:
+                        else:  # pragma: simulation no cover
                             latest_emergency = get_latest_element(emergency_stream)
                             if latest_emergency is not None:
                                 (emergency_mode, proximity_values) = latest_emergency
                             else:
                                 emergency_mode = False
-                    except Empty:
+                    except Empty:  # pragma: no cover
                         emergency_mode = False
 
                     if not emergency_mode:
                         if movement_mode == "BEHAVE":
 
-                            # Switch between modes, change mode status LED
-                            if prev_movement_mode == "EXPLORE":
+                            # Switch between modes, change mode status LED (can notbe tested with single cycle)
+                            if prev_movement_mode == "EXPLORE":  # pragma: no cover
                                 light_up_led(network, behR, behG, behB, webots_do_stream=webots_do_stream)
 
                             # Persistent change in movement mode
@@ -653,7 +653,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                         # turn off emergency mode and return to normal mode, showing this with LEDs
                         emergency_mode = False
-                        if movement_mode == "EXPLORE":
+                        if movement_mode == "EXPLORE":  # pragma: no cover
                             light_up_led(network, expR, expG, expB, webots_do_stream=webots_do_stream)
                         elif movement_mode == "BEHAVE":
                             light_up_led(network, behR, behG, behB, webots_do_stream=webots_do_stream)
