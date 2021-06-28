@@ -11,13 +11,13 @@ import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, vision
+from visualswarm.contrib import logparams, vision, simulation
 from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
 
-import dbus.mainloop.glib
-
-dbus.mainloop.glib.threads_init()
+if not simulation.ENABLE_SIMULATION:
+    import dbus.mainloop.glib
+    dbus.mainloop.glib.threads_init()
 
 # setup logging
 logging.basicConfig()

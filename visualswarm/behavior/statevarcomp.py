@@ -75,23 +75,25 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     dPhi_V = dPhi_V_of(Phi, V_now)
 
     # Calculating series expansion of functional G
-    G_vel = behavior.ALP0 * (-V_now + behavior.ALP2 * dt_V)
+    G_vel = (-V_now + behavior.ALP2 * dt_V)
 
     # Spikey parts shall be handled separately because of numerical integration
-    G_vel_spike = behavior.ALP0 * behavior.ALP1 * np.square(dPhi_V)
+    G_vel_spike = np.square(dPhi_V)
 
-    G_psi = behavior.BET0 * (-V_now + behavior.BET2 * dt_V)
+    G_psi = (-V_now + behavior.BET2 * dt_V)
 
     # Spikey parts shall be handled separately because of numerical integration
-    G_psi_spike = behavior.BET0 * behavior.BET1 * np.square(dPhi_V)
+    G_psi_spike = np.square(dPhi_V)
 
     # Calculating change in velocity and heading direction
     dPhi = Phi[-1] - Phi[-2]
+    FOV_rescaling_cos = 1
+    FOV_rescaling_sin = 1
 
     dvel = behavior.GAM * (behavior.V0 - vel_now) + \
-           integrate.trapz(np.cos(Phi) * G_vel, Phi) + \
-           np.sum(np.cos(Phi) * G_vel_spike) * dPhi
-    dpsi = integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
-           np.sum(np.sin(Phi) * G_psi_spike) * dPhi
+           behavior.ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
+           behavior.ALP0 * behavior.ALP1 * np.sum(np.cos(Phi) * G_vel_spike) * dPhi
+    dpsi = behavior.BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
+           behavior.BET0 * behavior.BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike) * dPhi
 
     return dvel, dpsi

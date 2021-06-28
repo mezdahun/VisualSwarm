@@ -3,13 +3,14 @@
 @description: Parameters related to visualization
 """
 from cv2 import cvtColor, COLOR_BGR2HSV
-from numpy import uint8, pi
+from numpy import uint8
+import os
 
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = True
+SHOW_VISION_STREAMS = bool(int(os.getenv('SHOW_VISION_STREAMS', '0')))
 VIS_DOWNSAMPLE_FACTOR = 1
 
 # Drawing, color in RGB
@@ -34,12 +35,13 @@ HSV_LOW = uint8([TARGET_HSV_COLOR[0][0][0] - HSV_HUE_RANGE, SV_MINIMUM, SV_MINIM
 HSV_HIGH = uint8([TARGET_HSV_COLOR[0][0][0] + HSV_HUE_RANGE, SV_MAXIMUM, SV_MAXIMUM])
 
 # VPF Preprocessing
-GAUSSIAN_KERNEL_WIDTH = 15
-MEDIAN_BLUR_WIDTH = 9
-MIN_BLOB_AREA = 100
+GAUSSIAN_KERNEL_WIDTH = 9  # 15
+MEDIAN_BLUR_WIDTH = 5  # 9
+MIN_BLOB_AREA = 0
 
 # Visual Projection
-H_MARGIN = 10
-W_MARGIN = 10
-PHI_START = -0.5394 * pi
-PHI_END = 0.5394 * pi
+FOV = float(os.getenv('ROBOT_FOV', '6.28'))
+H_MARGIN = 1  # 10
+W_MARGIN = 1  # 10
+PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
+PHI_END = (FOV / 2)  # pi  # 0.5394 * pi

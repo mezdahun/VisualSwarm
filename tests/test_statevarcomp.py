@@ -54,9 +54,15 @@ class MoveCompTest(TestCase):
         mock_dphi.return_value = np.zeros(10)
         phi = np.zeros(10)
 
-        with mock.patch('visualswarm.contrib.behavior.GAM', 2):
-            with mock.patch('visualswarm.contrib.behavior.V0', 5):
-                vel_now = 10
-                dv, dpsi = statevarcomp.compute_state_variables(vel_now, phi, np.zeros(10))
-                self.assertEqual(dv, 90)
-                self.assertEqual(dpsi, 100)
+        with mock.patch('visualswarm.contrib.behavior.GAM', 0.1):
+            with mock.patch('visualswarm.contrib.behavior.V0', 125):
+                with mock.patch('visualswarm.contrib.behavior.ALP0', 0.5):
+                    with mock.patch('visualswarm.contrib.behavior.ALP1', 0.0005):
+                        with mock.patch('visualswarm.contrib.behavior.ALP2', 0):
+                            with mock.patch('visualswarm.contrib.behavior.BET0', 0.5):
+                                with mock.patch('visualswarm.contrib.behavior.BET1', 0.0005):
+                                    with mock.patch('visualswarm.contrib.behavior.BET2', 0):
+                                        vel_now = 10
+                                        dv, dpsi = statevarcomp.compute_state_variables(vel_now, phi, np.zeros(10))
+                                        self.assertEqual(dv, 61.5)
+                                        self.assertEqual(dpsi, 50)
