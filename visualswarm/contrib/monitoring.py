@@ -4,8 +4,8 @@
 """
 
 # Parameters to save and visualize projection field with grafana and influxdb
-SAVE_PROJECTION_FIELD = True
+SAVE_PROJECTION_FIELD = False
 DOWNGRADING_FACTOR = 10
 
 # Parameters regarding monitoring of flocking parameters of the main algorithm
-SAVE_CONTROL_PARAMS = True
+SAVE_CONTROL_PARAMS = False
