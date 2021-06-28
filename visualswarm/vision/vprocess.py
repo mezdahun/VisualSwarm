@@ -18,7 +18,7 @@ from visualswarm.contrib import camera, vision, monitoring, simulation
 if not simulation.ENABLE_SIMULATION:
     logger = logging.getLogger('visualswarm.app')
 else:
-    logger = logging.getLogger('visualswarm.app_simulation')
+    logger = logging.getLogger('visualswarm.app_simulation')   # pragma: simulation no cover
 
 
 def nothing(x):

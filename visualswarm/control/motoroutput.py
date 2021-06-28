@@ -152,7 +152,7 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     return [v_left, v_right]
 
 
-def get_latest_element(queue):
+def get_latest_element(queue):  # pragma: simulation no cover
     """
     emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
         Args:
@@ -180,7 +180,7 @@ def empty_queue(queue2empty):
     while not queue2empty.empty():
         try:
             queue2empty.get_nowait()
-        except Empty:
+        except Empty:  # pragma: no cover
             logger.debug('Emptied passed queue')
             return True
     logger.debug('Emptied passed queue')
@@ -369,7 +369,7 @@ def speed_up_robot(network, additional_motor_speed_multiplier,  # pragma: no cov
     #         avoid_obstacle(network, proximity_values, emergency_stream)
     #
     #     (recursive_obstacle, proximity_values) = emergency_stream.get()
-    pass
+    pass  # pragma: no cover
 
 
 def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None,
