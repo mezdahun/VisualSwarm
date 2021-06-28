@@ -3,7 +3,7 @@
 @description: Parameters related to visualization
 """
 from cv2 import cvtColor, COLOR_BGR2HSV
-from numpy import uint8, pi
+from numpy import uint8
 import os
 
 # Interactive color tune
