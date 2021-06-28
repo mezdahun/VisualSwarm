@@ -17,7 +17,7 @@ from visualswarm import env
 if not simulation.ENABLE_SIMULATION:
     logger = logging.getLogger('visualswarm.app')
 else:
-    logger = logging.getLogger('visualswarm.app_simulation')
+    logger = logging.getLogger('visualswarm.app_simulation')  # pragma: simulation no cover
 
 
 def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_control=False):
