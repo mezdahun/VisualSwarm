@@ -38,6 +38,7 @@ def start_swarm():
     with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
         c.connect_kwargs.password = puppetmaster.PSWD
         c.run('cd Desktop/VisualSwarm && '
+              'git pull && '
               f'ENABLE_CLOUD_LOGGING=1 ROBOT_NAME={list(puppetmaster.HOSTS.keys())[0]} '
               'dtach -n /tmp/tmpdtach '
               'pipenv run vswrm-start-vision',

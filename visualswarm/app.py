@@ -33,7 +33,7 @@ if monitoring.ENABLE_CLOUD_LOGGING:
 import logging
 logging.basicConfig()
 logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
-logger.setLevel(env.LOG_LEVEL)
+logger.setLevel(monitoring.LOG_LEVEL)
 bcolors = logparams.BColors
 
 

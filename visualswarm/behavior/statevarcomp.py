@@ -9,13 +9,14 @@ import numpy as np
 import numpy.typing as npt
 from scipy import integrate
 
-from visualswarm.contrib import behavior
+from visualswarm.contrib import behavior, monitoring
 
 # using main logger
 # setup logging
 import os
 ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
 logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+logger.setLevel(monitoring.LOG_LEVEL)
 
 
 def dPhi_V_of(Phi: npt.ArrayLike, V: npt.ArrayLike) -> npt.ArrayLike:

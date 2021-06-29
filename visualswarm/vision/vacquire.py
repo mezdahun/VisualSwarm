@@ -16,7 +16,7 @@ else:
 import time
 from datetime import datetime
 
-from visualswarm.contrib import camera, logparams
+from visualswarm.contrib import camera, logparams, monitoring
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
@@ -24,6 +24,7 @@ if not simulation.ENABLE_SIMULATION:
     import os
     ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
     logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+    logger.setLevel(monitoring.LOG_LEVEL)
 else:
     logger = logging.getLogger('visualswarm.app_simulation')   # pragma: simulation no cover
 bcolors = logparams.BColors
