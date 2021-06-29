@@ -1,7 +1,9 @@
 from fabric import Connection
+from fabric import ThreadingGroup as Group
 from time import sleep
 
 from visualswarm.contrib import puppetmaster
+from getpass import getpass
 # Imports the Cloud Logging client library
 
 import logging
@@ -11,6 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
 
 def reinstall_robots():
+    """Reinstall dependencies of robots from scratch (when something goes wrong). It takes time."""
     logger.info("Updating robots' virtual environment...")
     with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
         c.connect_kwargs.password = puppetmaster.PSWD
@@ -23,6 +26,7 @@ def reinstall_robots():
         print(result.stdout)
 
 def update_robots():
+    """Update dependencies of robots (when new package is used)"""
     logger.info("Updating robots' virtual environment...")
     with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
         c.connect_kwargs.password = puppetmaster.PSWD
@@ -33,22 +37,54 @@ def update_robots():
                        pty=False)
         print(result.stdout)
 
+def vswrm_start(c, robot_name):
+    c.connect_kwargs.password = puppetmaster.PSWD
+    c.run('cd Desktop/VisualSwarm && '
+          'git pull && '
+          f'ENABLE_CLOUD_LOGGING=1 ROBOT_NAME={robot_name} LOG_LEVEL=DEBUG '
+          'dtach -n /tmp/tmpdtach '
+          'pipenv run vswrm-start-vision',
+          hide=True,
+          pty=False)
+
+def vswrm_stop(c):
+    c.connect_kwargs.password = puppetmaster.PSWD
+    start_result = c.run('ps ax  | grep "dtach -n /tmp/tmpdtach pipenv run vswrm-start-vision"')
+    PID = start_result.stdout.split()[0]
+    c.run(f'kill -INT {int(PID)}')
+
+
 def start_swarm():
+    """Start VSWRM app on a swarm of robots defined with HOSTS in contrib.puppetmaster"""
     logger.info('Puppetmaster started!')
-    with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
-        c.connect_kwargs.password = puppetmaster.PSWD
-        c.run('cd Desktop/VisualSwarm && '
-              'git pull && '
-              f'ENABLE_CLOUD_LOGGING=1 ROBOT_NAME={list(puppetmaster.HOSTS.keys())[0]} '
-              'dtach -n /tmp/tmpdtach '
-              'pipenv run vswrm-start-vision',
-              hide=True,
-              pty=False)
-        start_result = c.run('ps ax  | grep "dtach -n /tmp/tmpdtach pipenv run vswrm-start-vision"')
-        PID = start_result.stdout.split()[0]
-        print(f'Started process with PID: {int(PID)}')
-        print('going to sleeeeeep...')
-        sleep(15)
-        print('Waking up and killing process!')
-        end_result = c.run(f'kill -INT {int(PID)}')
-        print(end_result.stdout)
+    swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
+    for connection in swarm:
+        robot_name = list(puppetmaster.HOSTS.keys())[list(puppetmaster.HOSTS.values()).index(connection.host)]
+        logger.info(f'Start VSWRM on {robot_name} with host {connection.host}')
+        vswrm_start(connection, robot_name)
+
+    getpass('VSWRM started on swarm. Press any key to stop the swarm')
+
+    logger.info('Killing VSWRM processes by collected PIDs...')
+    for connection in swarm:
+        robot_name = list(puppetmaster.HOSTS.keys())[list(puppetmaster.HOSTS.values()).index(connection.host)]
+        logger.info(f'Stop VSWRM on {robot_name} with host {connection.host}')
+        vswrm_stop(connection)
+
+    # with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
+    #     c.connect_kwargs.password = puppetmaster.PSWD
+    #     c.run('cd Desktop/VisualSwarm && '
+    #           'git pull && '
+    #           f'ENABLE_CLOUD_LOGGING=1 ROBOT_NAME={list(puppetmaster.HOSTS.keys())[0]} '
+    #           'dtach -n /tmp/tmpdtach '
+    #           'pipenv run vswrm-start-vision',
+    #           hide=True,
+    #           pty=False)
+    #     start_result = c.run('ps ax  | grep "dtach -n /tmp/tmpdtach pipenv run vswrm-start-vision"')
+    #     PID = start_result.stdout.split()[0]
+    #     print(f'Started process with PID: {int(PID)}')
+    #     print('going to sleeeeeep...')
+    #     sleep(15)
+    #     print('Waking up and killing process!')
+    #     end_result = c.run(f'kill -INT {int(PID)}')
+    #     print(end_result.stdout)

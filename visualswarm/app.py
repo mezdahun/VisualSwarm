@@ -5,6 +5,7 @@
 
 from multiprocessing import Process, Queue
 import sys
+import signal
 
 import visualswarm.contrib.vision
 from visualswarm import env
@@ -17,6 +18,8 @@ from visualswarm.control import motorinterface, motoroutput
 if not simulation.ENABLE_SIMULATION:
     import dbus.mainloop.glib
     dbus.mainloop.glib.threads_init()
+
+signal.signal(signal.SIGINT, signal.default_int_handler)
 
 # setup logging
 import os
