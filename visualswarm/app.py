@@ -3,7 +3,6 @@
 @description: Main app of visualswarm
 """
 
-import logging
 from multiprocessing import Process, Queue
 import sys
 
@@ -11,7 +10,7 @@ import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, system_monitor
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, vision, simulation
+from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
 
@@ -20,8 +19,19 @@ if not simulation.ENABLE_SIMULATION:
     dbus.mainloop.glib.threads_init()
 
 # setup logging
+import os
+ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+
+if monitoring.ENABLE_CLOUD_LOGGING:
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
+    # Instantiates a client
+    client = google.cloud.logging.Client()
+    client.get_default_handler()
+    client.setup_logging()
+
+import logging
 logging.basicConfig()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
 logger.setLevel(env.LOG_LEVEL)
 bcolors = logparams.BColors
 

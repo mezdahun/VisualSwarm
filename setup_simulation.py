@@ -7,7 +7,9 @@ setup(
     description='Implementation of a minimal vision algorithm published by Bastien & Romanczuk (2020) on a Raspberry '
                 'PI for movement control of Thymio II robots. This is a version of the original setup.py that is used'
                 'to overwrite the package setup in case of WeBots simulations with venv environments. Check the readme'
-                'and the corresponding wiki pages for more details and correct usage.',
+                'and the corresponding wiki pages for more details and correct usage.'
+                ''
+                'WEBOTS SIMULATION SUBVERSION: Simulate real agents in Webots with VSWRM controller',
     version='0.1.4',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
@@ -25,7 +27,8 @@ setup(
         'webots>=0.0.1',
         'typing-extensions==3.7.4.3',
         'freezegun==1.1.0',
-        'matplotlib'
+        'matplotlib',
+        'google-cloud-logging==2.5.0'
     ],
     extras_require={
         'test': [

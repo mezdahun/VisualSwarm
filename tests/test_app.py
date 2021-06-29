@@ -9,9 +9,9 @@ from visualswarm import app
 class AppTest(TestCase):
 
     def test_health(self):
-        with self.assertLogs('visualswarm.app', level='INFO') as cm:
+        with self.assertLogs('VSWRM|Robot', level='INFO') as cm:
             app.health()
-            self.assertEqual(cm.output, ['INFO:visualswarm.app:VisualSwarm application OK!'])
+            self.assertEqual(cm.output, ['INFO:VSWRM|Robot:VisualSwarm application OK!'])
 
     @mock.patch('visualswarm.app.Process')
     @mock.patch('visualswarm.app.Queue')

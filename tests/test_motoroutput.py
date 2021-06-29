@@ -267,9 +267,9 @@ class MotorInterfaceTest(TestCase):
                                                               webots_do_stream=webots_do_stream)
 
                             # Case 7: possibility of being locked
-                            with self.assertLogs('visualswarm.app', level='WARNING') as cm:
+                            with self.assertLogs('VSWRM|Robot', level='WARNING') as cm:
                                 prox_vals = np.array([100, 100, 100, 0, 0, 20, 20])
-                                log = f'WARNING:visualswarm.app:Agent might be locked! Proximity values: {prox_vals}'
+                                log = f'WARNING:VSWRM|Robot:Agent might be locked! Proximity values: {prox_vals}'
                                 motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
                                 self.assertEqual(cm.output, [log])
 

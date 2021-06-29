@@ -101,10 +101,10 @@ class VProcessTest(TestCase):
     @mock.patch('visualswarm.env.EXIT_CONDITION', True)
     def test_visualizer(self):
         # Case 1 no visualization
-        with self.assertLogs('visualswarm.app', level='INFO') as cm:
+        with self.assertLogs('VSWRM|Robot', level='INFO') as cm:
             vprocess.visualizer(None)
             self.assertEqual(cm.output,
-                             ['INFO:visualswarm.app:Visualization stream is None, visualization process returns!'])
+                             ['INFO:VSWRM|Robot:Visualization stream is None, visualization process returns!'])
         # Case 2 visualization
         # Case 2.a no interactive plotting
         with mock.patch('visualswarm.contrib.vision.FIND_COLOR_INTERACTIVE', False):

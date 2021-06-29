@@ -9,3 +9,7 @@ DOWNGRADING_FACTOR = 10
 
 # Parameters regarding monitoring of flocking parameters of the main algorithm
 SAVE_CONTROL_PARAMS = False
+
+# Enabling cloud logging via Google Cloud
+ENABLE_CLOUD_LOGGING = True
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv(GOOGLE_APPLICATION_CREDENTIALS, '/home/pi/VisualSwarm/GKEY.json')

@@ -15,7 +15,10 @@ from visualswarm import env
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    logger = logging.getLogger('visualswarm.app')
+    # setup logging
+    import os
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+    logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
 else:
     logger = logging.getLogger('visualswarm.app_simulation')  # pragma: simulation no cover
 
