@@ -109,7 +109,7 @@ def start_application(with_control=False):
         VPF_extractor.start()
         behavior_proc.start()
         motor_control.start()
-        system_monitor_proc.start()
+        # system_monitor_proc.start()
         if with_control:
             emergency_proc.start()
 
@@ -121,7 +121,7 @@ def start_application(with_control=False):
         VPF_extractor.join()
         behavior_proc.join()
         motor_control.join()
-        system_monitor_proc.join()
+        # system_monitor_proc.join()
         if with_control:
             emergency_proc.join()
 
@@ -136,8 +136,8 @@ def start_application(with_control=False):
             emergency_proc.terminate()
             emergency_proc.join()
             logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} emergency process and joined!')
-        system_monitor_proc.terminate()
-        system_monitor_proc.join()
+        # system_monitor_proc.terminate()
+        # system_monitor_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
         motor_control.terminate()
         motor_control.join()
