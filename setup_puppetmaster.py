@@ -42,6 +42,8 @@ setup(
             'vswrm-masterpuppet=visualswarm.app_puppetmaster:start_swarm',
             'vswrm-update-bots=visualswarm.app_puppetmaster:update_robots',
             'vswrm-reinstall-bots=visualswarm.app_puppetmaster:reinstall_robots',
+            'vswrm-reboot-bots=visualswarm.app_puppetmaster:restart_robots',
+            'vswrm-shutdown-bots=visualswarm.app_puppetmaster:shutdown_robots'
         ]
     },
     classifiers=[
