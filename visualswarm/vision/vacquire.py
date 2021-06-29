@@ -18,14 +18,14 @@ from datetime import datetime
 
 from visualswarm.contrib import camera, logparams, monitoring
 
-if monitoring.ENABLE_CLOUD_LOGGING:
-    import google.cloud.logging
-    import os
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
-    # Instantiates a client
-    client = google.cloud.logging.Client()
-    client.get_default_handler()
-    client.setup_logging()
+# if monitoring.ENABLE_CLOUD_LOGGING:
+#     import google.cloud.logging
+#     import os
+#     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
+#     # Instantiates a client
+#     client = google.cloud.logging.Client()
+#     client.get_default_handler()
+#     client.setup_logging()
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
