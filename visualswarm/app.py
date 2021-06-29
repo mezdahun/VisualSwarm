@@ -47,7 +47,6 @@ def health():
 
 def start_application(with_control=False):
     """Start the visual stream of the Pi"""
-    logger.debug('HELLO THERE')
     # Starting fresh database if requested
     if env.INFLUX_FRESH_DB_UPON_START:
         logger.info(f'{bcolors.OKGREEN}CLEAN InfluxDB{bcolors.ENDC} upon start as requested')
