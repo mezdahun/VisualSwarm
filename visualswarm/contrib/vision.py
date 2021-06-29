@@ -10,7 +10,7 @@ import os
 FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = bool(int(os.getenv('SHOW_VISION_STREAMS', '0')))
+SHOW_VISION_STREAMS = bool(int(os.getenv('SHOW_VISION_STREAMS', '1')))
 VIS_DOWNSAMPLE_FACTOR = 1
 
 # Drawing, color in RGB
