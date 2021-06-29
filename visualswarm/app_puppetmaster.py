@@ -38,6 +38,7 @@ def update_robots():
         print(result.stdout)
 
 def vswrm_start(c, robot_name):
+    """Start VSWRM app on a single robot/connection"""
     c.connect_kwargs.password = puppetmaster.PSWD
     c.run('cd Desktop/VisualSwarm && '
           'git pull && '
@@ -48,6 +49,7 @@ def vswrm_start(c, robot_name):
           pty=False)
 
 def vswrm_stop(c):
+    """Stop VSWRM app on a single robot/connection"""
     c.connect_kwargs.password = puppetmaster.PSWD
     start_result = c.run('ps ax  | grep "dtach -n /tmp/tmpdtach pipenv run vswrm-start-vision"')
     PID = start_result.stdout.split()[0]
@@ -70,6 +72,22 @@ def start_swarm():
         robot_name = list(puppetmaster.HOSTS.keys())[list(puppetmaster.HOSTS.values()).index(connection.host)]
         logger.info(f'Stop VSWRM on {robot_name} with host {connection.host}')
         vswrm_stop(connection)
+
+def shutdown_swarm(shutdown='shutdown'):
+    """Shutdown/Reboot a swarm of robots defined with HOSTS in contrib.puppetmaster"""
+    swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
+    for connection in swarm:
+        connection.connect_kwargs.password = puppetmaster.PSWD
+        logger.info(f'Shutdown robot with IP {connection.host}')
+        connection.sudo(f'{shutdown} -h now')
+
+def shutdown_robots():
+    """ENTRYPOINT Shutdown a swarm of robots defined with HOSTS in contrib.puppetmaster"""
+    shutdown_swarm()
+
+def restart_robots():
+    """ENTRYPOINT Reboot a swarm of robots defined with HOSTS in contrib.puppetmaster"""
+    shutdown_swarm(shutdown='reboot')
 
     # with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
     #     c.connect_kwargs.password = puppetmaster.PSWD
