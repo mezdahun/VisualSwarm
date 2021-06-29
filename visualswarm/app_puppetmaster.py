@@ -51,9 +51,10 @@ def vswrm_start(c, robot_name):
 def vswrm_stop(c):
     """Stop VSWRM app on a single robot/connection"""
     c.connect_kwargs.password = puppetmaster.PSWD
-    start_result = c.run('ps ax  | grep "dtach -n /tmp/tmpdtach pipenv run vswrm-start-vision"')
-    PID = start_result.stdout.split()[0]
-    c.run(f'kill -INT {int(PID)}')
+    start_result = c.run('ps ax  | grep "/bin/vswrm-start-vision"')
+    PID = start_result.stdout.split()[0] # get PID of first subrocess of vswrm
+    # sending INT SIG to any of the subprocesses will trigger graceful exit (equivalent to KeyboardInterrup)
+    c.run(f'kill -INT -{int(PID)}')
 
 
 def start_swarm():
