@@ -23,6 +23,7 @@ import os
 ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
 
 if monitoring.ENABLE_CLOUD_LOGGING:
+    import google.cloud.logging
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
     # Instantiates a client
     client = google.cloud.logging.Client()
@@ -35,9 +36,7 @@ logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
 logger.setLevel(env.LOG_LEVEL)
 bcolors = logparams.BColors
 
-# import newrelic.agent
 
-# @newrelic.agent.background_task()
 def health():
     """Entrypoint to start high level application"""
     logger.info("VisualSwarm application OK!")
