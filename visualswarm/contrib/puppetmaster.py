@@ -4,7 +4,7 @@
 """
 from getpass import getpass
 
-HOSTS = {'Robot1': '192.168.0.81'}
+HOSTS = {'Robot1': '192.168.137.174'} # '192.168.0.81'}
 UNAME = 'pi'
 
 # DO NOT STORE PASSWORDS HERE! USE SSH KEYS OR --prompt-for-login-password INSTEAD
