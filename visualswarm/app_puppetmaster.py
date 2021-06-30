@@ -30,7 +30,7 @@ def update_robots():
     logger.info("Updating robots' virtual environment...")
     with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
         c.connect_kwargs.password = puppetmaster.PSWD
-        result = c.run('cd Desktop/VisualSwarm && '
+        result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
                        'git pull && '
                        'pipenv install -d --skip-lock -e .',
                        hide=True,
@@ -40,7 +40,7 @@ def update_robots():
 def vswrm_start(c, robot_name):
     """Start VSWRM app on a single robot/connection"""
     c.connect_kwargs.password = puppetmaster.PSWD
-    c.run('cd Desktop/VisualSwarm && '
+    c.run(f'cd {puppetmaster.INSTALL_DIR} && '
           'git pull && '
           f'ENABLE_CLOUD_LOGGING=1 ROBOT_NAME={robot_name} LOG_LEVEL=DEBUG '
           'dtach -n /tmp/tmpdtach '
