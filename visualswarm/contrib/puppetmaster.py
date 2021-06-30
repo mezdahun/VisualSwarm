@@ -4,7 +4,8 @@
 """
 from getpass import getpass
 
-HOSTS = {'Robot1': '192.168.137.174'} # '192.168.0.81'}
+HOSTS = {'Robot1': '192.168.137.174',
+         'Robot2': '192.168.137.3'} # '192.168.0.81'}
 UNAME = 'pi'
 INSTALL_DIR = '/home/pi/VisualSwarm'
 

@@ -14,10 +14,11 @@ logger.setLevel('INFO')
 
 def reinstall_robots():
     """Reinstall dependencies of robots from scratch (when something goes wrong). It takes time."""
-    logger.info("Updating robots' virtual environment...")
-    with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
+    logger.info("Reinstalling robots' virtual environment...")
+    swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
+    for c in swarm:
         c.connect_kwargs.password = puppetmaster.PSWD
-        result = c.run('cd Desktop/VisualSwarm && '
+        result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
                        'git pull && '
                        'pipenv --rm && '
                        'pipenv install -d --skip-lock -e .',
@@ -28,7 +29,8 @@ def reinstall_robots():
 def update_robots():
     """Update dependencies of robots (when new package is used)"""
     logger.info("Updating robots' virtual environment...")
-    with Connection(list(puppetmaster.HOSTS.values())[0], user=puppetmaster.UNAME) as c:
+    swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
+    for c in swarm:
         c.connect_kwargs.password = puppetmaster.PSWD
         result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
                        'git pull && '
@@ -61,9 +63,10 @@ def start_swarm():
     """Start VSWRM app on a swarm of robots defined with HOSTS in contrib.puppetmaster"""
     logger.info('Puppetmaster started!')
     swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
+    print(swarm)
     for connection in swarm:
         robot_name = list(puppetmaster.HOSTS.keys())[list(puppetmaster.HOSTS.values()).index(connection.host)]
-        logger.info(f'Start VSWRM on {robot_name} with host {connection.host}')
+        print(f'Start VSWRM on {robot_name} with host {connection.host}')
         vswrm_start(connection, robot_name)
 
     getpass('VSWRM started on swarm. Press any key to stop the swarm')
