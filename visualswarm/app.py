@@ -11,7 +11,7 @@ import time
 import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, drive_uploader  # system_monitor
-from visualswarm.vision import vacquire, vprocess
+from visualswarm.vision import vacquire, vprocess, CNN_vision
 from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
@@ -205,7 +205,7 @@ def start_application_with_control():
 
 def start_CNN_vision():
     try:
-        raw_vision = Process(target=vacquire.raw_vision)
+        raw_vision = Process(target=CNN_vision.CNN_vision)
         raw_vision.start()
         raw_vision.join()
     except KeyboardInterrupt:
