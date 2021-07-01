@@ -169,7 +169,6 @@ def visualizer(visualization_stream, target_config_stream=None):
                     mask_to_write = cv2.resize(img, camera.RESOLUTION)
                     writer.write(mask_to_write)
 
-
                 # To test infinite loops
                 if env.EXIT_CONDITION:
                     break

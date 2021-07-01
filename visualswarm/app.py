@@ -9,7 +9,7 @@ import signal
 
 import visualswarm.contrib.vision
 from visualswarm import env
-from visualswarm.monitoring import ifdb, system_monitor, drive_uploader
+from visualswarm.monitoring import ifdb, drive_uploader  # system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
@@ -97,7 +97,7 @@ def start_application(with_control=False):
                                                                    motor_control_mode_stream, with_control))
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, motor_control_mode_stream,
                                                                      emergency_stream, with_control))
-    system_monitor_proc = Process(target=system_monitor.system_monitor)
+    # system_monitor_proc = Process(target=system_monitor.system_monitor)
     emergency_proc = Process(target=motoroutput.emergency_behavior, args=(emergency_stream,))
 
     try:
