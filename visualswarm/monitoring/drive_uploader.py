@@ -78,6 +78,7 @@ def upload_vision_videos(videos_folder=None):
 
         for filename in os.listdir(videos_folder):
             if filename.endswith(".mp4"):
+                filename = os.path.join(videos_folder, filename)
                 name_parts = os.path.split(filename)[1].split('.')[0].split('_')
                 logger.info(name_parts)
                 video_timestamp, exp_id, robot_name = name_parts
