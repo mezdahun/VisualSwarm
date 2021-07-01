@@ -136,8 +136,8 @@ def visualizer(visualization_stream, target_config_stream=None):
             if monitoring.SAVE_VISION_VIDEO:
                 os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
                 video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'testCV2.mp4')
-                writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'H264'), 20,
-                                         (camera.RESOLUTION[1], camera.RESOLUTION[0]))
+                writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), camera.FRAMERATE,
+                                         (640, 480), isColor=True)
 
             while True:
                 # visualization
@@ -163,7 +163,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                     cv2.waitKey(1)
 
                 if monitoring.SAVE_VISION_VIDEO:
-                    mask_to_write = cv2.resize(mask, (camera.RESOLUTION[0], camera.RESOLUTION[1]))
+                    mask_to_write = cv2.resize(mask, (640, 480))
                     logger.info(mask_to_write.shape)
                     writer.write(mask_to_write)
                     logger.info(frame_id)
