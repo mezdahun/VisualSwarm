@@ -165,8 +165,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                 if monitoring.SAVE_VISION_VIDEO:
                     mask_to_write = cv2.resize(mask, (camera.RESOLUTION[0], camera.RESOLUTION[1]))
                     logger.info(mask_to_write.shape)
-                    help(writer)
-                    writer.write()
+                    writer.write(mask_to_write)
                     logger.info(frame_id)
                     if frame_id>40:
                         logger.info("release")
