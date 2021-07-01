@@ -69,7 +69,7 @@ def ensure_tokens():
 
 
 def upload_vision_videos(videos_folder):
-    if os.path.isdir(video_folder):
+    if os.path.isdir(videos_folder):
         drive_service = ensure_tokens()
         mimetype = 'video/mp4'
 
