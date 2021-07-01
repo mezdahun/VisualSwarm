@@ -163,7 +163,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                     cv2.waitKey(1)
 
                 if monitoring.SAVE_VISION_VIDEO:
-                    mask_to_write = cv2.resize(mask, (640, 480))
+                    mask_to_write = cv2.resize(img, (640, 480))
                     logger.info(mask_to_write.shape)
                     writer.write(mask_to_write)
                     logger.info(frame_id)
