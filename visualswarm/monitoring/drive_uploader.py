@@ -68,7 +68,10 @@ def ensure_tokens():
     return service
 
 
-def upload_vision_videos(videos_folder):
+def upload_vision_videos(videos_folder=None):
+    if videos_folder is None:
+        videos_folder = monitoring.SAVED_VIDEO_FOLDER
+
     if os.path.isdir(videos_folder):
         drive_service = ensure_tokens()
         mimetype = 'video/mp4'
