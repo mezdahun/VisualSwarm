@@ -64,7 +64,7 @@ def start_application(with_control=False):
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
 
-    if vision.SHOW_VISION_STREAMS: # or monitoring.SAVE_VISION_VIDEO:
+    if vision.SHOW_VISION_STREAMS or monitoring.SAVE_VISION_VIDEO:
         # showing raw and processed camera stream
         visualization_stream = Queue()
     else:
