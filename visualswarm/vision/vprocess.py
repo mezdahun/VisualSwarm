@@ -137,7 +137,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                 os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
                 video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'testCV2.mp4')
                 writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), camera.FRAMERATE,
-                                         (640, 480), isColor=True)
+                                         camera.RESOLUTION, isColor=True)
 
             while True:
                 # visualization
@@ -163,13 +163,8 @@ def visualizer(visualization_stream, target_config_stream=None):
                     cv2.waitKey(1)
 
                 if monitoring.SAVE_VISION_VIDEO:
-                    mask_to_write = cv2.resize(img, (640, 480))
-                    logger.info(mask_to_write.shape)
+                    mask_to_write = cv2.resize(img, camera.RESOLUTION)
                     writer.write(mask_to_write)
-                    logger.info(frame_id)
-                    if frame_id>40:
-                        logger.info("release")
-                        writer.release()
 
 
                 # To test infinite loops
