@@ -46,6 +46,7 @@ setup(
         'console_scripts': [
             'vswrm-health=visualswarm.app:health',
             'vswrm-start-vision=visualswarm.app:start_application',
+            'vswrm-start-CNN-vision=visualswarm.app:start_CNN_vision',
             'vswrm-start=visualswarm.app:start_application_with_control',
             'vswrm-drive-auth=visualswarm.monitoring.drive_uploader:ensure_tokens',
             'vswrm-drive-upload-videos=visualswarm.monitoring.drive_uploader:upload_vision_videos'
