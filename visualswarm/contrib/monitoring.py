@@ -16,3 +16,7 @@ SAVE_CONTROL_PARAMS = False
 ENABLE_CLOUD_LOGGING = bool(int(os.getenv('ENABLE_CLOUD_LOGGING', '0')))
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS', '/home/pi/VisualSwarm/GKEY.json')
 LOG_LEVEL = logging.getLevelName(os.getenv('LOG_LEVEL', 'DEBUG'))
+
+# Saving visual stream as video if requested
+SAVE_VISION_VIDEO = bool(int(os.getenv('SAVE_VISION_VIDEO', '0')))
+SAVED_VIDEO_FOLDER = '/home/pi/ViualSwarm/videos'

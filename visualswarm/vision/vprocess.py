@@ -133,6 +133,12 @@ def visualizer(visualization_stream, target_config_stream=None):
                                    255, nothing)
                 color_sample = np.zeros((200, 200, 3), np.uint8)
 
+            if monitoring.SAVE_VISION_VIDEO:
+                os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
+                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'test.mp4')
+                writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'DIVX'), 20,
+                                         (camera.RESOLUTION[0], camera.RESOLUTION[1]))
+
             while True:
                 # visualization
                 (img, mask, frame_id) = visualization_stream.get()
@@ -146,13 +152,19 @@ def visualizer(visualization_stream, target_config_stream=None):
                         SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
                         SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
                         target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
-                vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
-                vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
-                cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
-                cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
-                if vision.FIND_COLOR_INTERACTIVE:
-                    cv2.imshow("Segmentation Parameters", color_sample)
-                cv2.waitKey(1)
+
+                if vision.SHOW_VISION_STREAMS:
+                    vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
+                    vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
+                    cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
+                    cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
+                    if vision.FIND_COLOR_INTERACTIVE:
+                        cv2.imshow("Segmentation Parameters", color_sample)
+                    cv2.waitKey(1)
+
+                if monitoring.SAVE_VISION_VIDEO:
+                    writer.write(mask)
+
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
@@ -160,7 +172,8 @@ def visualizer(visualization_stream, target_config_stream=None):
         else:
             logger.info('Visualization stream is None, visualization process returns!')
     except KeyboardInterrupt:
-        pass
+        if monitoring.SAVE_VISION_VIDEO:
+            writer.release()
 
 
 def VPF_extraction(high_level_vision_stream, VPF_stream):
