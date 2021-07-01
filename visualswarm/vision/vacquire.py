@@ -84,7 +84,7 @@ def raw_vision(raw_vision_stream):
                 os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
                 video_path = os.path.join(monitoring.SAVED_VIDEO_FOLDER, "test.h264")
                 fd = open(video_path, "wb+")
-                camera.start_recording(fd, format='h264', quality=23)
+                picam.start_recording(fd, format='h264', quality=23)
 
             # Wait a certain number of seconds to allow the camera time to warmup
             time.sleep(0.1)
@@ -106,9 +106,9 @@ def raw_vision(raw_vision_stream):
                 frame_id += 1
         except KeyboardInterrupt:
             try:
-                camera.stop_recording()
+                picam.stop_recording()
             except PiCameraValueError:
-                camera.stop_recording()
+                picam.stop_recording()
     except PiCameraValueError:   # pragma: no cover
         pass
 
