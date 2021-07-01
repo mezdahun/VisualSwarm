@@ -9,7 +9,7 @@ import signal
 
 import visualswarm.contrib.vision
 from visualswarm import env
-from visualswarm.monitoring import ifdb, system_monitor
+from visualswarm.monitoring import ifdb, system_monitor, drive_uploader
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
@@ -189,6 +189,10 @@ def start_application(with_control=False):
             network.SetVariable("thymio-II", "motor.right.target", [0])
             motoroutput.light_up_led(network, 0, 0, 0)
             motorinterface.asebamedulla_end()
+
+        if monitoring.ENABLE_CLOUD_STORAGE:
+            logger.info(f'{bcolors.OKGREEN}UPLOAD{bcolors.ENDC} generated videos to Google Drive...')
+            drive_uploader.upload_vision_videos(monitoring.SAVED_VIDEO_FOLDER)
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
 
