@@ -135,9 +135,9 @@ def visualizer(visualization_stream, target_config_stream=None):
 
             if monitoring.SAVE_VISION_VIDEO:
                 os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
-                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'testCV2.h264')
+                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'testCV2.mp4')
                 writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'H264'), 20,
-                                         (camera.RESOLUTION[0], camera.RESOLUTION[1]))
+                                         (camera.RESOLUTION[1], camera.RESOLUTION[0]))
 
             while True:
                 # visualization
