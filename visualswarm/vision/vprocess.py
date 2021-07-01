@@ -164,6 +164,8 @@ def visualizer(visualization_stream, target_config_stream=None):
 
                 if monitoring.SAVE_VISION_VIDEO:
                     writer.write(cv2.resize(mask, (camera.RESOLUTION[0], camera.RESOLUTION[1])))
+                    if frame_id>40:
+                        writer.release()
 
 
                 # To test infinite loops
