@@ -133,11 +133,11 @@ def visualizer(visualization_stream, target_config_stream=None):
                                    255, nothing)
                 color_sample = np.zeros((200, 200, 3), np.uint8)
 
-            if monitoring.SAVE_VISION_VIDEO:
-                os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
-                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'test.mp4')
-                writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'H264'), 20,
-                                         (camera.RESOLUTION[0], camera.RESOLUTION[1]))
+            # if monitoring.SAVE_VISION_VIDEO:
+            #     os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
+            #     video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'test.mp4')
+            #     writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'H264'), 20,
+            #                              (camera.RESOLUTION[0], camera.RESOLUTION[1]))
 
             while True:
                 # visualization
@@ -162,12 +162,12 @@ def visualizer(visualization_stream, target_config_stream=None):
                         cv2.imshow("Segmentation Parameters", color_sample)
                     cv2.waitKey(1)
 
-                if monitoring.SAVE_VISION_VIDEO:
-                    writer.write(cv2.resize(mask, (camera.RESOLUTION[0], camera.RESOLUTION[1])))
-                    logger.info(frame_id)
-                    if frame_id>40:
-                        logger.info("release")
-                        writer.release()
+                # if monitoring.SAVE_VISION_VIDEO:
+                #     writer.write(cv2.resize(mask, (camera.RESOLUTION[0], camera.RESOLUTION[1])))
+                #     logger.info(frame_id)
+                #     if frame_id>40:
+                #         logger.info("release")
+                #         writer.release()
 
 
                 # To test infinite loops
@@ -176,8 +176,9 @@ def visualizer(visualization_stream, target_config_stream=None):
         else:
             logger.info('Visualization stream is None, visualization process returns!')
     except KeyboardInterrupt:
-        if monitoring.SAVE_VISION_VIDEO:
-            writer.release()
+        # if monitoring.SAVE_VISION_VIDEO:
+        #     writer.release()
+        pass
 
 
 def VPF_extraction(high_level_vision_stream, VPF_stream):
