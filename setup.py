@@ -43,7 +43,8 @@ setup(
         'console_scripts': [
             'vswrm-health=visualswarm.app:health',
             'vswrm-start-vision=visualswarm.app:start_application',
-            'vswrm-start=visualswarm.app:start_application_with_control'
+            'vswrm-start=visualswarm.app:start_application_with_control',
+            'vswrm-drive-auth=visualswarm.monitoring.drive_uploader:ensure_tokens'
         ]
     },
     classifiers=[
