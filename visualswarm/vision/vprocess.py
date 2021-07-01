@@ -134,8 +134,11 @@ def visualizer(visualization_stream, target_config_stream=None):
                 color_sample = np.zeros((200, 200, 3), np.uint8)
 
             if monitoring.SAVE_VISION_VIDEO:
+                ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+                EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
+                video_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
                 os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
-                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'testCV2.mp4')
+                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{video_timestamp}_{EXP_ID}_{ROBOT_NAME}.mp4')
                 writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), camera.FRAMERATE,
                                          camera.RESOLUTION, isColor=True)
 

@@ -80,12 +80,6 @@ def raw_vision(raw_vision_stream):
             # Generates a 3D RGB array and stores it in rawCapture
             raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
-            if monitoring.SAVE_VISION_VIDEO:
-                os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
-                video_path = os.path.join(monitoring.SAVED_VIDEO_FOLDER, "test.h264")
-                fd = open(video_path, "wb+")
-                picam.start_recording(fd, format='h264', quality=23)
-
             # Wait a certain number of seconds to allow the camera time to warmup
             time.sleep(0.1)
             frame_id = 0
@@ -106,9 +100,9 @@ def raw_vision(raw_vision_stream):
                 frame_id += 1
         except KeyboardInterrupt:
             try:
-                picam.stop_recording()
+                pass
             except PiCameraValueError:
-                picam.stop_recording()
+                pass
     except PiCameraValueError:   # pragma: no cover
         pass
 
