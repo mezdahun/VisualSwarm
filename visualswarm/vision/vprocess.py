@@ -163,7 +163,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                     cv2.waitKey(1)
 
                 if monitoring.SAVE_VISION_VIDEO:
-                    writer.write(mask)
+                    writer.write(cv2.resize(mask, (camera.RESOLUTION[0], camera.RESOLUTION[1])))
 
 
                 # To test infinite loops

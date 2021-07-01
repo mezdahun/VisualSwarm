@@ -19,4 +19,4 @@ LOG_LEVEL = logging.getLevelName(os.getenv('LOG_LEVEL', 'DEBUG'))
 
 # Saving visual stream as video if requested
 SAVE_VISION_VIDEO = bool(int(os.getenv('SAVE_VISION_VIDEO', '0')))
-SAVED_VIDEO_FOLDER = '/home/pi/ViualSwarm/videos'
+SAVED_VIDEO_FOLDER = '/home/pi/VisualSwarm/videos'
