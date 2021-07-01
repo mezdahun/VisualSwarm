@@ -26,7 +26,10 @@ setup(
         'PyGObject==3.38.0',
         'dbus-python==1.2.16',
         'typing-extensions==3.7.4.3',
-        'google-cloud-logging==2.5.0'
+        'google-cloud-logging==2.5.0',
+        'google-api-python-client==2.11.0',
+        'google-auth-httplib2==0.1.0',
+        'google-auth-oauthlib==0.4.4'
     ],
     extras_require={
         'test': [
