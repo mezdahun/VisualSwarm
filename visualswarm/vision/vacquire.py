@@ -16,11 +16,24 @@ else:
 import time
 from datetime import datetime
 
-from visualswarm.contrib import camera, logparams
+from visualswarm.contrib import camera, logparams, monitoring
+
+# if monitoring.ENABLE_CLOUD_LOGGING:
+#     import google.cloud.logging
+#     import os
+#     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
+#     # Instantiates a client
+#     client = google.cloud.logging.Client()
+#     client.get_default_handler()
+#     client.setup_logging()
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    logger = logging.getLogger('visualswarm.app')
+    # setup logging
+    import os
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+    logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+    logger.setLevel(monitoring.LOG_LEVEL)
 else:
     logger = logging.getLogger('visualswarm.app_simulation')   # pragma: simulation no cover
 bcolors = logparams.BColors

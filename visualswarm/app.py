@@ -3,15 +3,15 @@
 @description: Main app of visualswarm
 """
 
-import logging
 from multiprocessing import Process, Queue
 import sys
+import signal
 
 import visualswarm.contrib.vision
 from visualswarm import env
-from visualswarm.monitoring import ifdb, system_monitor
+from visualswarm.monitoring import ifdb, drive_uploader  # system_monitor
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, vision, simulation
+from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
 
@@ -19,10 +19,24 @@ if not simulation.ENABLE_SIMULATION:
     import dbus.mainloop.glib
     dbus.mainloop.glib.threads_init()
 
+signal.signal(signal.SIGINT, signal.default_int_handler)
+
 # setup logging
+import os
+ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+
+if monitoring.ENABLE_CLOUD_LOGGING:
+    import google.cloud.logging
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
+    # Instantiates a client
+    client = google.cloud.logging.Client()
+    client.get_default_handler()
+    client.setup_logging()
+
+import logging
 logging.basicConfig()
-logger = logging.getLogger(__name__)
-logger.setLevel(env.LOG_LEVEL)
+logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+logger.setLevel(monitoring.LOG_LEVEL)
 bcolors = logparams.BColors
 
 
@@ -50,7 +64,7 @@ def start_application(with_control=False):
     raw_vision_stream = Queue()
     high_level_vision_stream = Queue()
 
-    if vision.SHOW_VISION_STREAMS:
+    if vision.SHOW_VISION_STREAMS or monitoring.SAVE_VISION_VIDEO:
         # showing raw and processed camera stream
         visualization_stream = Queue()
     else:
@@ -83,7 +97,7 @@ def start_application(with_control=False):
                                                                    motor_control_mode_stream, with_control))
     motor_control = Process(target=motoroutput.control_thymio, args=(control_stream, motor_control_mode_stream,
                                                                      emergency_stream, with_control))
-    system_monitor_proc = Process(target=system_monitor.system_monitor)
+    # system_monitor_proc = Process(target=system_monitor.system_monitor)
     emergency_proc = Process(target=motoroutput.emergency_behavior, args=(emergency_stream,))
 
     try:
@@ -97,8 +111,9 @@ def start_application(with_control=False):
         VPF_extractor.start()
         behavior_proc.start()
         motor_control.start()
-        system_monitor_proc.start()
-        emergency_proc.start()
+        # system_monitor_proc.start()
+        if with_control:
+            emergency_proc.start()
 
         # Wait for subprocesses in main process to terminate
         visualizer.join()
@@ -108,8 +123,9 @@ def start_application(with_control=False):
         VPF_extractor.join()
         behavior_proc.join()
         motor_control.join()
-        system_monitor_proc.join()
-        emergency_proc.join()
+        # system_monitor_proc.join()
+        if with_control:
+            emergency_proc.join()
 
     except KeyboardInterrupt:
         # suppressing all error messages during graceful exit that come from intermingled queues
@@ -118,10 +134,12 @@ def start_application(with_control=False):
         logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
 
         # Terminating Processes
-        emergency_proc.terminate()
-        emergency_proc.join()
-        system_monitor_proc.terminate()
-        system_monitor_proc.join()
+        if with_control:
+            emergency_proc.terminate()
+            emergency_proc.join()
+            logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} emergency process and joined!')
+        # system_monitor_proc.terminate()
+        # system_monitor_proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} system monitor process and joined!')
         motor_control.terminate()
         motor_control.join()
@@ -171,6 +189,10 @@ def start_application(with_control=False):
             network.SetVariable("thymio-II", "motor.right.target", [0])
             motoroutput.light_up_led(network, 0, 0, 0)
             motorinterface.asebamedulla_end()
+
+        if monitoring.ENABLE_CLOUD_STORAGE:
+            logger.info(f'{bcolors.OKGREEN}UPLOAD{bcolors.ENDC} generated videos to Google Drive...')
+            drive_uploader.upload_vision_videos(monitoring.SAVED_VIDEO_FOLDER)
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
 

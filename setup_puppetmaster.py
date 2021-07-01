@@ -9,7 +9,7 @@ setup(
                 'to overwrite the package setup in case of WeBots simulations with venv environments. Check the readme'
                 'and the corresponding wiki pages for more details and correct usage.'
                 ''
-                'WEBOTS SIMULATION SUBVERSION: Simulate real agents in Webots with VSWRM controller',
+                'PUPPETMASTER SUBVERSION: control multiple VSWRM robots over SSH with fabric',
     version='0.1.4',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
@@ -17,17 +17,14 @@ setup(
     package_data={'visualswarm': ['data/*']},
     python_requires=">=3.7",
     install_requires=[
-        'opencv-python==4.4.0.46',
         'numpy==1.20.1',
-        'picamera==1.13',
         'pandas==1.2.0',
-        'influxdb==5.3.1',
         'scipy==1.6.0',
         'psutil==5.8.0',
-        'webots>=0.0.1',
         'typing-extensions==3.7.4.3',
         'freezegun==1.1.0',
         'matplotlib',
+        'fabric==2.6.0',
         'google-cloud-logging==2.5.0'
     ],
     extras_require={
@@ -37,15 +34,16 @@ setup(
             'pytest',
             'pytest-cov',
             'safety',
-            'fake-rpi',
             'freezegun'
         ]
     },
     entry_points={
         'console_scripts': [
-            'vswrm-health=visualswarm.app:health',
-            'vswrm-start-vision=visualswarm.app:start_application',
-            'vswrm-start=visualswarm.app:start_application_with_control'
+            'vswrm-masterpuppet=visualswarm.app_puppetmaster:start_swarm',
+            'vswrm-update-bots=visualswarm.app_puppetmaster:update_robots',
+            'vswrm-reinstall-bots=visualswarm.app_puppetmaster:reinstall_robots',
+            'vswrm-reboot-bots=visualswarm.app_puppetmaster:restart_robots',
+            'vswrm-shutdown-bots=visualswarm.app_puppetmaster:shutdown_robots'
         ]
     },
     classifiers=[
@@ -53,7 +51,7 @@ setup(
         'Intended Audience :: Science/Research',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Operating System :: Other OS',
-        'Programming Language :: Python :: 3.8'
+        'Programming Language :: Python :: 3.7'
     ],
     test_suite='tests',
     zip_safe=False

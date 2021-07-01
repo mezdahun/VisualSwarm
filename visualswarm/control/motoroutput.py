@@ -6,7 +6,7 @@ if not simulation.ENABLE_SIMULATION:
     from visualswarm.control import motorinterface
 
 import logging
-from visualswarm.contrib import logparams, control, behavior, physconstraints
+from visualswarm.contrib import logparams, control, behavior, physconstraints, monitoring
 from visualswarm import env
 
 import numpy as np
@@ -16,7 +16,11 @@ from queue import Empty
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    logger = logging.getLogger('visualswarm.app')
+    # setup logging
+    import os
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+    logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+    logger.setLevel(monitoring.LOG_LEVEL)
 else:
     logger = logging.getLogger('visualswarm.app_simulation')  # pragma: simulation no cover
 bcolors = logparams.BColors

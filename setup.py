@@ -5,7 +5,9 @@ from setuptools import find_packages
 setup(
     name='VisualSwarm',
     description='Implementation of a minimal vision algorithm published by Bastien & Romanczuk (2020) on a Raspberry '
-                'PI for movement control of Thymio II robots.',
+                'PI for movement control of Thymio II robots.'
+                ''
+                'ROBOT-AGENT SUBVERSION: Real robot controller',
     version='0.1.4',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
@@ -23,7 +25,11 @@ setup(
         'pycairo==1.20.0',
         'PyGObject==3.38.0',
         'dbus-python==1.2.16',
-        'typing-extensions==3.7.4.3'
+        'typing-extensions==3.7.4.3',
+        'google-cloud-logging==2.5.0',
+        'google-api-python-client==2.11.0',
+        'google-auth-httplib2==0.1.0',
+        'google-auth-oauthlib==0.4.4'
     ],
     extras_require={
         'test': [
@@ -40,7 +46,9 @@ setup(
         'console_scripts': [
             'vswrm-health=visualswarm.app:health',
             'vswrm-start-vision=visualswarm.app:start_application',
-            'vswrm-start=visualswarm.app:start_application_with_control'
+            'vswrm-start=visualswarm.app:start_application_with_control',
+            'vswrm-drive-auth=visualswarm.monitoring.drive_uploader:ensure_tokens',
+            'vswrm-drive-upload-videos=visualswarm.monitoring.drive_uploader:upload_vision_videos'
         ]
     },
     classifiers=[
