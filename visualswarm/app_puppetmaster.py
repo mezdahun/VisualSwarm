@@ -12,12 +12,14 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel('INFO')
 
+PSWD = getpass('Puppetmaster password: ')
+
 def reinstall_robots():
     """Reinstall dependencies of robots from scratch (when something goes wrong). It takes time."""
     logger.info("Reinstalling robots' virtual environment...")
     swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
     for c in swarm:
-        c.connect_kwargs.password = puppetmaster.PSWD
+        c.connect_kwargs.password = PSWD
         result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
                        'git pull && '
                        'pipenv --rm && '
@@ -31,7 +33,7 @@ def update_robots():
     logger.info("Updating robots' virtual environment...")
     swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
     for c in swarm:
-        c.connect_kwargs.password = puppetmaster.PSWD
+        c.connect_kwargs.password = PSWD
         result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
                        'git pull && '
                        'pipenv install -d --skip-lock -e .',
@@ -41,7 +43,7 @@ def update_robots():
 
 def vswrm_start(c, robot_name):
     """Start VSWRM app on a single robot/connection"""
-    c.connect_kwargs.password = puppetmaster.PSWD
+    c.connect_kwargs.password = PSWD
     c.run(f'cd {puppetmaster.INSTALL_DIR} && '
           'git pull && '
           f'ENABLE_CLOUD_LOGGING=1 ROBOT_NAME={robot_name} LOG_LEVEL=DEBUG '
@@ -52,7 +54,7 @@ def vswrm_start(c, robot_name):
 
 def vswrm_stop(c):
     """Stop VSWRM app on a single robot/connection"""
-    c.connect_kwargs.password = puppetmaster.PSWD
+    c.connect_kwargs.password = PSWD
     start_result = c.run('ps ax  | grep "/bin/vswrm-start-vision"')
     PID = start_result.stdout.split()[0] # get PID of first subrocess of vswrm
     # sending INT SIG to any of the subprocesses will trigger graceful exit (equivalent to KeyboardInterrup)
@@ -81,7 +83,7 @@ def shutdown_swarm(shutdown='shutdown'):
     """Shutdown/Reboot a swarm of robots defined with HOSTS in contrib.puppetmaster"""
     swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
     for connection in swarm:
-        connection.connect_kwargs.password = puppetmaster.PSWD
+        connection.connect_kwargs.password = PSWD
         logger.info(f'Shutdown robot with IP {connection.host}')
         connection.sudo(f'{shutdown} -h now')
 
