@@ -7,14 +7,12 @@ from multiprocessing import Process, Queue
 import sys
 import signal
 import time
-import cv2
-from datetime import datetime
 
 import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, drive_uploader  # system_monitor
 from visualswarm.vision import vacquire, vprocess
-from visualswarm.contrib import logparams, vision, simulation, monitoring, camera
+from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
 
@@ -59,17 +57,6 @@ def start_application(with_control=False):
 
     logger.info(f'{bcolors.OKGREEN}START vision stream{bcolors.ENDC} ')
 
-    if monitoring.SAVE_VISION_VIDEO:
-        ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
-        EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
-        video_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
-        os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
-        video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{video_timestamp}_{EXP_ID}_{ROBOT_NAME}.mp4')
-        video_writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), camera.FRAMERATE,
-                                       camera.RESOLUTION, isColor=True)
-    else:
-        video_writer = None
-
     # connect to Thymio
     if with_control:
         motorinterface.asebamedulla_init()
@@ -111,7 +98,7 @@ def start_application(with_control=False):
                                             target_config_stream,)) for i in range(
         visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS)]
 
-    visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream, video_writer,))
+    visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
                                                                    motor_control_mode_stream, with_control))
@@ -175,7 +162,6 @@ def start_application(with_control=False):
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visual field segmentation!')
         visualizer.terminate()
         visualizer.join()
-        #video_writer.release()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visualization stream!')
         for proc in high_level_vision_pool:
             proc.terminate()

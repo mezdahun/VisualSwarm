@@ -344,7 +344,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
         pass
 
 
-def visualizer(visualization_stream, target_config_stream=None, video_writer=None):
+def visualizer(visualization_stream, target_config_stream=None):
     """
     Process to Visualize Raw and Processed camera streams via a visualization stream. It is also used to tune parameters
     interactively, in this case a configuration stream is also used to fetch interactively given parameters from the
@@ -375,6 +375,15 @@ def visualizer(visualization_stream, target_config_stream=None, video_writer=Non
                                    255, nothing)
                 color_sample = np.zeros((200, 200, 3), np.uint8)
 
+            if monitoring.SAVE_VISION_VIDEO:
+                ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+                EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
+                video_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
+                os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
+                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{video_timestamp}_{EXP_ID}_{ROBOT_NAME}.mp4')
+                writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), camera.FRAMERATE,
+                                         camera.RESOLUTION, isColor=True)
+
             while True:
                 # visualization
                 (img, mask, frame_id) = visualization_stream.get()
@@ -400,7 +409,7 @@ def visualizer(visualization_stream, target_config_stream=None, video_writer=Non
 
                 if monitoring.SAVE_VISION_VIDEO:
                     mask_to_write = cv2.resize(img, camera.RESOLUTION)
-                    video_writer.write(mask_to_write)
+                    writer.write(mask_to_write)
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
@@ -409,7 +418,10 @@ def visualizer(visualization_stream, target_config_stream=None, video_writer=Non
             logger.info('Visualization stream is None, visualization process returns!')
     except KeyboardInterrupt:
         if monitoring.SAVE_VISION_VIDEO:
-            video_writer.release()
+            writer.release()
+    except:
+        writer.release()
+
 
 def VPF_extraction(high_level_vision_stream, VPF_stream):
     """
