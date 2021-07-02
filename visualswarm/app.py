@@ -175,6 +175,7 @@ def start_application(with_control=False):
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visual field segmentation!')
         visualizer.terminate()
         visualizer.join()
+        video_writer.release()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visualization stream!')
         for proc in high_level_vision_pool:
             proc.terminate()
