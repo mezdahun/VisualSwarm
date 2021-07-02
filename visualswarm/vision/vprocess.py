@@ -419,6 +419,8 @@ def visualizer(visualization_stream, target_config_stream=None):
     except KeyboardInterrupt:
         if monitoring.SAVE_VISION_VIDEO:
             writer.release()
+    except:
+        writer.release()
 
 
 def VPF_extraction(high_level_vision_stream, VPF_stream):
