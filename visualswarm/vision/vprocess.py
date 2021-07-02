@@ -386,7 +386,7 @@ def visualizer(visualization_stream, target_config_stream=None):
 
             while True:
                 # visualization
-                if os.isfile('../kill.txt'):
+                if os.isfile('/home/pi/VisualSwarm/kill.txt'):
                     raise(KeyboardInterrupt)
 
                 queue_val = visualization_stream.get()
