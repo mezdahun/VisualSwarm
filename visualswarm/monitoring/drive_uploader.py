@@ -86,7 +86,7 @@ def upload_vision_videos(videos_folder=None):
                 media_body = googleapiclient.http.MediaFileUpload(
                     filename,
                     mimetype=mimetype,
-                    resumable=True
+                    resumable=False
                 )
                 # The body contains the metadata for the file.
                 body = {

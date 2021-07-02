@@ -3,6 +3,7 @@ from fabric import ThreadingGroup as Group
 from visualswarm.contrib import puppetmaster
 from getpass import getpass
 
+import os
 import logging
 # # setup logging
 # logging.basicConfig()
@@ -43,10 +44,12 @@ def update_robots():
 
 def vswrm_start(c, robot_name):
     """Start VSWRM app on a single robot/connection"""
+    EXP_ID = os.getenv('EXP_ID', 'noexpid')
     c.connect_kwargs.password = PSWD
     c.run(f'cd {puppetmaster.INSTALL_DIR} && '
           'git pull && '
-          f'ENABLE_CLOUD_LOGGING=1 ROBOT_NAME={robot_name} LOG_LEVEL=DEBUG '
+          f'ENABLE_CLOUD_LOGGING=1 ENABLE_CLOUD_STORAGE=1 SAVE_VISION_VIDEO=1 '
+          f'ROBOT_NAME={robot_name} EXP_ID={EXP_ID} LOG_LEVEL=DEBUG '
           'dtach -n /tmp/tmpdtach '
           'pipenv run vswrm-start-vision',
           hide=True,
