@@ -386,6 +386,9 @@ def visualizer(visualization_stream, target_config_stream=None):
 
             while True:
                 # visualization
+                if os.isfile('../kill.txt'):
+                    raise(KeyboardInterrupt)
+
                 queue_val = visualization_stream.get()
                 if isinstance(queue_val, str):
                     if queue_val == 'RELEASE AND TERMINATE':
