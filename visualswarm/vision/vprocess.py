@@ -82,64 +82,6 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         if vision.RECOGNITION_TYPE == "Color":
             hsv_low = visualswarm.contrib.vision.HSV_LOW
             hsv_high = visualswarm.contrib.vision.HSV_HIGH
-        elif vision.RECOGNITION_TYPE == "CNN":
-
-            logger.info('Loading tensorflow model...')
-            MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-            GRAPH_NAME = 'model_test_fullinteger_pm_edgetpu.tflite'
-            LABELMAP_NAME = 'labelmap.txt'
-            USE_TPU = True
-            INTQUANT = True
-            # it takes a little longer on the first run and then runs at normal speed.
-            import random
-            import glob
-            TEST_IMAGE_PATHS = glob.glob(f'/home/pi/VisualSwarm/training_data/train/*.jpg')
-
-
-            if USE_TPU:
-                from tflite_runtime.interpreter import load_delegate
-
-            # TODO: do this automatically somehow or check if file exists and askteh user to configure properly if not
-
-            min_conf_threshold = 0.65
-
-            resW, resH = camera.RESOLUTION
-            imW, imH = int(resW), int(resH)
-
-            # Path to .tflite file, which contains the model that is used for object detection
-            PATH_TO_CKPT = os.path.join(MODEL_NAME, GRAPH_NAME)
-
-            # Path to label map file
-            PATH_TO_LABELS = os.path.join(MODEL_NAME, LABELMAP_NAME)
-
-            # Load the label map
-            with open(PATH_TO_LABELS, 'r') as f:
-                labels = [line.strip() for line in f.readlines()]
-
-            if USE_TPU:
-                interpreter = Interpreter(model_path=PATH_TO_CKPT,
-                                          experimental_delegates=[load_delegate('libedgetpu.so.1.0')])
-                print(PATH_TO_CKPT)
-            else:
-                interpreter = Interpreter(model_path=PATH_TO_CKPT)
-            interpreter.allocate_tensors()
-
-            # Get model details
-            input_details = interpreter.get_input_details()
-            logger.info(pformat(input_details))
-            output_details = interpreter.get_output_details()
-            logger.info(pformat(output_details))
-
-            height = input_details[0]['shape'][1]
-            width = input_details[0]['shape'][2]
-
-            floating_model = (input_details[0]['dtype'] == np.float32)
-            print(floating_model)
-
-            input_mean = 127.5
-            input_std = 127.5
-
-            logger.info('Model loaded!')
 
         while True:
 
@@ -183,91 +125,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
                 cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
 
-            elif vision.RECOGNITION_TYPE == "CNN":
-
-                t0 = datetime.utcnow()
-                # value = get_latest_element(raw_vision_stream)
-                # if value is not None:
-                #     (img, frame_id, capture_timestamp) = value
-                # else:
-                (img, frame_id, capture_timestamp) = raw_vision_stream.get()
-                # frame_id = 0
-                # capture_timestamp = datetime.utcnow()
-                # img_path = random.choice(TEST_IMAGE_PATHS)
-                # img = cv2.imread(img_path)
-
-                t0_get = datetime.utcnow()
-                logger.info(f'access time {(t0_get-t0).total_seconds()}')
-
-                frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                frame_resized = cv2.resize(frame_rgb, (width, height))
-                input_data = np.expand_dims(frame_resized, 0).astype('float32')
-
-                #logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
-
-                # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
-                if floating_model:
-                    logger.info('float')
-                    input_data = (np.float32(input_data) - input_mean) / input_std
-                if INTQUANT:
-                    input_data = input_data.astype('uint8')
-
-                t1 = datetime.utcnow()
-                logger.info(f'preprocess time {(t1-t0_get).total_seconds()}')
-                # Perform the actual detection by running the model with the image as input
-                interpreter.set_tensor(input_details[0]['index'], input_data)
-                interpreter.invoke()
-
-                boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Bounding box coordinates of detected objects
-                # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
-
-                # DEQUANTIZE
-                if INTQUANT:
-                    scale, zero_point = output_details[0]['quantization']
-                    boxes = scale * (boxes - zero_point)
-
-                    # scale, zero_point = output_details[1]['quantization']
-                    # classes = scale * (classes - zero_point)
-
-                    scale, zero_point = output_details[2]['quantization']
-                    scores = scale * (scores - zero_point)
-
-                t2 = datetime.utcnow()
-                delta = (t2 - t1).total_seconds()
-                logger.info(f"Inference time: {delta}, rate={1/delta}")#
-
-                #logger.info(boxes)
-                #logger.info(classes)
-                #logger.info(scores)
-
-                logger.info(img.shape)
-                blurred = np.zeros([img.shape[0], img.shape[1]])
-                # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
-
-                for i in range(len(boxes)):
-                    if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                        # if scores[i] == np.max(scores):
-                        # Get bounding box coordinates and draw box
-                        # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                        ymin = int(max(1, (boxes[i,0] * imH)))
-                        xmin = int(max(1, (boxes[i,1] * imW)))
-                        ymax = int(min(imH, (boxes[i,2] * imH)))
-                        xmax = int(min(imW, (boxes[i,3] * imW)))
-
-                        blurred[ymin:ymax, xmin:xmax] = 1
-                        #cv2.rectangle(blurred, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                        logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
-
-                t3 = datetime.utcnow()
-                logger.info(f"Withfiltering: {(t3-t1).total_seconds()}")
-
             # Forwarding result to VPF extraction
-            t_put = datetime.utcnow()
-            logger.info(f'queue {raw_vision_stream.qsize()}')
             high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
-            t4 = datetime.utcnow()
-            logger.info(f'put time: {(t4-t0).total_seconds()}')
 
             # Forwarding result for visualization if requested
             if visualization_stream is not None:
@@ -277,32 +136,11 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             if env.EXIT_CONDITION:
                 break
 
-            t5 = datetime.utcnow()
-            logger.info(f'total vision_rate: {1/(t5-t0).total_seconds()}')
-
     except KeyboardInterrupt:
         pass
 
 
-def stabilize_color_space_params(picam):
-    """Method to fiy camera parameters such that the color space is uniform across captured frames.
-    More info at: https://picamera.readthedocs.io/en/release-1.12/recipes1.html
-        Args:
-            picam: PiCamera instance to configure
-        Returns:
-            None
-    """
-    picam.iso = 300
-    # Wait for the automatic gain control to settle
-    time.sleep(2)
-    # Now fix the values
-    picam.shutter_speed = picam.exposure_speed
-    picam.exposure_mode = 'off'
-    g = picam.awb_gains
-    picam.awb_mode = 'off'
-    picam.awb_gains = g
-
-def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
+def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
                       target_config_stream=None):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
@@ -341,12 +179,9 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
     # it takes a little longer on the first run and then runs at normal speed.
     import random
     import glob
-    TEST_IMAGE_PATHS = glob.glob(f'/home/pi/VisualSwarm/training_data/train/*.jpg')
 
     if USE_TPU:
         from tflite_runtime.interpreter import load_delegate
-
-    # TODO: do this automatically somehow or check if file exists and askteh user to configure properly if not
 
     min_conf_threshold = 0.25
 
@@ -398,8 +233,6 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                              f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
                              f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
-                # stabilize_color_space_params(picam)
-
                 # Generates a 3D RGB array and stores it in rawCapture
                 raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
@@ -423,16 +256,12 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                     # clear vision stream if polluted to avoid delay
                     t0 = capture_timestamp
 
-
                     frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     frame_resized = cv2.resize(frame_rgb, (width, height))
                     input_data = np.expand_dims(frame_resized, 0).astype('float32')
 
-                    # logger.info(f"dim: {input_data.shape}, min: {np.min(input_data)}, max: {np.max(input_data)}")
-
                     # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
                     if floating_model:
-                        logger.info('float')
                         input_data = (np.float32(input_data) - input_mean) / input_std
                     if INTQUANT:
                         input_data = input_data.astype('uint8')
@@ -443,12 +272,14 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                     interpreter.set_tensor(input_details[0]['index'], input_data)
                     interpreter.invoke()
 
-                    boxes = interpreter.get_tensor(output_details[0]['index'])[
-                        0]  # Bounding box coordinates of detected objects
-                    # classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Class index of detected objects
-                    scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Confidence of detected objects
+                    # Bounding box coordinates of detected objects
+                    boxes = interpreter.get_tensor(output_details[0]['index'])[0]
+                    # Class index of detected objects
+                    # classes = interpreter.get_tensor(output_details[1]['index'])[0]
+                    # Confidence of detected objects
+                    scores = interpreter.get_tensor(output_details[2]['index'])[0]
 
-                    # DEQUANTIZE
+                    # Dequantize if input and output is int quantized
                     if INTQUANT:
                         scale, zero_point = output_details[0]['quantization']
                         boxes = scale * (boxes - zero_point)
@@ -461,12 +292,11 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
-                    logger.info(f"Inference time: {delta}, rate={1 / delta}")  #
+                    logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
 
 
                     logger.info(img.shape)
                     blurred = np.zeros([img.shape[0], img.shape[1]])
-                    # logger.info(f'Detected {len(boxes)} boxes with scores {scores}')
 
                     for i in range(len(boxes)):
                         if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
@@ -482,16 +312,15 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
                             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                             img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
                                                 0.5, (255, 0, 0), 2, cv2.LINE_AA)
-                            #logger.info(f'Detection @ {(xmin, ymin)} with score {scores[i]}')
 
                     t3 = datetime.utcnow()
-                    logger.info(f"Postprocess time: {(t3 - t1).total_seconds()}")
+                    logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
 
                     # Forwarding result to VPF extraction
-                    logger.info(f'queue {raw_vision_stream.qsize()}')
+                    logger.debug(f'Queue length{raw_vision_stream.qsize()}')
                     high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
                     t4 = datetime.utcnow()
-                    logger.info(f'Transferring time: {(t4 - t3).total_seconds()}')
+                    logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
 
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
@@ -515,6 +344,7 @@ def high_level_vision_(raw_vision_stream, high_level_vision_stream, visualizatio
 
     except KeyboardInterrupt:
         pass
+
 
 def visualizer(visualization_stream, target_config_stream=None):
     """

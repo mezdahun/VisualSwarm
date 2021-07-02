@@ -11,7 +11,7 @@ import time
 import visualswarm.contrib.vision
 from visualswarm import env
 from visualswarm.monitoring import ifdb, drive_uploader  # system_monitor
-from visualswarm.vision import vacquire, vprocess, CNN_vision
+from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
@@ -86,12 +86,18 @@ def start_application(with_control=False):
 
     # Creating main processes
     raw_vision = Process(target=vacquire.raw_vision, args=(raw_vision_stream,))
-    high_level_vision_pool = [Process(target=vprocess.high_level_vision_,
+
+    if vision.RECOGNITION_TYPE=="Color":
+        vp_target = vprocess.high_level_vision
+    elif vision.RECOGNITION_TYPE=="CNN":
+        vp_target = vprocess.high_level_vision_CNN
+    high_level_vision_pool = [Process(target=vp_target,
                                       args=(raw_vision_stream,
                                             high_level_vision_stream,
                                             visualization_stream,
                                             target_config_stream,)) for i in range(
         visualswarm.contrib.vision.NUM_SEGMENTATION_PROCS)]
+
     visualizer = Process(target=vprocess.visualizer, args=(visualization_stream, target_config_stream,))
     VPF_extractor = Process(target=vprocess.VPF_extraction, args=(high_level_vision_stream, VPF_stream,))
     behavior_proc = Process(target=behavior.VPF_to_behavior, args=(VPF_stream, control_stream,
@@ -103,9 +109,9 @@ def start_application(with_control=False):
 
     try:
         # Start subprocesses
-        logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision process')
-        #raw_vision.start()
-        #time.sleep(10)
+        if vision.RECOGNITION_TYPE == "Color":
+            logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} raw vision in separate process')
+            raw_vision.start()
         logger.info(f'{bcolors.OKGREEN}START{bcolors.ENDC} high level vision processes')
         for proc in high_level_vision_pool:
             proc.start()
@@ -122,7 +128,8 @@ def start_application(with_control=False):
         visualizer.join()
         for proc in high_level_vision_pool:
             proc.join()
-        raw_vision.join()
+        if vision.RECOGNITION_TYPE == "Color":
+            raw_vision.join()
         VPF_extractor.join()
         behavior_proc.join()
         motor_control.join()
@@ -160,9 +167,10 @@ def start_application(with_control=False):
             proc.terminate()
             proc.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} high level vision process(es) and joined!')
-        #raw_vision.terminate()
-        #raw_vision.join()
-        #logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} Raw vision process and joined!')
+        if vision.RECOGNITION_TYPE == "Color":
+            raw_vision.terminate()
+            raw_vision.join()
+            logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} Raw vision process and joined!')
 
         # Closing Queues
         raw_vision_stream.close()
@@ -203,13 +211,3 @@ def start_application(with_control=False):
 def start_application_with_control():
     start_application(with_control=True)
 
-def start_CNN_vision():
-    try:
-        raw_vision = Process(target=CNN_vision.CNN_vision)
-        raw_vision.start()
-        raw_vision.join()
-    except KeyboardInterrupt:
-        logger.info(f'{bcolors.WARNING}EXIT gracefully on KeyboardInterrupt{bcolors.ENDC}')
-        # Terminating Processes
-        raw_vision.terminate()
-        raw_vision.join()
