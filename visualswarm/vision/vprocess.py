@@ -386,8 +386,8 @@ def visualizer(visualization_stream, target_config_stream=None):
 
             while True:
                 # visualization
+                logger.info(os.path.isfile('/home/pi/VisualSwarm/release.txt'))
                 if os.path.isfile('/home/pi/VisualSwarm/release.txt'):
-                    logger.info(os.path.isfile('/home/pi/VisualSwarm/release.txt'))
                     writer.release()
                     return
 
