@@ -160,8 +160,6 @@ def start_application(with_control=False):
         VPF_extractor.terminate()
         VPF_extractor.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visual field segmentation!')
-        visualization_stream.put('RELEASE AND TERMINATE')
-        time.sleep(5)
         visualizer.terminate()
         visualizer.join()
         logger.info(f'{bcolors.WARNING}TERMINATED{bcolors.ENDC} visualization stream!')

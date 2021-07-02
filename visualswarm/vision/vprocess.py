@@ -386,45 +386,38 @@ def visualizer(visualization_stream, target_config_stream=None):
 
             while True:
                 # visualization
-                if os.path.isfile('/home/pi/VisualSwarm/kill.txt'):
+                if os.path.isfile('/home/pi/VisualSwarm/release.txt'):
                     writer.release()
                     return
 
-                queue_val = visualization_stream.get()
-                if isinstance(queue_val, str):
-                    if queue_val == 'RELEASE AND TERMINATE':
-                        logger.warning('TRIGGERING RELEASE AND TERMINATE')
-                        writer.release()
-                        return
-                else:
-                    (img, mask, frame_id) = visualization_stream.get()
+                (img, mask, frame_id) = visualization_stream.get()
+                if vision.FIND_COLOR_INTERACTIVE:
+                    if target_config_stream is not None:
+                        B = cv2.getTrackbarPos("B", "Segmentation Parameters")
+                        G = cv2.getTrackbarPos("G", "Segmentation Parameters")
+                        R = cv2.getTrackbarPos("R", "Segmentation Parameters")
+                        color_sample[:] = [B, G, R]
+                        HSV_HUE_RANGE = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
+                        SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
+                        SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
+                        target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
+
+                if vision.SHOW_VISION_STREAMS:
+                    vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
+                    vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
+                    cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
+                    cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
                     if vision.FIND_COLOR_INTERACTIVE:
-                        if target_config_stream is not None:
-                            B = cv2.getTrackbarPos("B", "Segmentation Parameters")
-                            G = cv2.getTrackbarPos("G", "Segmentation Parameters")
-                            R = cv2.getTrackbarPos("R", "Segmentation Parameters")
-                            color_sample[:] = [B, G, R]
-                            HSV_HUE_RANGE = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
-                            SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
-                            SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
-                            target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
+                        cv2.imshow("Segmentation Parameters", color_sample)
+                    cv2.waitKey(1)
 
-                    if vision.SHOW_VISION_STREAMS:
-                        vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
-                        vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
-                        cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
-                        cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
-                        if vision.FIND_COLOR_INTERACTIVE:
-                            cv2.imshow("Segmentation Parameters", color_sample)
-                        cv2.waitKey(1)
+                if monitoring.SAVE_VISION_VIDEO:
+                    mask_to_write = cv2.resize(img, camera.RESOLUTION)
+                    writer.write(mask_to_write)
 
-                    if monitoring.SAVE_VISION_VIDEO:
-                        mask_to_write = cv2.resize(img, camera.RESOLUTION)
-                        writer.write(mask_to_write)
-
-                    # To test infinite loops
-                    if env.EXIT_CONDITION:
-                        break
+                # To test infinite loops
+                if env.EXIT_CONDITION:
+                    break
         else:
             logger.info('Visualization stream is None, visualization process returns!')
     except KeyboardInterrupt:
