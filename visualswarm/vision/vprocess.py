@@ -3,7 +3,6 @@
 @description: Processing low-level input to get High level input
 """
 import datetime
-import logging
 from math import floor
 import os
 
@@ -21,9 +20,19 @@ if vision.RECOGNITION_TYPE == "CNN":
     from tflite_runtime.interpreter import Interpreter
 
 from pprint import pformat
+
+if monitoring.ENABLE_CLOUD_LOGGING:
+    import google.cloud.logging
+    import os
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
+    # Instantiates a client
+    client = google.cloud.logging.Client()
+    client.get_default_handler()
+    client.setup_logging()
+
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    # setup logging
+    import logging
     import os
     ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
     logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
@@ -216,7 +225,6 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
     width = input_details[0]['shape'][2]
 
     floating_model = (input_details[0]['dtype'] == np.float32)
-    print(floating_model)
 
     input_mean = 127.5
     input_std = 127.5
@@ -239,7 +247,6 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                 # Wait a certain number of seconds to allow the camera time to warmup
                 logger.info('Waiting for camera warmup!')
                 time.sleep(8)
-                logger.info('--proceed--')
                 frame_id = 0
                 for frame in picam.capture_continuous(raw_capture,
                                                       format=camera.CAPTURE_FORMAT,
