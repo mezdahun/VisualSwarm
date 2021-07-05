@@ -102,8 +102,8 @@ def upload_vision_videos(videos_folder=None):
                     body=body, media_body=media_body).execute()
 
                 logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {os.path.split(filename)[1]}")
-                # logger.info("Deleting local copy after successful upload...")
-                # os.remove(filename)
+                logger.info("Deleting local copy after successful upload...")
+                os.remove(filename)
                 logger.info("Local copy deleted.\n")
 
     else:
