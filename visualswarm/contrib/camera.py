@@ -8,7 +8,7 @@ RESOLUTION = (320, 200)
 FRAMERATE = 20
 CAPTURE_FORMAT = "bgr"
 USE_VIDEO_PORT = True
-FLIP_CAMERA = bool(int(os.getenv('ENABLE_CLOUD_LOGGING', '1')))
+FLIP_CAMERA = bool(int(os.getenv('FLIP_CAMERA', '1')))
 
 # Stabilizing Color Space
 FIX_ISO = False
