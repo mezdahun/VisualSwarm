@@ -56,6 +56,9 @@ parser.add_argument('-r', '--resolution',
                     default='1280x720')
 parser.add_argument('-f', '--framerate', help='Framerate of the camera in [fps] as integer. Default is 30.',
                     default=30)
+parser.add_argument('--flipcamera',
+                    help='Flips the camera image vertically if set to True',
+                    default=True)
 
 args = parser.parse_args()
 
@@ -64,6 +67,8 @@ os.makedirs(SAVE_FOLDER, exist_ok=True)
 
 RESOLUTION = [int(i) for i in args.resolution.split('x')]
 FRAMERATE = int(args.framerate)
+
+FLIP_CAMERA = args.flipcamera
 
 try:
     try:
@@ -95,7 +100,8 @@ try:
                                               use_video_port=True):
             t0 = datetime.now()
             # Grab the raw NumPy array representing the image
-            image = cv2.flip(frame.array, -1)
+            if FLIP_CAMERA:
+                image = cv2.flip(frame.array, -1)
 
             cv2.imshow('Camera Stream', image)
             k = cv2.waitKey(1) & 0xFF
