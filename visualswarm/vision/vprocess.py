@@ -17,7 +17,12 @@ from visualswarm.contrib import camera, vision, monitoring, simulation
 from datetime import datetime
 
 if vision.RECOGNITION_TYPE == "CNN":
-    from tflite_runtime.interpreter import Interpreter
+    import importlib.util
+    pkg = importlib.util.find_spec('tflite_runtime')
+    if pkg:
+        from tflite_runtime.interpreter import Interpreter
+    else:
+        from tensorflow.lite.python.interpreter import Interpreter
 
 from pprint import pformat
 
@@ -181,7 +186,11 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
     import glob
 
     if USE_TPU:
-        from tflite_runtime.interpreter import load_delegate
+        pkg = importlib.util.find_spec('tflite_runtime')
+        if not pkg:
+            from tensorflow.lite.python.interpreter import load_delegate
+        else:
+            from tflite_runtime.interpreter import load_delegate
 
     min_conf_threshold = 0.25
 
@@ -243,7 +252,10 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                                                       format=camera.CAPTURE_FORMAT,
                                                       use_video_port=camera.USE_VIDEO_PORT):
                     # Grab the raw NumPy array representing the image
-                    img = cv2.flip(frame.array, -1)
+                    if camera.FLIP_CAMERA:
+                        img = cv2.flip(frame.array, -1)
+                    else:
+                        img = frame.array
 
                     # Clear the raw capture stream in preparation for the next frame
                     raw_capture.truncate(0)
