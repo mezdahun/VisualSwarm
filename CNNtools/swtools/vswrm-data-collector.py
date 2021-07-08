@@ -105,6 +105,8 @@ try:
             # Grab the raw NumPy array representing the image
             if FLIP_CAMERA:
                 image = cv2.flip(frame.array, -1)
+            else:
+                image = frame.array
 
             cv2.imshow('Camera Stream', image)
             k = cv2.waitKey(1) & 0xFF
