@@ -57,8 +57,8 @@ parser.add_argument('-r', '--resolution',
 parser.add_argument('-f', '--framerate', help='Framerate of the camera in [fps] as integer. Default is 30.',
                     default=30)
 parser.add_argument('--flipcamera',
-                    help='Flips the camera image vertically if set to True',
-                    default=True)
+                    help='Flips the camera image vertically if set to 1.',
+                    default=1)
 
 args = parser.parse_args()
 
