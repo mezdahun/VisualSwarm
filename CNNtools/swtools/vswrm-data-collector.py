@@ -68,7 +68,7 @@ os.makedirs(SAVE_FOLDER, exist_ok=True)
 RESOLUTION = [int(i) for i in args.resolution.split('x')]
 FRAMERATE = int(args.framerate)
 
-FLIP_CAMERA = args.flipcamera
+FLIP_CAMERA = bool(args.flipcamera)
 
 try:
     try:
