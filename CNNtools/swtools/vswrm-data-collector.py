@@ -70,7 +70,7 @@ FRAMERATE = int(args.framerate)
 
 print(args.flipcamera)
 print(bool(args.flipcamera))
-FLIP_CAMERA = bool(args.flipcamera)
+FLIP_CAMERA = bool(int(args.flipcamera))
 print(FLIP_CAMERA)
 
 try:
