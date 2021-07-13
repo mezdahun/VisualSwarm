@@ -22,7 +22,7 @@ else:
 # Velocity Parameters
 GAM = behave_params_dict.get('GAM', 0.55)
 V0 = behave_params_dict.get('V0', 75)
-ALP0 = behave_params_dict.get('ALP0', 12000)
+ALP0 = behave_params_dict.get('ALP0', 25000)
 ALP1 = behave_params_dict.get('ALP1', 0.2)
 ALP2 = behave_params_dict.get('ALP2', 0)
 
