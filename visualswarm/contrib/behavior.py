@@ -22,13 +22,13 @@ else:
 # Velocity Parameters
 GAM = behave_params_dict.get('GAM', 0.2)
 V0 = behave_params_dict.get('V0', 20)
-ALP0 = behave_params_dict.get('ALP0', 2000)
-ALP1 = behave_params_dict.get('ALP1', 0.5)
+ALP0 = behave_params_dict.get('ALP0', 5000)
+ALP1 = behave_params_dict.get('ALP1', 0.05)
 ALP2 = behave_params_dict.get('ALP2', 0)
 
 # Heading Vector Parameters
 BET0 = behave_params_dict.get('BET0', 0.5)
-BET1 = behave_params_dict.get('BET1', 0.5)
+BET1 = behave_params_dict.get('BET1', 0.05)
 BET2 = behave_params_dict.get('BET2', 0)
 
 # Motor scale heuristics Kappa
