@@ -20,14 +20,14 @@ else:
     behave_params_dict = {}
 
 # Velocity Parameters
-GAM = behave_params_dict.get('GAM', 0.55)
+GAM = behave_params_dict.get('GAM', 0.2)
 V0 = behave_params_dict.get('V0', 20)
 ALP0 = behave_params_dict.get('ALP0', 500000)
-ALP1 = behave_params_dict.get('ALP1', 1.2)
+ALP1 = behave_params_dict.get('ALP1', 0.5)
 ALP2 = behave_params_dict.get('ALP2', 0)
 
 # Heading Vector Parameters
-BET0 = behave_params_dict.get('BET0', 500)
+BET0 = behave_params_dict.get('BET0', 5000)
 BET1 = behave_params_dict.get('BET1', 0.3)
 BET2 = behave_params_dict.get('BET2', 0)
 
