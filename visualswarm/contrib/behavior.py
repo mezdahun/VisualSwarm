@@ -20,9 +20,9 @@ else:
     behave_params_dict = {}
 
 # Velocity Parameters
-GAM = behave_params_dict.get('GAM', 0.55)
-V0 = behave_params_dict.get('V0', 0.4)
-ALP0 = behave_params_dict.get('ALP0', 0.6)
+GAM = behave_params_dict.get('GAM', 0.1)
+V0 = behave_params_dict.get('V0', 150)
+ALP0 = behave_params_dict.get('ALP0', 150)
 ALP1 = behave_params_dict.get('ALP1', 0.001)
 ALP2 = behave_params_dict.get('ALP2', 0)
 
@@ -32,7 +32,7 @@ BET1 = behave_params_dict.get('BET1', 0.0025)
 BET2 = behave_params_dict.get('BET2', 0)
 
 # Motor scale heuristics Kappa
-KAP = behave_params_dict.get('KAP', 50)
+KAP = behave_params_dict.get('KAP', 1)
 
 
 def get_params():
