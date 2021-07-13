@@ -23,7 +23,7 @@ else:
 GAM = behave_params_dict.get('GAM', 0.2)
 V0 = behave_params_dict.get('V0', 0)
 ALP0 = behave_params_dict.get('ALP0', 17500)
-ALP1 = behave_params_dict.get('ALP1', 0.5)
+ALP1 = behave_params_dict.get('ALP1', 1)
 ALP2 = behave_params_dict.get('ALP2', 0)
 
 # Heading Vector Parameters
