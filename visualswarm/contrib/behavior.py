@@ -27,8 +27,8 @@ ALP1 = behave_params_dict.get('ALP1', 0.35)
 ALP2 = behave_params_dict.get('ALP2', 0)
 
 # Heading Vector Parameters
-BET0 = behave_params_dict.get('BET0', 250)
-BET1 = behave_params_dict.get('BET1', 0.35)
+BET0 = behave_params_dict.get('BET0', 1000)
+BET1 = behave_params_dict.get('BET1', 0.5)
 BET2 = behave_params_dict.get('BET2', 0)
 
 # Motor scale heuristics Kappa
