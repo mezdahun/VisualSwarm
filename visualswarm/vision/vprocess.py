@@ -177,7 +177,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     logger.info('Loading tensorflow model...')
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'fisheye_fullinteger_edgetpu.tflite'
+    GRAPH_NAME = 'fixedlense_fullinteger_edgetpu.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
     INTQUANT = True
