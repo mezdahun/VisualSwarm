@@ -46,8 +46,7 @@ def vswrm_start(c, robot_name):
     """Start VSWRM app on a single robot/connection"""
     EXP_ID = os.getenv('EXP_ID', 'noexpid')
     c.connect_kwargs.password = PSWD
-    c.run(f'htpdate && '
-          f'cd {puppetmaster.INSTALL_DIR} && '
+    c.run(f'cd {puppetmaster.INSTALL_DIR} && '
           'git pull && '
           f'ENABLE_CLOUD_LOGGING=1 ENABLE_CLOUD_STORAGE=1 SAVE_VISION_VIDEO=1 SHOW_VISION_STREAMS=0 '
           f'ROBOT_NAME={robot_name} EXP_ID={EXP_ID} LOG_LEVEL=DEBUG '
