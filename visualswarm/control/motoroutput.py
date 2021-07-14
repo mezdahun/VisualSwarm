@@ -560,7 +560,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     try:
                         if not simulation.ENABLE_SIMULATION:
                             logger.info(f'emergency queue length: {emergency_stream.qsize()}')
-                            (emergency_mode, proximity_values) = emergency_stream.get_nowait()
+                            (emergency_mode, proximity_values) = get_latest_element(emergency_stream)
                         else:  # pragma: simulation no cover
                             latest_emergency = get_latest_element(emergency_stream)
                             if latest_emergency is not None:
