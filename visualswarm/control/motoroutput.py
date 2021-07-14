@@ -541,7 +541,6 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 bus = dbus.SessionBus()
 
                 # Create Aseba network
-                # if network is None:
                 network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                          dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
@@ -569,7 +568,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     if not emergency_mode:
                         if movement_mode == "BEHAVE":
 
-                            # Switch between modes, change mode status LED (can notbe tested with single cycle)
+                            # Switch between modes, change mode status LED (can not be tested with single cycle)
                             if prev_movement_mode == "EXPLORE":  # pragma: no cover
                                 light_up_led(network, behR, behG, behB, webots_do_stream=webots_do_stream)
 
