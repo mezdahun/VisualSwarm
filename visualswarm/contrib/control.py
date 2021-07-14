@@ -57,7 +57,7 @@ BORDER_CONDITION = os.getenv('BORDER_CONDITIONS', 'Reality')
 AVOID_TURN_DIRECTION = 'Various'  # or 'Various'
 
 # Emergency monitoring in Hz (maximum value is 10Hz, on which Thymio is updating these values)
-EMERGENCY_CHECK_FREQ = 8
+EMERGENCY_CHECK_FREQ = 10
 
 # Threshold value on horizontal proximity sensors that triggers obstacle avoidance
 EMERGENCY_PROX_THRESHOLD = 3000
