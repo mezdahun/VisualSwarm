@@ -560,6 +560,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     movement_mode = motor_control_mode_stream.get()
                     try:
                         if not simulation.ENABLE_SIMULATION:
+                            logger.info(f'emergency queue length: {emergency_stream.qsize()}')
                             (emergency_mode, proximity_values) = emergency_stream.get_nowait()
                         else:  # pragma: simulation no cover
                             latest_emergency = get_latest_element(emergency_stream)
@@ -707,7 +708,6 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                 # reading proximity values
                 if not simulation.ENABLE_SIMULATION:
                     prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
-                    logger.info(prox_val)
                 else:   # pragma: simulation no cover
                     if sensor_stream is not None:
                         prox_val = np.array(get_latest_element(sensor_stream))
