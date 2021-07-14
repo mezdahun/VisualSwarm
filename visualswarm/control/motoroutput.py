@@ -158,11 +158,12 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
 
 def get_latest_element(queue):  # pragma: simulation no cover
     """
-    emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
+    fetching the latest element in queue and by that emptying the FIFO Queue object. Use this to consume queue elements
+    with a slow process that is filled up by a faster process
         Args:
-            queue2empty (multiprocessing.Queue): queue object to be emptied
+            queue (multiprocessing.Queue): queue object to be emptied and returned the latest element
         Returns:
-            status: True if successful
+            val: latest vaue in the queue
     """
     val = None
     while not queue.empty():
@@ -185,9 +186,7 @@ def empty_queue(queue2empty):
         try:
             queue2empty.get_nowait()
         except Empty:  # pragma: no cover
-            logger.debug('Emptied passed queue')
             return True
-    logger.debug('Emptied passed queue')
     return True
 
 
