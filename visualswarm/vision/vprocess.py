@@ -217,9 +217,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     # Get model details
     input_details = interpreter.get_input_details()
-    logger.info(pformat(input_details))
     output_details = interpreter.get_output_details()
-    logger.info(pformat(output_details))
 
     height = input_details[0]['shape'][1]
     width = input_details[0]['shape'][2]
@@ -245,7 +243,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                 raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
                 # Wait a certain number of seconds to allow the camera time to warmup
-                logger.info('Waiting for camera warmup!')
+                logger.info('Waiting 8 secs for camera warmup!')
                 time.sleep(8)
                 frame_id = 0
                 for frame in picam.capture_continuous(raw_capture,
@@ -304,8 +302,6 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                     delta = (t2 - t1).total_seconds()
                     logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
 
-
-                    logger.info(img.shape)
                     blurred = np.zeros([img.shape[0], img.shape[1]])
 
                     for i in range(len(boxes)):
@@ -397,8 +393,11 @@ def visualizer(visualization_stream, target_config_stream=None):
                                          camera.RESOLUTION, isColor=True)
 
             while True:
-                # visualization
-                logger.info(os.path.isfile('/home/pi/VisualSwarm/release.txt'))
+                # trick to release video on time upon process destruction via SSH. When using SSH CtrlC can not be
+                # achieved and is simulated with SIGINT. But because of this the video is not finalized in the exception
+                # block. for desired behavior do
+                # $ touch release.txt && sleep 2 && rm -rf release.txt
+                # then kill the process
                 if os.path.isfile('/home/pi/VisualSwarm/release.txt'):
                     writer.release()
                     return
