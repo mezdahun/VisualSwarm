@@ -60,7 +60,7 @@ AVOID_TURN_DIRECTION = 'Various'  # or 'Various'
 EMERGENCY_CHECK_FREQ = 10
 
 # Threshold value on horizontal proximity sensors that triggers obstacle avoidance
-EMERGENCY_PROX_THRESHOLD = 3000
+EMERGENCY_PROX_THRESHOLD = 1500 # for simulations use 3000
 
 # angle to turn away from obstacle during obstacle avoidance.
 turn_angle_correction = 15
