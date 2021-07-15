@@ -13,7 +13,7 @@ from visualswarm.contrib import monitoring, simulation, control
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
-if monitoring.ENABLE_CLOUD_LOGGING:
+if monitoring.ENABLE_CLOUD_STORAGE:
     import pickle  # nosec
 
 # using main logger
