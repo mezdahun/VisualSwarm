@@ -54,7 +54,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
         ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
         EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
-        statevar_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
+        statevar_timestamp =  datetime.datetime.now().strftime("%d-%m-%y-%H%M%S")
         statevars_fpath = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{statevar_timestamp}_{EXP_ID}_{ROBOT_NAME}_statevars.npy')
 
         while True:
