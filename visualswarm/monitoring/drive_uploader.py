@@ -108,3 +108,45 @@ def upload_vision_videos(videos_folder=None):
 
     else:
         logger.warning('The passed video library does not exist. Will skip Google Drive Upload...')
+
+
+def upload_statevars(videos_folder=None):
+    if videos_folder is None:
+        videos_folder = monitoring.SAVED_VIDEO_FOLDER
+
+    if os.path.isdir(videos_folder):
+        drive_service = ensure_tokens()
+        mimetype = 'application/octet-stream'
+
+        for filename in os.listdir(videos_folder):
+            if filename.endswith(".npy"):
+                filename = os.path.join(videos_folder, filename)
+                name_parts = os.path.split(filename)[1].split('.')[0].split('_')
+                logger.info(name_parts)
+                video_timestamp, exp_id, robot_name, _ = name_parts
+
+                media_body = googleapiclient.http.MediaFileUpload(
+                    filename,
+                    mimetype=mimetype,
+                    resumable=False
+                )
+                # The body contains the metadata for the file.
+                body = {
+                    'name': os.path.split(filename)[1],
+                    'title': os.path.split(filename)[1],
+                    'description': f"Experiment with ID: {exp_id} "
+                                   f"Robot ID: {robot_name} "
+                                   f"Started @ {video_timestamp}",
+                }
+
+                # Perform the request and print the result.
+                new_file = drive_service.files().create(
+                    body=body, media_body=media_body).execute()
+
+                logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {os.path.split(filename)[1]}")
+                logger.info("Deleting local copy after successful upload...")
+                os.remove(filename)
+                logger.info("Local copy deleted.\n")
+
+    else:
+        logger.warning('The passed video library does not exist. Will skip Google Drive Upload...')

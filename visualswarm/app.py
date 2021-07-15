@@ -204,6 +204,7 @@ def start_application(with_control=False):
         if monitoring.ENABLE_CLOUD_STORAGE:
             logger.info(f'{bcolors.OKGREEN}UPLOAD{bcolors.ENDC} generated videos to Google Drive...')
             drive_uploader.upload_vision_videos(monitoring.SAVED_VIDEO_FOLDER)
+            drive_uploader.upload_statevars(monitoring.SAVED_VIDEO_FOLDER)
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
 
