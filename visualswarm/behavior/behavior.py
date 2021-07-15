@@ -13,6 +13,9 @@ from visualswarm.contrib import monitoring, simulation, control
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
+if monitoring.ENABLE_CLOUD_LOGGING:
+    import pickle  # nosec
+
 # using main logger
 if not simulation.ENABLE_SIMULATION:
     # setup logging
@@ -48,6 +51,11 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         (projection_field, capture_timestamp) = VPF_stream.get()
         phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
                           len(projection_field))
+
+        ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+        EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
+        statevar_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
+        statevars_fpath = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{statevar_timestamp}_{EXP_ID}_{ROBOT_NAME}_statevars.npy')
 
         while True:
             (projection_field, capture_timestamp) = VPF_stream.get()
@@ -89,6 +97,12 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             if with_control:
                 control_stream.put((v, dpsi))
                 motor_control_mode_stream.put(movement_mode)
+
+            if monitoring.ENABLE_CLOUD_STORAGE:
+                with open(statevars_fpath, 'ab') as sv_f:
+                    statevars = np.concatenate((np.array([t_now]),
+                                                 np.array([dv, dpsi])))
+                    pickle.dump(statevars, sv_f)
 
             # To test infinite loops
             if env.EXIT_CONDITION:
