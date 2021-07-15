@@ -102,6 +102,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 with open(statevars_fpath, 'ab') as sv_f:
                     statevars = np.concatenate((np.array([t_now]),
                                                  np.array([dv, dpsi])))
+                    logger.info('pickling_data')
                     pickle.dump(statevars, sv_f)
 
             # To test infinite loops
