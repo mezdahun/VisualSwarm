@@ -328,14 +328,16 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def stop_robot(network, webots_do_stream=None):
+def stop_robot(network, duration, webots_do_stream=None):
     """Settin robot speed to zero."""
-    if not simulation.ENABLE_SIMULATION:
-        network.SetVariable("thymio-II", "motor.left.target", [0])
-        network.SetVariable("thymio-II", "motor.right.target", [0])
-    else:  # pragma: simulation no cover
-        webots_do_stream.put(("SET_MOTOR", {'left': float(0),
-                                            'right': float(0)}))
+    start_time = datetime.now()
+    while abs(start_time - datetime.now()).total_seconds() < duration:
+        if not simulation.ENABLE_SIMULATION:
+            network.SetVariable("thymio-II", "motor.left.target", [0])
+            network.SetVariable("thymio-II", "motor.right.target", [0])
+        else:  # pragma: simulation no cover
+            webots_do_stream.put(("SET_MOTOR", {'left': float(0),
+                                                'right': float(0)}))
 
 def speed_up_robot(network, additional_motor_speed_multiplier,  # pragma: no cover
                    emergency_stream, protocol_time=0.5):
@@ -410,7 +412,7 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
     # any of the back sensors are on
     if np.any(prox_vals[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
         # Stop the robot
-        return "Stop", "Robot"
+        return "Stop", 0.5
 
     # any of the front sensors are on
     if np.any(prox_vals[0:5] > 0):
@@ -489,7 +491,7 @@ def run_additional_protocol(network, additional_protocol, emergency_stream,
         move_robot(network, additional_protocol[1], additional_protocol[2], emergency_stream,
                    webots_do_stream=webots_do_stream)
     elif protocol_name == "Stop":
-        stop_robot(network, webots_do_stream=webots_do_stream)
+        stop_robot(network, additional_protocol[1], webots_do_stream=webots_do_stream)
     elif protocol_name == "End avoidance":
         return
 
