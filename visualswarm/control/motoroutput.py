@@ -729,7 +729,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                     if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
                         logger.info('Triggered Obstacle Avoidance!')
                         emergency_stream.put((True, prox_val))
-                    elif np.any(prox_val[6::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
+                    elif np.any(prox_val[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
                         logger.info('Triggered obstacle avoidance from back!')
                         emergency_stream.put((True, prox_val))
                     else:
