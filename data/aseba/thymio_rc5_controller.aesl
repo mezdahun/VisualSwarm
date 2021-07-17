@@ -32,6 +32,10 @@ onevent rc5
         motor.left.target = 100
         motor.right.target = 0     
     end
+    when rc5.command == 7 do  # right
+        motor.left.target = 350
+        motor.right.target = 350     
+    end
     when rc5.command == 4 do  # left
         motor.left.target = 0
         motor.right.target = 100     
