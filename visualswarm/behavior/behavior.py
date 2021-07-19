@@ -76,8 +76,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 v += dv * dt
             else:
                 is_initialized = True
-                dv = 0
-                dpsi = 0
+                dv = float(0)
+                dpsi = float(0)
 
             # now_sign = np.sign(dv)
 
