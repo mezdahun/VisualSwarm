@@ -93,7 +93,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 time = datetime.datetime.utcnow()
 
                 # generating data to dump in db
-                field_dict = {"agent_velocity": v,
+                field_dict = {"agent_velocity": dv,
                               "heading_angle": dpsi,
                               "processing_delay": (time - capture_timestamp).total_seconds()}
 
