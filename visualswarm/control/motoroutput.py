@@ -153,6 +153,11 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     v_left = v * (1 + dpsi_p)
     v_right = v * (1 - dpsi_p)
 
+    if v_left < 0 and v_right < 0:
+        if np.abs(v_left+v_right)/2 < 20:
+            v_left = 0
+            v_right = 0
+
     return [v_left, v_right]
 
 
