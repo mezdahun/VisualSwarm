@@ -47,6 +47,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         phi = None
         v = 0
         t_prev = datetime.datetime.now()
+        is_initialized = False
         # start_behave = t_prev
         # prev_sign = 0
 
@@ -109,8 +110,11 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 ifclient.write_points(body, time_precision='ms')
 
             if with_control:
-                control_stream.put((v, dpsi))
-                motor_control_mode_stream.put(movement_mode)
+                if is_initialized:
+                    control_stream.put((v, dpsi))
+                    motor_control_mode_stream.put(movement_mode)
+                else:
+                    is_initialized = True
 
             if monitoring.ENABLE_CLOUD_STORAGE:
                 with open(statevars_fpath, 'ab') as sv_f:
