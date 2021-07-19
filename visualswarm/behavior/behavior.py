@@ -72,7 +72,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
             v += dv * dt
 
-            if np.abs(dv) < 0.01 and (t_now - start_behave).total_seconds() > 5:
+            logger.info(np.abs(dv * dt))
+            if np.abs(dv * dt) < 0.01 and (t_now - start_behave).total_seconds() > 5:
                 logger.warning('STOP EXPERIMENT!!!!')
                 raise KeyboardInterrupt('DV decreased to zero and already 5 sec gone from experiment!!!')
 
