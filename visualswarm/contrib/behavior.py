@@ -19,35 +19,35 @@ else:
     # Otherwise we will use default values defined below or values passed from env variables individually
     behave_params_dict = {}
 
-    GAM_ENV = float(os.getenv('GAM'))
+    GAM_ENV = os.getenv('GAM')
     if GAM_ENV is not None:
-        behave_params_dict['GAM'] = GAM_ENV
+        behave_params_dict['GAM'] = float(GAM_ENV)
 
-    V0_ENV = float(os.getenv('V0'))
+    V0_ENV = os.getenv('V0')
     if V0_ENV is not None:
-        behave_params_dict['V0'] = V0_ENV
+        behave_params_dict['V0'] = float(V0_ENV)
 
-    ALP0_ENV = float(os.getenv('ALP0'))
+    ALP0_ENV = os.getenv('ALP0')
     if ALP0_ENV is not None:
-        behave_params_dict['ALP0'] = ALP0_ENV
+        behave_params_dict['ALP0'] = float(ALP0_ENV)
 
-    ALP1_ENV = float(os.getenv('ALP1'))
+    ALP1_ENV = os.getenv('ALP1')
     if ALP1_ENV is not None:
-        behave_params_dict['ALP1'] = ALP1_ENV
+        behave_params_dict['ALP1'] = float(ALP1_ENV)
 
-    BET0_ENV = float(os.getenv('BET0'))
+    BET0_ENV = os.getenv('BET0')
     if BET0_ENV is not None:
-        behave_params_dict['BET0'] = BET0_ENV
+        behave_params_dict['BET0'] = float(BET0_ENV)
 
 
-    BET1_ENV = float(os.getenv('BET1'))
+    BET1_ENV = os.getenv('BET1')
     if BET1_ENV is not None:
-        behave_params_dict['BET1'] = BET1_ENV
+        behave_params_dict['BET1'] = float(BET1_ENV)
 
 
-    KAP_ENV = float(os.getenv('KAP'))
+    KAP_ENV = os.getenv('KAP')
     if KAP_ENV is not None:
-        behave_params_dict['KAP'] = KAP_ENV
+        behave_params_dict['KAP'] = float(KAP_ENV)
 
 
 # Velocity Parameters
