@@ -47,6 +47,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         phi = None
         v = 0
         t_prev = datetime.datetime.now()
+        start_behave = t_prev
 
         (projection_field, capture_timestamp) = VPF_stream.get()
         phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
@@ -70,6 +71,10 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
             v += dv * dt
+
+            if np.abs(dv) < 0.01 and (t_now - start_behave).total_seconds() > 5:
+                logger.warning('STOP EXPERIMENT!!!!')
+                raise KeyboardInterrupt('DV decreased to zero and already 5 sec gone from experiment!!!')
 
             t_prev = t_now
 
