@@ -16,8 +16,39 @@ if BEHAVE_PARAMS_JSON_PATH is not None:
     else:
         raise Exception('The given parameter json file defined in "BEHAVE_PARAMS_JSON_PATH" is not found!')
 else:
-    # Otherwise we will use default values defined below
+    # Otherwise we will use default values defined below or values passed from env variables individually
     behave_params_dict = {}
+
+    GAM_ENV = os.getenv('GAM')
+    if GAM_ENV is not None:
+        behave_params_dict['GAM'] = GAM_ENV
+
+    V0_ENV = os.getenv('V0')
+    if V0_ENV is not None:
+        behave_params_dict['V0'] = V0_ENV
+
+    ALP0_ENV = os.getenv('ALP0')
+    if ALP0_ENV is not None:
+        behave_params_dict['ALP0'] = ALP0_ENV
+
+    ALP1_ENV = os.getenv('ALP1')
+    if ALP1_ENV is not None:
+        behave_params_dict['ALP1'] = ALP1_ENV
+
+    BET0_ENV = os.getenv('BET0')
+    if BET0_ENV is not None:
+        behave_params_dict['BET0'] = BET0_ENV
+
+
+    BET1_ENV = os.getenv('BET1')
+    if BET1_ENV is not None:
+        behave_params_dict['BET1'] = BET1_ENV
+
+
+    KAP_ENV = os.getenv('KAP')
+    if KAP_ENV is not None:
+        behave_params_dict['KAP'] = KAP_ENV
+
 
 # Velocity Parameters
 GAM = behave_params_dict.get('GAM', 0.1)
