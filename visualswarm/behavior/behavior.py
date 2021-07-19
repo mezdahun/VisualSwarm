@@ -88,7 +88,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             # prev_sign = now_sign
             t_prev = t_now
 
-            if monitoring.SAVE_CONTROL_PARAMS and not simulation.ENABLE_SIMULATION:
+            if monitoring.SAVE_CONTROL_PARAMS and not simulation.ENABLE_SIMULATION and is_initialized:
 
                 # take a timestamp for this measurement
                 time = datetime.datetime.utcnow()
