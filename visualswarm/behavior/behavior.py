@@ -75,7 +75,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             now_sign = np.sign(dv)
 
-            logger.warning(f'dV={np.abs(dv * dt)} with passed seconds {(t_now - start_behave).total_seconds()}')
+            logger.warning(f'dV={dv * dt} with passed seconds {(t_now - start_behave).total_seconds()}')
             if np.abs(now_sign - prev_sign) == 2 and (t_now - start_behave).total_seconds() > 15:
                 control_stream.put((0, 0))
                 motor_control_mode_stream.put("BEHAVE")
