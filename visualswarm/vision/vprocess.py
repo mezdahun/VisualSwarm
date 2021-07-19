@@ -314,8 +314,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                             ymax = int(min(imH, (boxes[i, 2] * imH)))
                             xmax = int(min(imW, (boxes[i, 3] * imW)))
 
-                            # todo: figure out if this causes the parameter mismatch between simulation and reality
-                            blurred[ymin:ymax, xmin:xmax] = 1
+                            blurred[ymin:ymax, xmin:xmax] = 255
                             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                             img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
                                                 0.5, (255, 0, 0), 2, cv2.LINE_AA)
