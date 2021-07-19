@@ -72,7 +72,10 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-            v += dv * dt
+            if is_initialized:
+                v += dv * dt
+            else:
+                is_initialized = True
 
             # now_sign = np.sign(dv)
 
@@ -88,7 +91,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             # prev_sign = now_sign
             t_prev = t_now
 
-            if monitoring.SAVE_CONTROL_PARAMS and not simulation.ENABLE_SIMULATION and is_initialized:
+            if monitoring.SAVE_CONTROL_PARAMS and not simulation.ENABLE_SIMULATION:
 
                 # take a timestamp for this measurement
                 time = datetime.datetime.utcnow()
@@ -110,11 +113,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 ifclient.write_points(body, time_precision='ms')
 
             if with_control:
-                if is_initialized:
-                    control_stream.put((v, dpsi))
-                    motor_control_mode_stream.put(movement_mode)
-                else:
-                    is_initialized = True
+                control_stream.put((v, dpsi))
+                motor_control_mode_stream.put(movement_mode)
 
             if monitoring.ENABLE_CLOUD_STORAGE:
                 with open(statevars_fpath, 'ab') as sv_f:
