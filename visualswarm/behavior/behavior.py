@@ -73,7 +73,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             v += dv * dt
 
             logger.info(np.abs(dv * dt))
-            if np.abs(dv * dt) < 0.1 and (t_now - start_behave).total_seconds() > 5:
+            if np.abs(dv * dt) < 0.15 and (t_now - start_behave).total_seconds() > 5:
                 logger.warning('STOP EXPERIMENT!!!!')
                 raise KeyboardInterrupt('DV decreased to zero and already 5 sec gone from experiment!!!')
 
