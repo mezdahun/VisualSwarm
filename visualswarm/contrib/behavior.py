@@ -20,7 +20,7 @@ else:
     behave_params_dict = {}
 
 # Velocity Parameters
-GAM = behave_params_dict.get('GAM', 0.1)
+GAM = behave_params_dict.get('GAM', 0.2)
 V0 = behave_params_dict.get('V0', 125)
 ALP0 = behave_params_dict.get('ALP0', 125)
 ALP1 = behave_params_dict.get('ALP1', 0.0008)
