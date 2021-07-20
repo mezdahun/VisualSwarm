@@ -71,7 +71,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             t_now = datetime.datetime.now()
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
-            v = 0
+            v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
             logger.warning(dv)
             if is_initialized:
@@ -101,7 +101,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 time = datetime.datetime.utcnow()
 
                 # generating data to dump in db
-                field_dict = {"agent_velocity": dv * dt,
+                field_dict = {"agent_velocity": dv,
                               "heading_angle": dpsi,
                               "processing_delay": (time - capture_timestamp).total_seconds()}
 
