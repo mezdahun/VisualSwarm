@@ -71,6 +71,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             t_now = datetime.datetime.now()
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
+            v = 0
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
             logger.warning(dv)
             if is_initialized:
