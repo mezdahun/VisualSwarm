@@ -73,7 +73,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-            # logger.warning(dv)
+            logger.warning(dpsi)
             if is_initialized:
                 v += dv * dt
             else:
