@@ -720,7 +720,6 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                 # reading proximity values
                 if not simulation.ENABLE_SIMULATION:
                     prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
-                    logger.info(prox_val)
                 else:   # pragma: simulation no cover
                     if sensor_stream is not None:
                         prox_val = np.array(get_latest_element(sensor_stream))
