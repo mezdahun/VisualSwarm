@@ -33,13 +33,16 @@ def update_robots():
     logger.info("Updating robots' virtual environment...")
     swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
     for c in swarm:
-        c.connect_kwargs.password = PSWD
-        result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
-                       'git pull && '
-                       'pipenv install -d --skip-lock -e .',
-                       hide=True,
-                       pty=False)
-        print(result.stdout)
+        try:
+            c.connect_kwargs.password = PSWD
+            result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
+                           'git pull && '
+                           'pipenv install -d --skip-lock -e .',
+                           pty=False)
+            print(result.stdout)
+        except Excetion as e:
+            logger.error(f'Error during updating robot: {c}')
+            logger.error(f'Error: {e}')
 
 
 def vswrm_start(c, robot_name):
@@ -49,7 +52,7 @@ def vswrm_start(c, robot_name):
     c.run(f'cd {puppetmaster.INSTALL_DIR} && '
           'git pull && '
           f'ENABLE_CLOUD_LOGGING=1 ENABLE_CLOUD_STORAGE=1 SAVE_VISION_VIDEO=1 SHOW_VISION_STREAMS=0 '
-          f'ROBOT_NAME={robot_name} EXP_ID={EXP_ID} LOG_LEVEL=DEBUG '
+          f'ROBOT_NAME={robot_name} EXP_ID={EXP_ID} LOG_LEVEL=DEBUG FLIP_CAMERA=0 '
           'dtach -n /tmp/tmpdtach '
           'pipenv run vswrm-start-vision')#,
           # hide=False,
@@ -74,7 +77,11 @@ def start_swarm():
     for connection in swarm:
         robot_name = list(puppetmaster.HOSTS.keys())[list(puppetmaster.HOSTS.values()).index(connection.host)]
         print(f'Start VSWRM on {robot_name} with host {connection.host}')
-        vswrm_start(connection, robot_name)
+        try:
+            vswrm_start(connection, robot_name)
+        except Exception as e:
+            logger.error(f'Could not start VSWRM on robot: {connection}')
+            logger.error(f'Error: {e}')
 
     getpass('VSWRM started on swarm. Press any key to stop the swarm')
 
@@ -82,16 +89,24 @@ def start_swarm():
     for connection in swarm:
         robot_name = list(puppetmaster.HOSTS.keys())[list(puppetmaster.HOSTS.values()).index(connection.host)]
         logger.info(f'Stop VSWRM on {robot_name} with host {connection.host}')
-        vswrm_stop(connection)
+        try:
+            vswrm_stop(connection)
+        except Exception as e:
+            logger.error(f'Could not stop VSWRM on robot: {connection}')
+            logger.error(f'Error: {e}')
 
 
 def shutdown_swarm(shutdown='shutdown'):
     """Shutdown/Reboot a swarm of robots defined with HOSTS in contrib.puppetmaster"""
     swarm = Group(*list(puppetmaster.HOSTS.values()), user=puppetmaster.UNAME)
     for connection in swarm:
-        connection.connect_kwargs.password = PSWD
-        logger.info(f'Shutdown robot with IP {connection.host}')
-        connection.sudo(f'{shutdown} -h now')
+        try:
+            connection.connect_kwargs.password = PSWD
+            logger.info(f'Shutdown robot with IP {connection.host}')
+            connection.sudo(f'{shutdown} -h now')
+        except Exception as e:
+            logger.error(f'Could not stop VSWRM on robot: {connection}')
+            logger.error(f'Error: {e}')
 
 
 def shutdown_robots():
