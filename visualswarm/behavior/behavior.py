@@ -59,6 +59,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
         statevar_timestamp =  datetime.datetime.now().strftime("%d-%m-%y-%H%M%S")
         statevars_fpath = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{statevar_timestamp}_{EXP_ID}_{ROBOT_NAME}_statevars.npy')
+        if monitoring.ENABLE_CLOUD_STORAGE:
+            os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
 
         while True:
             (projection_field, capture_timestamp) = VPF_stream.get()
