@@ -200,7 +200,7 @@ def zipupload_CNN_training_data(training_data_folder=None):
     # uploading created zipfile
     media_body = googleapiclient.http.MediaFileUpload(
         zip_path,
-        mimetype='application/vnd.google-apps.file',
+        mimetype='application/octet-stream',
         resumable=False
     )
 
