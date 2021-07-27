@@ -111,10 +111,11 @@ def upload_vision_videos(videos_folder=None):
                 new_file = drive_service.files().create(
                     body=body, media_body=media_body).execute()
 
-                cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
-                                                                        body={'type': 'user',
-                                                                              'role': 'reader',
-                                                                              'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
+                if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+                    cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
+                                                                          body={'type': 'user',
+                                                                                'role': 'editor',
+                                                                                 'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
                 logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {os.path.split(filename)[1]}")
                 logger.info("Deleting local copy after successful upload...")
@@ -158,6 +159,12 @@ def upload_statevars(videos_folder=None):
                 new_file = drive_service.files().create(
                     body=body, media_body=media_body).execute()
 
+                if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+                    cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
+                                                                          body={'type': 'user',
+                                                                                'role': 'editor',
+                                                                                 'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
+
                 logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {os.path.split(filename)[1]}")
                 logger.info("Deleting local copy after successful upload...")
                 os.remove(filename)
@@ -175,7 +182,7 @@ def zipdir(path, ziph):
                        os.path.relpath(os.path.join(root, file),
                                        os.path.join(path, '..')))
 
-def zipuload_CNN_training_data(training_data_folder):
+def zipupload_CNN_training_data(training_data_folder):
     # zipping png files in folder
     videos_folder = monitoring.SAVED_VIDEO_FOLDER
     token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
@@ -201,6 +208,12 @@ def zipuload_CNN_training_data(training_data_folder):
     # Perform the request and print the result.
     new_file = drive_service.files().create(
         body=body, media_body=media_body).execute()
+
+    if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+        cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
+                                                              body={'type': 'user',
+                                                                    'role': 'editor',
+                                                                    'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
     logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
     logger.info("Deleting local copy after successful upload...")
