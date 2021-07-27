@@ -20,6 +20,7 @@ LOG_LEVEL = logging.getLevelName(os.getenv('LOG_LEVEL', 'DEBUG'))
 # Saving visual stream as video if requested
 SAVE_VISION_VIDEO = bool(int(os.getenv('SAVE_VISION_VIDEO', '0')))
 SAVED_VIDEO_FOLDER = '/home/pi/VisualSwarm/videos'
+DRIVE_SHARED_FOLDER_ID = "1M3_D-bh5r9wFRQh7KIwoqUCPLXjljjVF"
 
 # Collect training data during experiment to finetune CNN based vision
 SAVE_CNN_TRAINING_DATA = bool(int(os.getenv('SAVE_CNN_TRAINING_DATA', '0')))

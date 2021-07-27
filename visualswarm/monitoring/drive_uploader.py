@@ -105,17 +105,18 @@ def upload_vision_videos(videos_folder=None):
                     'description': f"Experiment with ID: {exp_id} "
                                    f"Robot ID: {robot_name} "
                                    f"Started @ {video_timestamp}",
+                    'parents': [monitoring.DRIVE_SHARED_FOLDER_ID]
                 }
 
                 # Perform the request and print the result.
                 new_file = drive_service.files().create(
                     body=body, media_body=media_body).execute()
 
-                if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
-                    cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
-                                                                          body={'type': 'user',
-                                                                                'role': 'owner',
-                                                                                 'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
+                # if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+                #     cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
+                #                                                           body={'type': 'user',
+                #                                                                 'role': 'owner',
+                #                                                                  'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
                 logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {os.path.split(filename)[1]}")
                 logger.info("Deleting local copy after successful upload...")
@@ -153,17 +154,18 @@ def upload_statevars(videos_folder=None):
                     'description': f"Experiment with ID: {exp_id} "
                                    f"Robot ID: {robot_name} "
                                    f"Started @ {video_timestamp}",
+                    'parents': [monitoring.DRIVE_SHARED_FOLDER_ID]
                 }
 
                 # Perform the request and print the result.
                 new_file = drive_service.files().create(
                     body=body, media_body=media_body).execute()
 
-                if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
-                    cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
-                                                                          body={'type': 'user',
-                                                                                'role': 'owner',
-                                                                                 'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
+                # if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+                #     cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
+                #                                                           body={'type': 'user',
+                #                                                                 'role': 'owner',
+                #                                                                  'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
                 logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {os.path.split(filename)[1]}")
                 logger.info("Deleting local copy after successful upload...")
@@ -209,7 +211,7 @@ def zipupload_CNN_training_data(training_data_folder=None):
         'name': zip_filename,
         'title': zip_filename,
         'description': "Collected training data to finetune CNN based object detector",
-        'parents': ["1M3_D-bh5r9wFRQh7KIwoqUCPLXjljjVF"]
+        'parents': [monitoring.DRIVE_SHARED_FOLDER_ID]
     }
 
     # Perform the request and print the result.
@@ -225,5 +227,5 @@ def zipupload_CNN_training_data(training_data_folder=None):
 
     logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
     logger.info("Deleting local copy after successful upload...")
-    os.remove(zip_filename)
+    os.remove(zip_path)
     logger.info("Local copy deleted.\n")
