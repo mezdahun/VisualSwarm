@@ -218,9 +218,8 @@ def zipupload_CNN_training_data(training_data_folder=None):
     if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
         cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
                                                               body={'type': 'user',
-                                                                    'role': 'owner',
-                                                                    'emailAddress': 'visualswarm.scioi@gmail.com'},
-                                                              transferOwnership=True).execute()
+                                                                    'role': 'writer',
+                                                                    'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
     logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
     logger.info("Deleting local copy after successful upload...")
