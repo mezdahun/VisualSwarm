@@ -208,18 +208,19 @@ def zipupload_CNN_training_data(training_data_folder=None):
     body = {
         'name': zip_filename,
         'title': zip_filename,
-        'description': "Collected training data to finetune CNN based object detector"
+        'description': "Collected training data to finetune CNN based object detector",
+        'parents': ["1M3_D-bh5r9wFRQh7KIwoqUCPLXjljjVF"]
     }
 
     # Perform the request and print the result.
     new_file = drive_service.files().create(
         body=body, media_body=media_body).execute()
 
-    if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
-        cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
-                                                              body={'type': 'user',
-                                                                    'role': 'writer',
-                                                                    'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
+    # if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+    #     cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
+    #                                                           body={'type': 'user',
+    #                                                                 'role': 'writer',
+    #                                                                 'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
     logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
     logger.info("Deleting local copy after successful upload...")
