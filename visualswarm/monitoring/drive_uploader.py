@@ -198,6 +198,7 @@ def zipupload_CNN_training_data(training_data_folder):
         mimetype='application/octet-stream',
         resumable=False
     )
+
     # The body contains the metadata for the file.
     body = {
         'name': zip_filename,
@@ -215,7 +216,7 @@ def zipupload_CNN_training_data(training_data_folder):
                                                                     'role': 'reader',
                                                                     'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
-    logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
-    logger.info("Deleting local copy after successful upload...")
-    os.remove(filename)
-    logger.info("Local copy deleted.\n")
+    # logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
+    # logger.info("Deleting local copy after successful upload...")
+    # os.remove(filename)
+    # logger.info("Local copy deleted.\n")
