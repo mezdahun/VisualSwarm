@@ -12,6 +12,9 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 import logging
+import zipfile
+import random
+import string
 
 if not simulation.ENABLE_SIMULATION:
     # setup logging
@@ -150,3 +153,44 @@ def upload_statevars(videos_folder=None):
 
     else:
         logger.warning('The passed video library does not exist. Will skip Google Drive Upload...')
+
+def zipdir(path, ziph):
+    """all credits to: https://stackoverflow.com/a/1855118"""
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file),
+                       os.path.relpath(os.path.join(root, file),
+                                       os.path.join(path, '..')))
+
+def zipuload_CNN_training_data(training_data_folder):
+    # zipping png files in folder
+    videos_folder = monitoring.SAVED_VIDEO_FOLDER
+    token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    zip_filename = f'CNNTD_{token}.zip'
+    zip_path = os.path.join(videos_folder, )
+    zipf = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED)
+    zipdir(training_data_folder, zipf)
+    zipf.close()
+
+    # uploading created zipfile
+    media_body = googleapiclient.http.MediaFileUpload(
+        zip_path,
+        mimetype='application/octet-stream',
+        resumable=False
+    )
+    # The body contains the metadata for the file.
+    body = {
+        'name': zip_filename,
+        'title': zip_filename,
+        'description': "Collected training data to finetune CNN based object detector"
+    }
+
+    # Perform the request and print the result.
+    new_file = drive_service.files().create(
+        body=body, media_body=media_body).execute()
+
+    logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
+    logger.info("Deleting local copy after successful upload...")
+    os.remove(filename)
+    logger.info("Local copy deleted.\n")
