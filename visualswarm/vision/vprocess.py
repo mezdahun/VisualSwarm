@@ -230,7 +230,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     logger.info('Model loaded!')
 
-    if vision.SAVE_CNN_TRAINING_DATA:
+    if monitoring.SAVE_CNN_TRAINING_DATA:
         training_data_folder = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'training_data')
         if os.path.isdir(training_data_folder):
             shutil.rmtree(training_data_folder)
@@ -340,8 +340,8 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                     logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
 
                     # Collecting training data for CNN fine tune if requested
-                    if vision.SAVE_CNN_TRAINING_DATA:
-                        if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/vision.CNN_TRAINING_DATA_FREQ:
+                    if monitoring.SAVE_CNN_TRAINING_DATA:
+                        if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
                             cv2.imwrite(frame_path, frame_rgb)
