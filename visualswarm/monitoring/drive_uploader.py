@@ -197,7 +197,7 @@ def zipupload_CNN_training_data(training_data_folder):
     # uploading created zipfile
     media_body = googleapiclient.http.MediaFileUpload(
         zip_path,
-        mimetype='application/octet-stream',
+        mimetype='application/vnd.google-apps.file',
         resumable=False
     )
 
@@ -218,7 +218,7 @@ def zipupload_CNN_training_data(training_data_folder):
                                                                     'role': 'reader',
                                                                     'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
-    # logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
-    # logger.info("Deleting local copy after successful upload...")
+    logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
+    logger.info("Deleting local copy after successful upload...")
     # os.remove(filename)
     # logger.info("Local copy deleted.\n")
