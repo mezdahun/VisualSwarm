@@ -185,6 +185,8 @@ def zipdir(path, ziph):
 def zipupload_CNN_training_data(training_data_folder):
     # zipping png files in folder
     videos_folder = monitoring.SAVED_VIDEO_FOLDER
+    if training_data_folder is None:
+        training_data_folder = os.path.join(videos_folder, 'training_data')
     token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
     zip_filename = f'CNNTD_{token}.zip'
     zip_path = os.path.join(videos_folder, zip_filename)
