@@ -182,7 +182,7 @@ def zipdir(path, ziph):
                        os.path.relpath(os.path.join(root, file),
                                        os.path.join(path, '..')))
 
-def zipupload_CNN_training_data(training_data_folder):
+def zipupload_CNN_training_data(training_data_folder=None):
     # zipping png files in folder
     videos_folder = monitoring.SAVED_VIDEO_FOLDER
     if training_data_folder is None:
