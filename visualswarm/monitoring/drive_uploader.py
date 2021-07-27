@@ -11,6 +11,7 @@ import googleapiclient.http
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 import logging
 import zipfile
 import random
@@ -37,28 +38,34 @@ def ensure_tokens():
     with the account visualswarm.scioi@gmail.com
     """
     creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    token_path = os.path.join(CURRDIR, 'token.json')
-    cred_path = os.path.join(CURRDIR, 'credentials.json')
-    if os.path.exists(token_path):
-        logger.info('OAuth tokens have been found. Using them...')
-        creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-    # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            logger.info('No token has been found, opening OAuth in Browser. Please open the link in a private tab if'
-                        'you experience problems with login. '
-                        'The only account allowed to login is visualswarm.scioi@gmail.com')
-            flow = InstalledAppFlow.from_client_secrets_file(
-                cred_path, SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open(token_path, 'w') as token:
-            token.write(creds.to_json())
+    if monitoring.CLOUD_STORAGE_AUTH_MODE == 'OAuth2':
+        # The file token.json stores the user's access and refresh tokens, and is
+        # created automatically when the authorization flow completes for the first
+        # time.
+        token_path = os.path.join(CURRDIR, 'token.json')
+        cred_path = os.path.join(CURRDIR, 'credentials.json')
+        if os.path.exists(token_path):
+            logger.info('OAuth tokens have been found. Using them...')
+            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
+        # If there are no (valid) credentials available, let the user log in.
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                logger.info('No token has been found, opening OAuth in Browser. Please open the link in a private tab if'
+                            'you experience problems with login. '
+                            'The only account allowed to login is visualswarm.scioi@gmail.com')
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    cred_path, SCOPES)
+                creds = flow.run_local_server(port=0)
+            # Save the credentials for the next run
+            with open(token_path, 'w') as token:
+                token.write(creds.to_json())
+    elif monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+        cred_path = os.path.join(CURRDIR, 'service_key.json')
+        creds = service_account.Credentials.from_service_account_file(cred_path)
+    else:
+        logger.error('Unknown method was chosen for Google Auth')
 
     service = build('drive', 'v3', credentials=creds)
 

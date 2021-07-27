@@ -27,3 +27,4 @@ CNN_TRAINING_DATA_FREQ = 1  # in Hz
 
 # Uploading saved videos to Google Drive
 ENABLE_CLOUD_STORAGE = bool(int(os.getenv('ENABLE_CLOUD_STORAGE', '1')))
+CLOUD_STORAGE_AUTH_MODE = 'ServiceAccount'  # 'ServiceAccount' or 'OAuth2'
