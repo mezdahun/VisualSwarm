@@ -196,6 +196,7 @@ def zipupload_CNN_training_data(training_data_folder=None):
 
     logger.info(f'is zip file {zip_path} : {os.path.isfile(zip_path)}')
 
+    drive_service = ensure_tokens()
     # uploading created zipfile
     media_body = googleapiclient.http.MediaFileUpload(
         zip_path,
