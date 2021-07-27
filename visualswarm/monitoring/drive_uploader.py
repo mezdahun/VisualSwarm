@@ -187,10 +187,12 @@ def zipupload_CNN_training_data(training_data_folder):
     videos_folder = monitoring.SAVED_VIDEO_FOLDER
     token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
     zip_filename = f'CNNTD_{token}.zip'
-    zip_path = os.path.join(videos_folder, )
+    zip_path = os.path.join(videos_folder, zip_filename)
     zipf = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED)
     zipdir(training_data_folder, zipf)
     zipf.close()
+
+    logger.info(f'is zip file {zip_path} : {os.path.isfile(zip_path)}')
 
     # uploading created zipfile
     media_body = googleapiclient.http.MediaFileUpload(
