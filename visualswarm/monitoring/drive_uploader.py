@@ -222,7 +222,9 @@ def zipupload_CNN_training_data(training_data_folder=None):
     #                                                                 'role': 'writer',
     #                                                                 'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
 
-    logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
-    logger.info("Deleting local copy after successful upload...")
-    os.remove(zip_filename)
-    logger.info("Local copy deleted.\n")
+    about = drive_service.about().get().execute()
+    logger.info(about)
+    # logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
+    # logger.info("Deleting local copy after successful upload...")
+    # os.remove(zip_filename)
+    # logger.info("Local copy deleted.\n")
