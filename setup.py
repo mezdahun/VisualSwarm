@@ -48,7 +48,7 @@ setup(
             'vswrm-start-vision=visualswarm.app:start_application',
             'vswrm-start=visualswarm.app:start_application_with_control',
             'vswrm-drive-auth=visualswarm.monitoring.drive_uploader:ensure_tokens',
-            'vswrm-drive-upload-videos=visualswarm.monitoring.drive_uploader:upload_vision_videos'
+            'vswrm-drive-upload-videos=visualswarm.monitoring.drive_uploader:upload_vision_videos',
             'vswrm-drive-upload-training=visualswarm.monitoring.drive_uploader:zipupload_CNN_training_data'
         ]
     },
