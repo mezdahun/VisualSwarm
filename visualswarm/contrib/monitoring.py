@@ -21,5 +21,9 @@ LOG_LEVEL = logging.getLevelName(os.getenv('LOG_LEVEL', 'DEBUG'))
 SAVE_VISION_VIDEO = bool(int(os.getenv('SAVE_VISION_VIDEO', '0')))
 SAVED_VIDEO_FOLDER = '/home/pi/VisualSwarm/videos'
 
+# Collect training data during experiment to finetune CNN based vision
+SAVE_CNN_TRAINING_DATA = bool(int(os.getenv('SAVE_CNN_TRAINING_DATA', '0')))
+CNN_TRAINING_DATA_FREQ = 2  # in Hz
+
 # Uploading saved videos to Google Drive
 ENABLE_CLOUD_STORAGE = bool(int(os.getenv('ENABLE_CLOUD_STORAGE', '1')))

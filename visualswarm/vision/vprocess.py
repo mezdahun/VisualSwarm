@@ -5,6 +5,7 @@
 import datetime
 from math import floor
 import os
+import shutil
 
 import cv2
 import numpy as np
@@ -229,6 +230,12 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     logger.info('Model loaded!')
 
+    if vision.SAVE_CNN_TRAINING_DATA:
+        training_data_folder = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'training_data')
+        if os.path.isdir(training_data_folder):
+            shutil.rmtree(training_data_folder)
+        os.makedirs(training_data_folder, exist_ok=True)
+
     try:
         try:
             try:
@@ -260,6 +267,10 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
                     # Adding time of capture for delay measurement
                     capture_timestamp = datetime.utcnow()
+
+                    # Collecting training data in a predefined freq
+                    if frame_id == 0:
+                        CNN_TD_last_collect = capture_timestamp
 
                     # clear vision stream if polluted to avoid delay
                     t0 = capture_timestamp
@@ -327,6 +338,13 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                     high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
                     t4 = datetime.utcnow()
                     logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
+
+                    # Collecting training data for CNN fine tune if requested
+                    if vision.SAVE_CNN_TRAINING_DATA:
+                        if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/vision.CNN_TRAINING_DATA_FREQ:
+                            frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
+                            frame_path = os.path.join(training_data_folder, frame_name)
+                            cv2.imwrite(frame_path, frame_rgb)
 
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
