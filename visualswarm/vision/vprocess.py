@@ -347,6 +347,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
                             cv2.imwrite(frame_path, frame_rgb)
+                            CNN_TD_last_collect = capture_timestamp
 
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
