@@ -232,6 +232,8 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     if monitoring.SAVE_CNN_TRAINING_DATA:
         training_data_folder = os.path.join(monitoring.SAVED_VIDEO_FOLDER, 'training_data')
+        ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+        EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
         if os.path.isdir(training_data_folder):
             shutil.rmtree(training_data_folder)
         os.makedirs(training_data_folder, exist_ok=True)
