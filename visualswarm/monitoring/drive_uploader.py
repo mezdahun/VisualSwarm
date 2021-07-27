@@ -216,11 +216,12 @@ def zipupload_CNN_training_data(training_data_folder=None):
     new_file = drive_service.files().create(
         body=body, media_body=media_body).execute()
 
-    # if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
-    #     cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
-    #                                                           body={'type': 'user',
-    #                                                                 'role': 'writer',
-    #                                                                 'emailAddress': 'visualswarm.scioi@gmail.com'}).execute()
+    if monitoring.CLOUD_STORAGE_AUTH_MODE == 'ServiceAccount':
+        cloudPermissions = drive_service.permissions().create(fileId=new_file['id'],
+                                                              body={'type': 'user',
+                                                                    'role': 'owner',
+                                                                    'emailAddress': 'visualswarm.scioi@gmail.com'},
+                                                              transferOwnership=True).execute()
 
     about = drive_service.about().get().execute()
     logger.info(about)
