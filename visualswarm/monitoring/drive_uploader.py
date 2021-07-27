@@ -224,5 +224,5 @@ def zipupload_CNN_training_data(training_data_folder=None):
 
     logger.info(f"\nFile created, id@drive: {new_file.get('id')}, local file: {zip_filename}")
     logger.info("Deleting local copy after successful upload...")
-    os.remove(filename)
+    os.remove(zip_filename)
     logger.info("Local copy deleted.\n")
