@@ -490,13 +490,16 @@ def correct_fisheye_approx(VPF, robot_name):
     """Correcting fisheye lens's barrel distortion horizontally with a composite reverse-distortion function
     and upscaling according to vision.Lens_config"""
     if robot_name == 'Robot' or robot_name is None:
+        logger.info('No correction due to robot name')
         return VPF
     else:
         lens_config = vision.LENS_CONFIG.get(robot_name)
         if lens_config is None:
             return VPF
         else:
+            logger.info(f'now checking for shape: {len(VPF.shape)}')
             if len(VPF.shape) == 1:
+                logger.info('got VPF')
                 orig_width = int(len(VPF))
 
                 # upscaling VPF to new width
@@ -517,6 +520,7 @@ def correct_fisheye_approx(VPF, robot_name):
                 return downs_VPF
 
             elif len(VPF.shape) == 3:
+                logger.info('got image')
 
                 orig_shape = (VPF.shape[1], VPF.shape[0])
                 new_shape = (int(lens_config['new_width']), orig_shape[1])
