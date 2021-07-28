@@ -483,7 +483,6 @@ def center_fisheye_circle(VPF, robot_name):
                 return rounded
 
 
-
 def correct_fisheye_approx(VPF, robot_name):
     """Correcting fisheye lens's barrel distortion horizontally with a composite reverse-distortion function
     and upscaling according to vision.Lens_config"""
@@ -533,7 +532,6 @@ def correct_fisheye_approx(VPF, robot_name):
                 return downs_VPF
 
 
-
 def VPF_extraction(high_level_vision_stream, VPF_stream):
     """
     Process to extract final visual projection field from high level visual input.
@@ -548,6 +546,8 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             measurement_name = "visual_projection_field"
             ifclient = ifdb.create_ifclient()
 
+        ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+
         while True:
             (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
             # logger.info(high_level_vision_stream.qsize())
@@ -555,6 +555,10 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
             projection_field = np.max(cropped_image, axis=0)
             projection_field = projection_field / 255
+
+            if vision.USE_VPF_FISHEYE_CORRECTION:
+                projection_field = center_fisheye_circle(projection_field, ROBOT_NAME)
+                projection_field = correct_fisheye_approx(projection_field, ROBOT_NAME)
 
             if monitoring.SAVE_PROJECTION_FIELD and not simulation.ENABLE_SIMULATION:
                 # Saving projection field data to InfluxDB to visualize with Grafana

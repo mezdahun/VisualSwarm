@@ -80,3 +80,6 @@ lens1 = calculate_reverse_mapping_fn(lens1, orig_img_width)
 LENS_CONFIG={
     'Robot1': lens1
 }
+
+# use fisheye correction
+USE_VPF_FISHEYE_CORRECTION = True
