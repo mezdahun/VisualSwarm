@@ -427,9 +427,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                 (img, mask, frame_id) = visualization_stream.get()
 
                 if vision.USE_VPF_FISHEYE_CORRECTION:
-                    logger.info('center fisheye')
                     img = center_fisheye_circle(img, ROBOT_NAME)
-                    logger.info('correct fisheye')
                     img = correct_fisheye_approx(img, ROBOT_NAME)
 
                 if vision.FIND_COLOR_INTERACTIVE:
@@ -565,11 +563,13 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
             projection_field = np.max(cropped_image, axis=0)
-            projection_field = projection_field / 255
+            o_projection_field = projection_field / 255
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
-                projection_field = center_fisheye_circle(projection_field, ROBOT_NAME)
+                projection_field = center_fisheye_circle(o_projection_field, ROBOT_NAME)
                 projection_field = correct_fisheye_approx(projection_field, ROBOT_NAME)
+                cv2.imshow("VPF", np.hstack((o_projection_field, projection_field)))
+                cv2.waitKey(1)
 
             if monitoring.SAVE_PROJECTION_FIELD and not simulation.ENABLE_SIMULATION:
                 # Saving projection field data to InfluxDB to visualize with Grafana
