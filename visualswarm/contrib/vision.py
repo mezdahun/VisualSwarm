@@ -16,7 +16,7 @@ def calculate_reverse_mapping_fn(lens, orig_img_width):
 
 
 # Recognition Type, supported: 'Color' or 'CNN'
-RECOGNITION_TYPE = "Color"
+RECOGNITION_TYPE = "CNN"
 
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
