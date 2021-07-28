@@ -454,7 +454,7 @@ def visualizer(visualization_stream, target_config_stream=None):
                     # if vision.USE_VPF_FISHEYE_CORRECTION:
                     #     c_mask_to_write = center_fisheye_circle(mask_to_write, ROBOT_NAME)
                     #     r_mask_to_write = correct_fisheye_approx(c_mask_to_write, ROBOT_NAME)
-                    writer.write(r_mask_to_write)
+                    writer.write(mask_to_write)
 
                 # To test infinite loops
                 if env.EXIT_CONDITION:
