@@ -425,6 +425,13 @@ def visualizer(visualization_stream, target_config_stream=None):
                     return
 
                 (img, mask, frame_id) = visualization_stream.get()
+
+                if vision.USE_VPF_FISHEYE_CORRECTION:
+                    logger.info('center fisheye')
+                    img = center_fisheye_circle(img, ROBOT_NAME)
+                    logger.info('correct fisheye')
+                    img = correct_fisheye_approx(img, ROBOT_NAME)
+
                 if vision.FIND_COLOR_INTERACTIVE:
                     if target_config_stream is not None:
                         B = cv2.getTrackbarPos("B", "Segmentation Parameters")
@@ -437,10 +444,6 @@ def visualizer(visualization_stream, target_config_stream=None):
                         target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
 
                 if vision.SHOW_VISION_STREAMS:
-                    if vision.USE_VPF_FISHEYE_CORRECTION:
-                        c_img = center_fisheye_circle(img, ROBOT_NAME)
-                        img = correct_fisheye_approx(c_img, ROBOT_NAME)
-
                     vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
                     vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
                     cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
@@ -501,7 +504,6 @@ def correct_fisheye_approx(VPF, robot_name):
             return VPF
         else:
             if len(VPF.shape) == 1:
-                logger.info('got VPF')
                 orig_width = int(len(VPF))
 
                 # upscaling VPF to new width
