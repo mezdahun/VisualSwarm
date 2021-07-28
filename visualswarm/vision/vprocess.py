@@ -447,6 +447,9 @@ def visualizer(visualization_stream, target_config_stream=None):
 
                 if monitoring.SAVE_VISION_VIDEO:
                     mask_to_write = cv2.resize(img, camera.RESOLUTION)
+                    if vision.USE_VPF_FISHEYE_CORRECTION:
+                        mask_to_write = center_fisheye_circle(mask_to_write, ROBOT_NAME)
+                        mask_to_write = correct_fisheye_approx(mask_to_write, ROBOT_NAME)
                     writer.write(mask_to_write)
 
                 # To test infinite loops
