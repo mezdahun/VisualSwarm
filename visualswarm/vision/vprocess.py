@@ -478,6 +478,9 @@ def center_fisheye_circle(VPF, robot_name):
         if lens_config is None:
             return VPF
         else:
+            if lens_config['offset_left']==0 and lens_config['offset_right']==0:
+                return VPF
+
             if len(VPF.shape) == 3:
                 orig_shape = (VPF.shape[1], VPF.shape[0])
                 cropped = VPF[:, lens_config['offset_left']:-lens_config['offset_right']]
