@@ -16,7 +16,7 @@ def calculate_reverse_mapping_fn(lens, orig_img_width):
 
 
 # Recognition Type, supported: 'Color' or 'CNN'
-RECOGNITION_TYPE = "CNN"
+RECOGNITION_TYPE = "Color"
 
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
@@ -69,7 +69,7 @@ lens1 = {
     'offset_left': 0,
     'offset_right': 28,
     'a_nonlin': 1 * np.pi,
-    'a_lin': 0,
+    'a_lin': 8,
     'offset_lin': 0,
     'h_domain_orig': np.linspace(PHI_START, PHI_END, orig_img_width)
 }
