@@ -68,7 +68,7 @@ orig_img_width = 320  # we should get it from contrib.camera but can stay like t
 lens1 = {
     'offset_left': 0,
     'offset_right': 28,
-    'a_nonlin': 0.8 * np.pi,
+    'a_nonlin': 1 * np.pi,
     'a_lin': 10,
     'offset_lin': 0,
     'h_domain_orig': np.linspace(PHI_START, PHI_END, orig_img_width)
