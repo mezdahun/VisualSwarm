@@ -568,7 +568,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             if vision.USE_VPF_FISHEYE_CORRECTION:
                 projection_field = center_fisheye_circle(o_projection_field, ROBOT_NAME)
                 projection_field = correct_fisheye_approx(projection_field, ROBOT_NAME)
-                cv2.imshow("VPF", np.hstack((o_projection_field, projection_field)))
+                cv2.imshow("VPF", np.vstack((o_projection_field, projection_field)))
                 cv2.waitKey(1)
 
             if monitoring.SAVE_PROJECTION_FIELD and not simulation.ENABLE_SIMULATION:
