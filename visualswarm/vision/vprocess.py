@@ -437,6 +437,10 @@ def visualizer(visualization_stream, target_config_stream=None):
                         target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
 
                 if vision.SHOW_VISION_STREAMS:
+                    if vision.USE_VPF_FISHEYE_CORRECTION:
+                        c_img = center_fisheye_circle(img, ROBOT_NAME)
+                        img = correct_fisheye_approx(c_img, ROBOT_NAME)
+
                     vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
                     vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
                     cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
@@ -447,9 +451,9 @@ def visualizer(visualization_stream, target_config_stream=None):
 
                 if monitoring.SAVE_VISION_VIDEO:
                     mask_to_write = cv2.resize(img, camera.RESOLUTION)
-                    if vision.USE_VPF_FISHEYE_CORRECTION:
-                        c_mask_to_write = center_fisheye_circle(mask_to_write, ROBOT_NAME)
-                        r_mask_to_write = correct_fisheye_approx(c_mask_to_write, ROBOT_NAME)
+                    # if vision.USE_VPF_FISHEYE_CORRECTION:
+                    #     c_mask_to_write = center_fisheye_circle(mask_to_write, ROBOT_NAME)
+                    #     r_mask_to_write = correct_fisheye_approx(c_mask_to_write, ROBOT_NAME)
                     writer.write(r_mask_to_write)
 
                 # To test infinite loops
