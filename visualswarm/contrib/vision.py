@@ -97,11 +97,24 @@ lens3 = {
 }
 lens3 = calculate_reverse_mapping_fn(lens3, orig_img_width)
 
+# LENS4
+lens3 = {
+    'offset_left': 0,
+    'offset_right': 0,
+    'a_nonlin': 1 * np.pi,
+    'a_lin': 5,
+    'offset_lin': 0,
+    'h_domain_orig': np.linspace(PHI_START, PHI_END, orig_img_width)
+}
+lens4 = calculate_reverse_mapping_fn(lens4, orig_img_width)
+
+
 # connect robots with lenses (labelled on HW elements with Ri and Li)
 LENS_CONFIG={
     'Robot1': lens1,
     'Robot2': lens2,
-    'Robot3': lens3
+    'Robot3': lens3,
+    'Robot4': lens4
 }
 
 # use fisheye correction
