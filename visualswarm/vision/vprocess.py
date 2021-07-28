@@ -529,6 +529,7 @@ def correct_fisheye_approx(VPF, robot_name):
 
                 done_respe_i = 0
                 for i in range(orig_shape[0]):
+                    logger.info(i)
                     index_end = done_respe_i + lens_config['h_reverse_mapping'][i]
                     for j in range(int(lens_config['h_reverse_mapping'][i])):
                         new_img[:, int(done_respe_i+j)] = VPF[:, i]
