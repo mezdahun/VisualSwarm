@@ -67,7 +67,7 @@ orig_img_width = 320  # we should get it from contrib.camera but can stay like t
 # LENS1
 lens1 = {
     'offset_left': 0,
-    'offset_right': 28,
+    'offset_right': 25,
     'a_nonlin': 1 * np.pi,
     'a_lin': 5,
     'offset_lin': 0,
