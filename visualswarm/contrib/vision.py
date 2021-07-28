@@ -82,4 +82,4 @@ LENS_CONFIG={
 }
 
 # use fisheye correction
-USE_VPF_FISHEYE_CORRECTION = True
+USE_VPF_FISHEYE_CORRECTION = False
