@@ -88,8 +88,8 @@ lens2 = calculate_reverse_mapping_fn(lens2, orig_img_width)
 
 # LENS3
 lens3 = {
-    'offset_left': 0,
-    'offset_right': 0,
+    'offset_left': 20,
+    'offset_right': 2,
     'a_nonlin': 1 * np.pi,
     'a_lin': 5,
     'offset_lin': 0,
