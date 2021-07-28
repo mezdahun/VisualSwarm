@@ -532,7 +532,7 @@ def correct_fisheye_approx(VPF, robot_name):
                         new_img[:, int(done_respe_i+j)] = VPF[:, i]
                     done_respe_i = index_end
 
-                logger.info(new_img==cv2.resize(VPF, new_shape))
+                logger.info(all(new_img==cv2.resize(VPF, new_shape)))
                 # downscaling back to original shape
                 downs_VPF = cv2.resize(new_img, orig_shape)
                 return downs_VPF
