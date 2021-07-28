@@ -9,6 +9,7 @@ import shutil
 
 import cv2
 import numpy as np
+from scipy import signal
 
 import visualswarm.contrib.vision
 from visualswarm import env
@@ -458,6 +459,79 @@ def visualizer(visualization_stream, target_config_stream=None):
             writer.release()
     except:
         writer.release()
+
+
+def center_fisheye_circle(VPF, robot_name):
+    """Centering fisheye projection circle on image according to lens specific offsets"""
+    if robot_name == 'Robot' or robot_name is None:
+        return VPF
+    else:
+        lens_config = vision.LENS_CONFIG.get(robot_name)
+        if lens_config is None:
+            return VPF
+        else:
+            if len(VPF.shape) == 3:
+                orig_shape = (VPF.shape[1], VPF.shape[0])
+                cropped = VPF[:, lens_config['offset_left']:-lens_config['offset_right']]
+                final = cv2.resize(cropped, orig_shape)
+                return final
+            elif len(VPF.shape) == 1:
+                orig_width = len(VPF)
+                cropped = VPF[lens_config['offset_left']:-lens_config['offset_right']]
+                resampled = signal.resample(cropped, orig_width)
+                rounded = np.array([np.round(det) for det in resampled])
+                return rounded
+
+
+
+def correct_fisheye_approx(VPF, robot_name):
+    """Correcting fisheye lens's barrel distortion horizontally with a composite reverse-distortion function
+    and upscaling according to vision.Lens_config"""
+    if robot_name == 'Robot' or robot_name is None:
+        return VPF
+    else:
+        lens_config = vision.LENS_CONFIG.get(robot_name)
+        if lens_config is None:
+            return VPF
+        else:
+            if len(VPF.shape) == 1:
+                orig_width = int(len(VPF))
+
+                # upscaling VPF to new width
+                resc_VPF = np.zeros(int(lens_config['new_width']))
+
+                # use reverse mapping function to upscale or doenscale VPF areas accordingly
+                done_resc_i = 0
+                for i in range(orig_width):
+                    index_end = done_resc_i + lens_config['h_reverse_mapping'][i]
+                    for j in range(int(lens_config['h_reverse_mapping'][i])):
+                        resc_VPF[int(done_resc_i + j)] = VPF[i]
+                    done_resc_i = index_end
+
+                # downscale remapped VPF to original size
+                downs_VPF =  signal.resample(resc_VPF, orig_width)
+                downs_VPF = np.array([np.round(det) for det in downs_VPF])
+
+                return downs_VPF
+
+            elif len(VPF.shape) == 3:
+
+                orig_shape = (VPF.shape[1], VPF.shape[0])
+                new_shape = (int(lens_config['new_width']), orig_shape[1])
+
+                new_img = cv2.resize(VPF, new_shape)
+                done_respe_i = 0
+
+                for i in range(orig_shape[0]):
+                    index_end = done_respe_i + lens_config['h_reverse_mapping'][i]
+                    for j in range(int(lens_config['h_reverse_mapping'][i])):
+                        new_img[:, int(done_respe_i+j)] = VPF[:, i]
+                    done_respe_i = index_end
+
+                # downscaling back to original shape
+                downs_VPF = cv2.resize(new_img, orig_shape)
+                return downs_VPF
+
 
 
 def VPF_extraction(high_level_vision_stream, VPF_stream):
