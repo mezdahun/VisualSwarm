@@ -520,21 +520,19 @@ def correct_fisheye_approx(VPF, robot_name):
             elif len(VPF.shape) == 3:
 
                 orig_shape = (VPF.shape[1], VPF.shape[0])
-                logger.info(orig_shape)
 
                 new_shape = (int(lens_config['new_width']), orig_shape[1])
-                logger.info(new_shape)
 
                 new_img = cv2.resize(VPF, new_shape)
 
                 done_respe_i = 0
                 for i in range(orig_shape[0]):
-                    logger.info(i)
                     index_end = done_respe_i + lens_config['h_reverse_mapping'][i]
                     for j in range(int(lens_config['h_reverse_mapping'][i])):
                         new_img[:, int(done_respe_i+j)] = VPF[:, i]
                     done_respe_i = index_end
 
+                logger.info(new_img==cv2.resize(VPF, new_shape))
                 # downscaling back to original shape
                 downs_VPF = cv2.resize(new_img, orig_shape)
                 return downs_VPF
