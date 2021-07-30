@@ -36,11 +36,11 @@ EMERGENCY_STATUS_RGB = (32, 0, 0)
 RW_DT = 3.5
 
 # Fixed speed during random walk exploration
-V_EXP_RW = 125
+V_EXP_RW = 200
 
 # Possible absolute angle change in a given timestep during RW exploration (in radian)
 # if zero the exploration is just moving in a straight line
-DPSI_MAX_EXP = 3
+DPSI_MAX_EXP = 0.2
 
 # ROTATION
 # Motor speed (per motor) during rotation (rotation speed)
@@ -60,11 +60,11 @@ AVOID_TURN_DIRECTION = 'Various'  # or 'Various'
 EMERGENCY_CHECK_FREQ = 10
 
 # Threshold value on horizontal proximity sensors that triggers obstacle avoidance
-EMERGENCY_PROX_THRESHOLD = 3500  # for simulations use 3000 (in RL 1500 is ca 10cm, 2500 is 5cm)
+EMERGENCY_PROX_THRESHOLD = 3000  # for simulations use 3000 (in RL 1500 is ca 10cm, 2500 is 5cm for white surfaces)
 EMERGENCY_PROX_THRESHOLD_BACK = 2500
 
 # angle to turn away from obstacle during obstacle avoidance.
-turn_angle_correction = 45
+turn_angle_correction = 30
 desired_alignemnt_angle = 45  # for simulations use 30
 OBSTACLE_TURN_ANGLE = desired_alignemnt_angle + turn_angle_correction
 
