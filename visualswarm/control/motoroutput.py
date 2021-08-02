@@ -727,6 +727,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                         raise Exception('No sensor stream has been passed from Webots to sentinel process!')
 
                 try:
+                    logger.info(prox_val)
                     prox_val[prox_val>3900] = 0 # filtering out high intensity optitrack signal
                     if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
                         logger.info('Triggered Obstacle Avoidance!')
