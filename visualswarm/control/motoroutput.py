@@ -728,20 +728,22 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                         raise Exception('No sensor stream has been passed from Webots to sentinel process!')
 
                 try:
+                    logger.info(f'prev prox: {prev_prox}')
                     logger.info(f'prox_before: {prox_val}')
-                    prox_diff = prox_val - prev_prox
-                    logger.info(f'prox_diff: {prox_diff}')
-                    prox_val[prox_diff>1300] = 0 # filtering out high intensity jumps due to optitrack signal
-                    prev_prox = prox_val
-                    logger.info(f'prox_final: {prox_val}')
-                    if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
+                    # prox_diff = prox_val - prev_prox
+                    # logger.info(f'prox_diff: {prox_diff}')
+                    # prox_val[prox_diff>1300] = 0 # filtering out high intensity jumps due to optitrack signal
+                    # prev_prox = prox_val
+                    # logger.info(f'prox_final: {prox_val}')
+                    if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD) and np.any(prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD):
                         logger.info('Triggered Obstacle Avoidance!')
                         emergency_stream.put((True, prox_val))
-                    elif np.any(prox_val[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
+                    elif np.any(prox_val[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK) and np.any(prev_prox[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
                         logger.info('Triggered obstacle avoidance from back!')
                         emergency_stream.put((True, prox_val))
                     else:
                         emergency_stream.put((False, None))
+                    prev_prox = prox_val
                 except IndexError:   # pragma: no cover
                     logger.warning('IndexError in sentinel process!!!')
 
