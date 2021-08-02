@@ -7,6 +7,7 @@ from multiprocessing import Process, Queue
 import sys
 import signal
 import time
+import json
 
 import visualswarm.contrib.vision
 from visualswarm import env
