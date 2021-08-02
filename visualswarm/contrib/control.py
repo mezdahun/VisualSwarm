@@ -32,6 +32,8 @@ EMERGENCY_STATUS_RGB = (32, 0, 0)
 
 
 # RANDOM WALK
+#temp smooth RW
+SMOOTH_RW = bool(int(os.getenv('SMOOTH_RW', '0')))
 # Random walk time step to change direction (sec)
 RW_DT = 3.5
 
