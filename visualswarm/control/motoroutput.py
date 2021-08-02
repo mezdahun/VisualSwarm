@@ -731,7 +731,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                     logger.info(f'prox_before: {prox_val}')
                     prox_diff = prox_val - prev_prox
                     logger.info(f'prox_diff: {prox_diff}')
-                    prox_val[prox_diff>600] = 0 # filtering out high intensity jumps due to optitrack signal
+                    prox_val[prox_diff>1300] = 0 # filtering out high intensity jumps due to optitrack signal
                     prev_prox = prox_val
                     logger.info(f'prox_final: {prox_val}')
                     if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
