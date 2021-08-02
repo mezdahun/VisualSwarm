@@ -14,6 +14,7 @@ from visualswarm import env
 from visualswarm.monitoring import ifdb, drive_uploader  # system_monitor
 from visualswarm.vision import vacquire, vprocess
 from visualswarm.contrib import logparams, vision, simulation, monitoring
+from visualswarm.contrib import behavior as behav_cont
 from visualswarm.behavior import behavior
 from visualswarm.control import motorinterface, motoroutput
 
@@ -211,7 +212,7 @@ def start_application(with_control=False):
                 params_fpath = os.path.join(training_data_folder,'params.json')
                 with open(params_fpath, 'w') as param_f:
                     logger.info('Saving experiment behavior parameters...')
-                    json.dump(behavior.get_params(), param_f, indent=4)
+                    json.dump(behav_cont.get_params(), param_f, indent=4)
                 drive_uploader.zipupload_CNN_training_data(training_data_folder)
 
         logger.info(f'{bcolors.OKGREEN}EXITED Gracefully. Bye bye!{bcolors.ENDC}')
