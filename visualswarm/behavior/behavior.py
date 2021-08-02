@@ -80,8 +80,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             ## TODO: this is temporary smooth reandom walk
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
-                if rw_dt > 3.5:
-                    new_dpsi = np.random.uniform(-1.4, 1.4, 1)
+                if rw_dt > 2.5:
+                    new_dpsi = np.random.uniform(-2.3, 2.3, 1)
                     rw_dt = 0
                 logger.info('Smoot RW')
                 dpsi = new_dpsi
