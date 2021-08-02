@@ -62,6 +62,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         if monitoring.ENABLE_CLOUD_STORAGE:
             os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
 
+        rw_dt = 0
+        new_dpsi = np.random.uniform(-1, 1, 1)
         while True:
             (projection_field, capture_timestamp) = VPF_stream.get()
 
@@ -78,8 +80,12 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             ## TODO: this is temporary smooth reandom walk
             if np.mean(projection_field) == 0:
+                if rw_dt > 2:
+                    new_dpsi = np.random.uniform(-1, 1, 1)
+                    rw_dt = 0
                 logger.info('Smoot RW')
-                dpsi += np.random.uniform(-0.2, 0.5, 1)
+                dpsi = new_dpsi
+                rw_dt += dt
 
             logger.warning(dpsi)
             if is_initialized:
