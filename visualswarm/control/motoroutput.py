@@ -713,6 +713,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
             logger.info(f'START: len{sensor_stream.qsize()}')
             empty_queue(sensor_stream)
 
+        prev_prox = np.zeros(7)
         while True:
             # enforcing checks on a regular basis
             if abs(t - datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
@@ -727,8 +728,10 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                         raise Exception('No sensor stream has been passed from Webots to sentinel process!')
 
                 try:
+                    prox_diff = prox_val - prev_prox
+                    prox_val[prox_diff>600] = 0 # filtering out high intensity jumps due to optitrack signal
+                    prev_prox = prox_val
                     logger.info(prox_val)
-                    prox_val[prox_val>3900] = 0 # filtering out high intensity optitrack signal
                     if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
                         logger.info('Triggered Obstacle Avoidance!')
                         emergency_stream.put((True, prox_val))
