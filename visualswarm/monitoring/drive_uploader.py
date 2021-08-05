@@ -71,7 +71,7 @@ def ensure_tokens():
 
     # Call the Drive v3 API
     results = service.files().list(
-        pageSize=100, fields="nextPageToken, files(id, name)").execute()
+        pageSize=100, fields="nextPageToken, files(id, name)", q="trashed=true").execute()
     results.get('files', [])
     logger.error(results.get('files', []))
 
