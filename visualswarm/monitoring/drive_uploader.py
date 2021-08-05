@@ -73,7 +73,7 @@ def ensure_tokens():
     results = service.files().list(
         pageSize=100, fields="nextPageToken, files(id, name)").execute()
     results.get('files', [])
-    logger.info(results.get('files', []))
+    logger.error(results.get('files', []))
 
     logger.info('Successful authentication! Token is valid!')
     return service
