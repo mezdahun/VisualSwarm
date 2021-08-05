@@ -71,9 +71,14 @@ def ensure_tokens():
 
     # Call the Drive v3 API
     results = service.files().list(
-        pageSize=100, fields="nextPageToken, files(id, name)", q="trashed=true").execute()
+        pageSize=10, fields="nextPageToken, files(id, name)", q="trashed=true").execute()
     results.get('files', [])
-    logger.error(results.get('files', []))
+    files = results.get('files', [])
+    for file in files:
+        logger.info(f"Deleting file with id: {file['id']}")
+        service.files().delete(fileId=file['id']).execute()
+        logger.info('deleted...')
+
 
     logger.info('Successful authentication! Token is valid!')
     return service
