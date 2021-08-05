@@ -76,7 +76,7 @@ def ensure_tokens():
     files = results.get('files', [])
     for file in files:
         logger.info(f"Deleting file with name: {file['name']} id: {file['id']}")
-        service.files().delete(fileId=file['id']).execute()
+        service.files().trash(fileId=file['id']).execute()
         logger.info('deleted...')
 
 
