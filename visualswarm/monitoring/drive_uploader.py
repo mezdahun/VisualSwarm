@@ -71,8 +71,9 @@ def ensure_tokens():
 
     # Call the Drive v3 API
     results = service.files().list(
-        pageSize=10, fields="nextPageToken, files(id, name)").execute()
+        pageSize=100, fields="nextPageToken, files(id, name)").execute()
     results.get('files', [])
+    logger.info(results.get('files', []))
 
     logger.info('Successful authentication! Token is valid!')
     return service
