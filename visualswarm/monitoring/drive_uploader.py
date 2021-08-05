@@ -71,11 +71,11 @@ def ensure_tokens():
 
     # Call the Drive v3 API
     results = service.files().list(
-        pageSize=10, fields="nextPageToken, files(id, name)", q="trashed=true").execute()
+        pageSize=10, fields="nextPageToken, files(id, name)").execute()
     results.get('files', [])
     files = results.get('files', [])
     for file in files:
-        logger.info(f"Deleting file with id: {file['id']}")
+        logger.info(f"Deleting file with name: {file['name']} id: {file['id']}")
         service.files().delete(fileId=file['id']).execute()
         logger.info('deleted...')
 
