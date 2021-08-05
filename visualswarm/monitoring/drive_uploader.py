@@ -73,12 +73,12 @@ def ensure_tokens():
     results = service.files().list(
         pageSize=10, fields="nextPageToken, files(id, name)").execute()
     results.get('files', [])
-    files = results.get('files', [])
-    for file in files:
-        logger.info(f"Deleting file with name: {file['name']} id: {file['id']}")
-        service.files().update(fileId=file['id'], body={'trashed' : True}).execute()
-        # service.files().trash(fileId=file['id']).execute()
-        logger.info('deleted...')
+    # files = results.get('files', [])
+    # for file in files:
+    #     logger.info(f"Deleting file with name: {file['name']} id: {file['id']}")
+    #     service.files().update(fileId=file['id'], body={'trashed' : True}).execute()
+    #     # service.files().trash(fileId=file['id']).execute()
+    #     logger.info('deleted...')
 
 
     logger.info('Successful authentication! Token is valid!')
