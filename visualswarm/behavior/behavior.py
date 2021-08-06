@@ -79,6 +79,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
 
             ## TODO: this is temporary smooth reandom walk
+            logger.error(np.mean(projection_field))
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
                 logger.error('NO SOCIAL CUES')
                 if rw_dt > 4:
