@@ -388,6 +388,8 @@ def visualizer(visualization_stream, target_config_stream=None):
             -shall not return-
     """
     # try:
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+    EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
     if visualization_stream is not None:
         if vision.FIND_COLOR_INTERACTIVE:
             cv2.namedWindow("Segmentation Parameters")
@@ -406,8 +408,6 @@ def visualizer(visualization_stream, target_config_stream=None):
             color_sample = np.zeros((200, 200, 3), np.uint8)
 
         if monitoring.SAVE_VISION_VIDEO:
-            ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
-            EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
             video_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
             os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
             video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{video_timestamp}_{EXP_ID}_{ROBOT_NAME}.mp4')
