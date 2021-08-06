@@ -81,6 +81,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             ## TODO: this is temporary smooth reandom walk
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
+                logger.error('NO SOCIAL CUES!!!!!!!!!')
                 if rw_dt > 2:
                     new_dpsi = np.random.uniform(-add_psi, add_psi, 1)
                     rw_dt = 0
