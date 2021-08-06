@@ -466,7 +466,8 @@ def visualizer(visualization_stream, target_config_stream=None):
         if monitoring.SAVE_VISION_VIDEO:
             writer.release()
     except:
-        writer.release()
+        if monitoring.SAVE_VISION_VIDEO:
+            writer.release()
 
 
 def center_fisheye_circle(VPF, robot_name):
