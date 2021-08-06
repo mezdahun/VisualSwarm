@@ -63,8 +63,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
 
         rw_dt = 0
-        add_psi = 0.1
-        new_dpsi = 0.1
+        new_dpsi = np.random.uniform(-1, 1, 1)
         while True:
             (projection_field, capture_timestamp) = VPF_stream.get()
 
@@ -81,20 +80,15 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             ## TODO: this is temporary smooth reandom walk
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
-                logger.error('NO SOCIAL CUES!!!!!!!!!')
-                if rw_dt > 2:
-                    new_dpsi = np.random.uniform(-add_psi, add_psi, 1)
+                logger.error('NO SOCIAL CUES')
+                if rw_dt > 4:
+                    new_dpsi = np.random.uniform(-0.5, 0.5, 1)
                     rw_dt = 0
-                    # the more time spent without social cues the more extensive the exploration is
-                    if add_psi < 1.5:
-                        logger.error(f'add dpsi, {add_psi}')
-                        add_psi += 0.1
+                logger.info('Smoot RW')
                 dpsi = new_dpsi
                 rw_dt += dt
-            else:
-                logger.error('zerodpsi')
-                add_psi = 0.1
 
+            logger.warning(dpsi)
             if is_initialized:
                 v += dv * dt
             else:
