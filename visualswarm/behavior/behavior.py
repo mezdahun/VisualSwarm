@@ -86,10 +86,12 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                     rw_dt = 0
                     # the more time there are no social cues the more extensive the exploration is
                     if add_dpsi < 2:
+                        logger.info(f'add dpsi, {add_psi}')
                         add_psi += 0.1
                 dpsi = new_dpsi
                 rw_dt += dt
             else:
+                logger.info('zerodpsi')
                 add_psi = 0.1
 
 
