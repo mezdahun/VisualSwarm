@@ -387,87 +387,87 @@ def visualizer(visualization_stream, target_config_stream=None):
         Returns:
             -shall not return-
     """
-    # try:
-    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
-    EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
-    if visualization_stream is not None:
-        if vision.FIND_COLOR_INTERACTIVE:
-            cv2.namedWindow("Segmentation Parameters")
-            cv2.createTrackbar("R", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[0], 255,
-                               nothing)
-            cv2.createTrackbar("G", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[1], 255,
-                               nothing)
-            cv2.createTrackbar("B", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[2], 255,
-                               nothing)
-            cv2.createTrackbar("H_range", "Segmentation Parameters", visualswarm.contrib.vision.HSV_HUE_RANGE, 255,
-                               nothing)
-            cv2.createTrackbar("SV_min", "Segmentation Parameters", visualswarm.contrib.vision.SV_MINIMUM,
-                               255, nothing)
-            cv2.createTrackbar("SV_max", "Segmentation Parameters", visualswarm.contrib.vision.SV_MAXIMUM,
-                               255, nothing)
-            color_sample = np.zeros((200, 200, 3), np.uint8)
-
-        if monitoring.SAVE_VISION_VIDEO:
-            video_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
-            os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
-            video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{video_timestamp}_{EXP_ID}_{ROBOT_NAME}.mp4')
-            writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), camera.FRAMERATE,
-                                     camera.RESOLUTION, isColor=True)
-
-        while True:
-            # trick to release video on time upon process destruction via SSH. When using SSH CtrlC can not be
-            # achieved and is simulated with SIGINT. But because of this the video is not finalized in the exception
-            # block. for desired behavior do
-            # $ touch release.txt && sleep 2 && rm -rf release.txt
-            # then kill the process
-            if os.path.isfile('/home/pi/VisualSwarm/release.txt'):
-                writer.release()
-                return
-
-            (img, mask, frame_id) = visualization_stream.get()
-
-            if vision.USE_VPF_FISHEYE_CORRECTION:
-                img = center_fisheye_circle(img, ROBOT_NAME)
-                img = correct_fisheye_approx(img, ROBOT_NAME)
-
+    try:
+        ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+        EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
+        if visualization_stream is not None:
             if vision.FIND_COLOR_INTERACTIVE:
-                if target_config_stream is not None:
-                    B = cv2.getTrackbarPos("B", "Segmentation Parameters")
-                    G = cv2.getTrackbarPos("G", "Segmentation Parameters")
-                    R = cv2.getTrackbarPos("R", "Segmentation Parameters")
-                    color_sample[:] = [B, G, R]
-                    HSV_HUE_RANGE = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
-                    SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
-                    SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
-                    target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
-
-            if vision.SHOW_VISION_STREAMS:
-                vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
-                vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
-                cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
-                cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
-                if vision.FIND_COLOR_INTERACTIVE:
-                    cv2.imshow("Segmentation Parameters", color_sample)
-                cv2.waitKey(1)
+                cv2.namedWindow("Segmentation Parameters")
+                cv2.createTrackbar("R", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[0], 255,
+                                   nothing)
+                cv2.createTrackbar("G", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[1], 255,
+                                   nothing)
+                cv2.createTrackbar("B", "Segmentation Parameters", visualswarm.contrib.vision.TARGET_RGB_COLOR[2], 255,
+                                   nothing)
+                cv2.createTrackbar("H_range", "Segmentation Parameters", visualswarm.contrib.vision.HSV_HUE_RANGE, 255,
+                                   nothing)
+                cv2.createTrackbar("SV_min", "Segmentation Parameters", visualswarm.contrib.vision.SV_MINIMUM,
+                                   255, nothing)
+                cv2.createTrackbar("SV_max", "Segmentation Parameters", visualswarm.contrib.vision.SV_MAXIMUM,
+                                   255, nothing)
+                color_sample = np.zeros((200, 200, 3), np.uint8)
 
             if monitoring.SAVE_VISION_VIDEO:
-                mask_to_write = cv2.resize(img, camera.RESOLUTION)
-                # if vision.USE_VPF_FISHEYE_CORRECTION:
-                #     c_mask_to_write = center_fisheye_circle(mask_to_write, ROBOT_NAME)
-                #     r_mask_to_write = correct_fisheye_approx(c_mask_to_write, ROBOT_NAME)
-                writer.write(mask_to_write)
+                video_timestamp = datetime.now().strftime("%d-%m-%y-%H%M%S")
+                os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
+                video_name = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{video_timestamp}_{EXP_ID}_{ROBOT_NAME}.mp4')
+                writer = cv2.VideoWriter(video_name, cv2.VideoWriter_fourcc(*'mp4v'), camera.FRAMERATE,
+                                         camera.RESOLUTION, isColor=True)
 
-            # To test infinite loops
-            if env.EXIT_CONDITION:
-                break
-    else:
-        logger.info('Visualization stream is None, visualization process returns!')
-    # except KeyboardInterrupt:
-    #     if monitoring.SAVE_VISION_VIDEO:
-    #         writer.release()
-    # except:
-    #     if monitoring.SAVE_VISION_VIDEO:
-    #         writer.release()
+            while True:
+                # trick to release video on time upon process destruction via SSH. When using SSH CtrlC can not be
+                # achieved and is simulated with SIGINT. But because of this the video is not finalized in the exception
+                # block. for desired behavior do
+                # $ touch release.txt && sleep 2 && rm -rf release.txt
+                # then kill the process
+                if os.path.isfile('/home/pi/VisualSwarm/release.txt'):
+                    writer.release()
+                    return
+
+                (img, mask, frame_id) = visualization_stream.get()
+
+                if vision.USE_VPF_FISHEYE_CORRECTION:
+                    img = center_fisheye_circle(img, ROBOT_NAME)
+                    img = correct_fisheye_approx(img, ROBOT_NAME)
+
+                if vision.FIND_COLOR_INTERACTIVE:
+                    if target_config_stream is not None:
+                        B = cv2.getTrackbarPos("B", "Segmentation Parameters")
+                        G = cv2.getTrackbarPos("G", "Segmentation Parameters")
+                        R = cv2.getTrackbarPos("R", "Segmentation Parameters")
+                        color_sample[:] = [B, G, R]
+                        HSV_HUE_RANGE = cv2.getTrackbarPos("H_range", "Segmentation Parameters")
+                        SV_MINIMUM = cv2.getTrackbarPos("SV_min", "Segmentation Parameters")
+                        SV_MAXIMUM = cv2.getTrackbarPos("SV_max", "Segmentation Parameters")
+                        target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
+
+                if vision.SHOW_VISION_STREAMS:
+                    vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
+                    vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
+                    cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
+                    cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
+                    if vision.FIND_COLOR_INTERACTIVE:
+                        cv2.imshow("Segmentation Parameters", color_sample)
+                    cv2.waitKey(1)
+
+                if monitoring.SAVE_VISION_VIDEO:
+                    mask_to_write = cv2.resize(img, camera.RESOLUTION)
+                    # if vision.USE_VPF_FISHEYE_CORRECTION:
+                    #     c_mask_to_write = center_fisheye_circle(mask_to_write, ROBOT_NAME)
+                    #     r_mask_to_write = correct_fisheye_approx(c_mask_to_write, ROBOT_NAME)
+                    writer.write(mask_to_write)
+
+                # To test infinite loops
+                if env.EXIT_CONDITION:
+                    break
+        else:
+            logger.info('Visualization stream is None, visualization process returns!')
+    except KeyboardInterrupt:
+        if monitoring.SAVE_VISION_VIDEO:
+            writer.release()
+    except:
+        if monitoring.SAVE_VISION_VIDEO:
+            writer.release()
 
 
 def center_fisheye_circle(VPF, robot_name):
