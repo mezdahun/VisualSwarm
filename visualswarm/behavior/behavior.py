@@ -64,7 +64,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
         rw_dt = 0
         add_psi = 0.1
-        new_dpsi = 0
+        new_dpsi = 0.1
         while True:
             (projection_field, capture_timestamp) = VPF_stream.get()
 
