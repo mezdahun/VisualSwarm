@@ -7,6 +7,7 @@ import pickle  # nosec
 import json
 import numpy as np
 import logging
+import pandas as pd
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -60,6 +61,66 @@ def is_summarized(data_path, experiment_name):
     else:
         logger.info("Experiment not yet summarized")
         return False
+
+def optitrackcsv_to_VSWRM(csv_path):
+    """Reading an exported optitrack tracking data csv file into a VSWRM summary sata file that can be further used
+    for data analysis and plotting with VSWRM
+
+    The exported file must contain 6 columns for each robot, that are
+    rotationX, rotationY, rotationZ, positionX, positionY, positionZ
+
+    timepoints where tracking of robots has been lost will be simply cut from the data."""
+    df_orig = pd.read_csv(csv_path)
+
+    # QUICKNDIRTY dropping timepoints where optitrack lost track of robots
+    df = df_orig.dropna()
+
+    num_robots = int(len(df.columns) / 6) # for each robot 3 rotation and 3 position coordinate
+    time = np.array([a[1] for a in df.index.values[5::]]).astype('float') / 1000
+    t_len = len(time)
+
+    attributes = ['t', 'pos_x', 'pos_y', 'pos_z', 'or']
+    num_attributes = len(attributes)
+
+    data = np.zeros((1, num_robots, num_attributes, t_len))
+
+    for robi in range(num_robots):
+        startindex = int(robi * 6)
+        # x_rot = df.iloc[:, startindex + 1].values[5::].astype('float')
+        orient = df.iloc[:, startindex + 1].values[5::].astype('float')
+        # z_rot = df.iloc[:, startindex + 1].values[5::].astype('float')
+        x_pos = df.iloc[:, startindex + 1].values[5::].astype('float')
+        y_pos = df.iloc[:, startindex + 1].values[5::].astype('float')
+        z_pos = df.iloc[:, startindex + 1].values[5::].astype('float')
+
+        data[0, robi, attributes.index('t'), :] = time
+        data[0, robi, attributes.index('pos_x'), :] = x_pos
+        data[0, robi, attributes.index('pos_y'), :] = y_pos
+        data[0, robi, attributes.index('pos_z'), :] = z_pos
+        data[0, robi, attributes.index('or'), :] = orient
+
+
+    _, csv_filename = os.path.split(csv_path)
+    experiment_name = csv_filename.split('.')[0]
+
+    experiment_summary = {'params': None,
+                          'num_runs': 1,
+                          'num_robots': num_robots,
+                          'num_attributes': num_attributes,
+                          'attributes': attributes,
+                          'experiment_name': experiment_name}
+
+    data_path = os.path.dirname(csv_path)
+
+    with open(os.path.join(data_path, f'{experiment_name}_summaryp.json'), 'w') as sump_f:
+        json.dump(experiment_summary, sump_f, indent=4)
+
+    sumd_f = os.path.join(data_path, f'{experiment_name}_summaryd.npy')
+    np.save(sumd_f, data)
+
+
+
+
 
 
 def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
