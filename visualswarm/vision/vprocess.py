@@ -223,6 +223,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     height = input_details[0]['shape'][1]
     width = input_details[0]['shape'][2]
+    logger.warning(f"w: {width}, h: {height}")
 
     floating_model = (input_details[0]['dtype'] == np.float32)
 
