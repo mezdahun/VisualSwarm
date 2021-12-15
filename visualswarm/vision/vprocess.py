@@ -182,7 +182,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
     GRAPH_NAME = 'efficientdetd1-lite-vswrm_edgetpu.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
-    INTQUANT = False
+    INTQUANT = True
     # it takes a little longer on the first run and then runs at normal speed.
     import random
     import glob
