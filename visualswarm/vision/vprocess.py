@@ -194,7 +194,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
         else:
             from tflite_runtime.interpreter import load_delegate
 
-    min_conf_threshold = 0.25
+    min_conf_threshold = 0
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
