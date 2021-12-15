@@ -295,13 +295,13 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                     interpreter.invoke()
 
                     # Bounding box coordinates of detected objects
-                    boxes = interpreter.get_tensor(output_details[2]['index'])[0]
+                    boxes = interpreter.get_tensor(output_details[2]['index'])
                     # Class index of detected objects
                     # classes = interpreter.get_tensor(output_details[1]['index'])[0]
                     # Confidence of detected objects
-                    scores = interpreter.get_tensor(output_details[0]['index'])[0]
-                    # logger.warning(interpreter.get_tensor(output_details[0]['index']))
-                    # logger.warning(interpreter.get_tensor(output_details[2]['index']))
+                    scores = interpreter.get_tensor(output_details[0]['index'])
+                    logger.warning("boxes ", boxes)
+                    logger.warning("scores ", scores)
 
                     # Dequantize if input and output is int quantized
                     if INTQUANT:
