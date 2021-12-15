@@ -300,66 +300,68 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                     # classes = interpreter.get_tensor(output_details[1]['index'])[0]
                     # Confidence of detected objects
                     scores = interpreter.get_tensor(output_details[2]['index'])[0]
+                    logger.warning(interpreter.get_tensor(output_details[0]['index']))
+                    logger.warning(interpreter.get_tensor(output_details[2]['index']))
 
-                    # Dequantize if input and output is int quantized
-                    if INTQUANT:
-                        scale, zero_point = output_details[0]['quantization']
-                        boxes = scale * (boxes - zero_point)
+                    # # Dequantize if input and output is int quantized
+                    # if INTQUANT:
+                    #     scale, zero_point = output_details[0]['quantization']
+                    #     boxes = scale * (boxes - zero_point)
+                    #
+                    #     # scale, zero_point = output_details[1]['quantization']
+                    #     # classes = scale * (classes - zero_point)
+                    #
+                    #     scale, zero_point = output_details[2]['quantization']
+                    #     scores = scale * (scores - zero_point)
+                    #
+                    # t2 = datetime.utcnow()
+                    # delta = (t2 - t1).total_seconds()
+                    # logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
+                    #
+                    # blurred = np.zeros([img.shape[0], img.shape[1]])
+                    #
+                    # for i in range(len(boxes)):
+                    #     if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                    #         # if scores[i] == np.max(scores):
+                    #         # Get bounding box coordinates and draw box
+                    #         # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                    #         ymin = int(max(1, (boxes[i, 0] * imH)))
+                    #         xmin = int(max(1, (boxes[i, 1] * imW)))
+                    #         ymax = int(min(imH, (boxes[i, 2] * imH)))
+                    #         xmax = int(min(imW, (boxes[i, 3] * imW)))
+                    #
+                    #         blurred[ymin:ymax, xmin:xmax] = 255
+                    #         cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                    #         img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
+                    #                             0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                    #
+                    # t3 = datetime.utcnow()
+                    # logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
+                    #
+                    # # Forwarding result to VPF extraction
+                    # logger.debug(f'Queue length{raw_vision_stream.qsize()}')
+                    # high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+                    # t4 = datetime.utcnow()
+                    # logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
+                    #
+                    # # Collecting training data for CNN fine tune if requested
+                    # if monitoring.SAVE_CNN_TRAINING_DATA:
+                    #     if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
+                    #         frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
+                    #         frame_path = os.path.join(training_data_folder, frame_name)
+                    #         cv2.imwrite(frame_path, frame_rgb)
+                    #         CNN_TD_last_collect = capture_timestamp
 
-                        # scale, zero_point = output_details[1]['quantization']
-                        # classes = scale * (classes - zero_point)
-
-                        scale, zero_point = output_details[2]['quantization']
-                        scores = scale * (scores - zero_point)
-
-                    t2 = datetime.utcnow()
-                    delta = (t2 - t1).total_seconds()
-                    logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
-
-                    blurred = np.zeros([img.shape[0], img.shape[1]])
-
-                    for i in range(len(boxes)):
-                        if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                            # if scores[i] == np.max(scores):
-                            # Get bounding box coordinates and draw box
-                            # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                            ymin = int(max(1, (boxes[i, 0] * imH)))
-                            xmin = int(max(1, (boxes[i, 1] * imW)))
-                            ymax = int(min(imH, (boxes[i, 2] * imH)))
-                            xmax = int(min(imW, (boxes[i, 3] * imW)))
-
-                            blurred[ymin:ymax, xmin:xmax] = 255
-                            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                            img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
-                                                0.5, (255, 0, 0), 2, cv2.LINE_AA)
-
-                    t3 = datetime.utcnow()
-                    logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
-
-                    # Forwarding result to VPF extraction
-                    logger.debug(f'Queue length{raw_vision_stream.qsize()}')
-                    high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
-                    t4 = datetime.utcnow()
-                    logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
-
-                    # Collecting training data for CNN fine tune if requested
-                    if monitoring.SAVE_CNN_TRAINING_DATA:
-                        if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
-                            frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
-                            frame_path = os.path.join(training_data_folder, frame_name)
-                            cv2.imwrite(frame_path, frame_rgb)
-                            CNN_TD_last_collect = capture_timestamp
-
-                    # Forwarding result for visualization if requested
-                    if visualization_stream is not None:
-                        visualization_stream.put((img, blurred, frame_id))
-
-                    # To test infinite loops
-                    if env.EXIT_CONDITION:
-                        break
-
-                    t5 = datetime.utcnow()
-                    logger.info(f'total vision_rate: {1 / (t5 - t0).total_seconds()}')
+                    # # Forwarding result for visualization if requested
+                    # if visualization_stream is not None:
+                    #     visualization_stream.put((img, blurred, frame_id))
+                    #
+                    # # To test infinite loops
+                    # if env.EXIT_CONDITION:
+                    #     break
+                    #
+                    # t5 = datetime.utcnow()
+                    # logger.info(f'total vision_rate: {1 / (t5 - t0).total_seconds()}')
 
                     frame_id += 1
             except KeyboardInterrupt:
