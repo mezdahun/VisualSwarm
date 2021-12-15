@@ -301,8 +301,6 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                     # classes = interpreter.get_tensor(output_details[1]['index'])[0]
                     # Confidence of detected objects
                     scores = interpreter.get_tensor(output_details[2]['index'])
-                    logger.warning(f"boxes {boxes}")
-                    logger.warning(f"scores {scores}")
 
                     # Dequantize if input and output is int quantized
                     if INTQUANT:
@@ -314,6 +312,9 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
                         scale, zero_point = output_details[2]['quantization']
                         scores = scale * (scores - zero_point)
+
+                    logger.warning(f"boxes {boxes}")
+                    logger.warning(f"scores {scores}")
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
