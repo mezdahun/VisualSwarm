@@ -568,15 +568,15 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
             projection_field = np.max(cropped_image, axis=0)
-            if old_proj_field is None:
-                old_proj_field = projection_field
-
-            new_change = projection_field - old_proj_field
-            logger.info(new_change)
-            new_change[new_change < 0] = 0
-
-            old_proj_field = projection_field
-            projection_field -= new_change
+            # if old_proj_field is None:
+            #     old_proj_field = projection_field
+            #
+            # new_change = projection_field - old_proj_field
+            # logger.info(new_change)
+            # new_change[new_change < 0] = 0
+            #
+            # old_proj_field = projection_field
+            # projection_field -= new_change
 
             o_projection_field = projection_field / 255
 
