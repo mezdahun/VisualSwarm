@@ -91,7 +91,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 dpsi = new_dpsi
                 rw_dt += dt
             else:
-                logger.error('zerodpsi')
+                # logger.error('zerodpsi')
                 add_psi = 0.1
 
             if is_initialized:
