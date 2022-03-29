@@ -572,8 +572,9 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
                 old_proj_field = projection_field
             new_change = projection_field - old_proj_field
             new_change[new_change < 0] = 0
-            projection_field -= new_change
+
             old_proj_field = projection_field
+            projection_field -= new_change
 
             o_projection_field = projection_field / 255
 
