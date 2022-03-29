@@ -561,22 +561,19 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
         ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
 
-        old_proj_field = None
+        proj_f_stack = None
         while True:
             (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
             # logger.info(high_level_vision_stream.qsize())
             cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
             projection_field = np.max(cropped_image, axis=0)
-            if old_proj_field is None:
-                old_proj_field = projection_field
-            #
-            new_change = projection_field - old_proj_field
-            logger.info(np.mean(new_change))
-            # new_change[new_change < 0] = 0
-            #
-            old_proj_field = projection_field
-            # projection_field -= new_change
+            if proj_f_stack is None:
+                proj_f_stack = np.zeros((5, len(projection_field)))
+
+            proj_f_stack = np.roll(proj_f_stack, axis=0)
+            proj_f_stack[-1, :] = projection_field
+            logger.info(np.mean(proj_f_stack, axis=1))
 
             o_projection_field = projection_field / 255
 
