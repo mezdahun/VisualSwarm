@@ -179,7 +179,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     logger.info('Loading tensorflow model...')
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'efficientdetd1-lite-vswrm_edgetpu.tflite'
+    GRAPH_NAME = 'fixedlense_6thfloor_general.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
     INTQUANT = True
@@ -194,7 +194,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
         else:
             from tflite_runtime.interpreter import load_delegate
 
-    min_conf_threshold = 0
+    min_conf_threshold = 0.25
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
@@ -223,7 +223,6 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
     height = input_details[0]['shape'][1]
     width = input_details[0]['shape'][2]
-    logger.warning(f"w: {width}, h: {height}")
 
     floating_model = (input_details[0]['dtype'] == np.float32)
 
@@ -296,11 +295,11 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                     interpreter.invoke()
 
                     # Bounding box coordinates of detected objects
-                    boxes = interpreter.get_tensor(output_details[0]['index'])
+                    boxes = interpreter.get_tensor(output_details[0]['index'])[0]
                     # Class index of detected objects
                     # classes = interpreter.get_tensor(output_details[1]['index'])[0]
                     # Confidence of detected objects
-                    scores = interpreter.get_tensor(output_details[2]['index'])
+                    scores = interpreter.get_tensor(output_details[2]['index'])[0]
 
                     # Dequantize if input and output is int quantized
                     if INTQUANT:
@@ -312,9 +311,6 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
                         scale, zero_point = output_details[2]['quantization']
                         scores = scale * (scores - zero_point)
-
-                    logger.warning(f"boxes {boxes}")
-                    logger.warning(f"scores {scores}")
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
