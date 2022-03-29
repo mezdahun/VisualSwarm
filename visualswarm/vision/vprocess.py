@@ -561,12 +561,18 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
         ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
 
+        old_proj_field = None
         while True:
             (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
             # logger.info(high_level_vision_stream.qsize())
             cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
             projection_field = np.max(cropped_image, axis=0)
+            if old_proj_field is None:
+                old_proj_field = projection_field
+            new_change = np.abs(projection_field - old_proj_field)
+            projection_field -= new_change
+            old_proj_field = projection_field
             o_projection_field = projection_field / 255
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
