@@ -571,7 +571,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
             if proj_f_stack is None:
                 N_filter = 5
-                filter_below = 3
+                filter_below = 2
                 filter_limit = (filter_below * 255) / N_filter
                 proj_f_stack = np.zeros((N_filter, len(projection_field)))
 
