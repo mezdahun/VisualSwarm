@@ -570,7 +570,9 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             projection_field = np.max(cropped_image, axis=0)
             if old_proj_field is None:
                 old_proj_field = projection_field
+
             new_change = projection_field - old_proj_field
+            logger.info(new_change)
             new_change[new_change < 0] = 0
 
             old_proj_field = projection_field
