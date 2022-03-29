@@ -571,9 +571,9 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             if proj_f_stack is None:
                 proj_f_stack = np.zeros((5, len(projection_field)))
 
-            proj_f_stack = np.roll(proj_f_stack, axis=0)
+            proj_f_stack = np.roll(proj_f_stack, 1, axis=0)
             proj_f_stack[-1, :] = projection_field
-            logger.info(np.mean(proj_f_stack, 1, axis=1))
+            logger.info(np.mean(proj_f_stack, axis=1))
 
             o_projection_field = projection_field / 255
 
