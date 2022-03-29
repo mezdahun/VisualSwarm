@@ -571,8 +571,8 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             if old_proj_field is None:
                 old_proj_field = projection_field
             #
-            new_change = np.mean(projection_field - old_proj_field)
-            # logger.info(new_change)
+            new_change = projection_field - old_proj_field
+            logger.info(np.mean(new_change))
             # new_change[new_change < 0] = 0
             #
             old_proj_field = projection_field
