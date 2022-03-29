@@ -570,9 +570,11 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             projection_field = np.max(cropped_image, axis=0)
             if old_proj_field is None:
                 old_proj_field = projection_field
-            new_change = np.abs(projection_field - old_proj_field)
+            new_change = projection_field - old_proj_field
+            new_change[new_change < 0] = 0
             projection_field -= new_change
             old_proj_field = projection_field
+
             o_projection_field = projection_field / 255
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
