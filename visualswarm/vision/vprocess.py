@@ -569,17 +569,17 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
             projection_field = np.max(cropped_image, axis=0)
 
-            if proj_f_stack is None:
-                N_filter = 5
-                filter_below = 2
-                filter_limit = (filter_below * 255) / N_filter
-                proj_f_stack = np.zeros((N_filter, len(projection_field)))
-
-            proj_f_stack = np.roll(proj_f_stack, 1, axis=0)
-            proj_f_stack[-1, :] = projection_field
-            projection_field = np.mean(proj_f_stack, axis=0)
-            projection_field[projection_field < filter_limit] = 0
-            projection_field[projection_field >= filter_limit] = 255
+            # if proj_f_stack is None:
+            #     N_filter = 5
+            #     filter_below = 2
+            #     filter_limit = (filter_below * 255) / N_filter
+            #     proj_f_stack = np.zeros((N_filter, len(projection_field)))
+            #
+            # proj_f_stack = np.roll(proj_f_stack, 1, axis=0)
+            # proj_f_stack[-1, :] = projection_field
+            # projection_field = np.mean(proj_f_stack, axis=0)
+            # projection_field[projection_field < filter_limit] = 0
+            # projection_field[projection_field >= filter_limit] = 255
 
             o_projection_field = projection_field / 255
 
