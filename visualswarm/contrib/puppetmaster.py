@@ -9,6 +9,7 @@ FLIP_CAMERA=0 ROBOT_FOV=3.8 LOG_LEVEL=DEBUG SAVE_CNN_TRAINING_DATA=0 ROBOT_NAME=
 HOSTS = {'Robot1': '192.168.100.162',
          'Robot2': '192.168.100.179',
          'Robot3': '192.168.100.131',
-         'Robot4': '192.168.100.170'}
+         'Robot4': '192.168.100.170',
+         'Robot5': '192.168.100.181'}
 UNAME = 'pi'
 INSTALL_DIR = '/home/pi/VisualSwarm'
