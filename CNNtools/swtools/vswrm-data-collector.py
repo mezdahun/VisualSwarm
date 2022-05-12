@@ -78,6 +78,7 @@ try:
         picam = PiCamera()
         picam.resolution = RESOLUTION
         picam.framerate = FRAMERATE
+        picam.mode = 2
         logger.info(f'\n\t{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
                     f'\t{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {RESOLUTION} px\n'
                     f'\t{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {FRAMERATE} fps\n'
