@@ -40,7 +40,7 @@ def update_robots():
                            'pipenv install -d --skip-lock -e .',
                            pty=False)
             print(result.stdout)
-        except Excetion as e:
+        except Exception as e:
             logger.error(f'Error during updating robot: {c}')
             logger.error(f'Error: {e}')
 
