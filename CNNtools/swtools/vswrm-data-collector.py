@@ -97,7 +97,7 @@ try:
 
         # Wait a certain number of seconds to allow the camera time to warmup
         logger.info('--Waiting 8 seconds for PI-camera to warmup!')
-        time.sleep(8)
+        time.sleep(2)
         logger.info('--Start Video Stream')
 
 
