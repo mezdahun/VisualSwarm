@@ -59,6 +59,9 @@ parser.add_argument('-f', '--framerate', help='Framerate of the camera in [fps] 
 parser.add_argument('--flipcamera',
                     help='Flips the camera image vertically if set to 1.',
                     default=1)
+parser.add_argument('--sensor_mode',
+                    help='Sets the sensor mode between 1 and 7',
+                    default=None)
 
 args = parser.parse_args()
 
@@ -72,6 +75,8 @@ print(args.flipcamera)
 print(bool(args.flipcamera))
 FLIP_CAMERA = bool(int(args.flipcamera))
 print(FLIP_CAMERA)
+if args.sensor_mode is not None:
+    sensor_mode=int(args.sensor_mode)
 
 try:
     try:
