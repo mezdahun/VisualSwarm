@@ -529,53 +529,53 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     t1 = datetime.utcnow()
                     logger.info(f'preprocess time {(t1 - t0).total_seconds()}')
                     # Perform the actual detection by running the model with the image as input
-                    interpreter.set_tensor(input_details[0]['index'], input_data)
-                    interpreter.invoke()
-
-                    # Bounding box coordinates of detected objects
-                    boxes = interpreter.get_tensor(output_details[0]['index'])[0]
-                    # Class index of detected objects
-                    # classes = interpreter.get_tensor(output_details[1]['index'])[0]
-                    # Confidence of detected objects
-                    scores = interpreter.get_tensor(output_details[2]['index'])[0]
-
-                    # Dequantize if input and output is int quantized
-                    if INTQUANT:
-                        scale, zero_point = output_details[0]['quantization']
-                        boxes = scale * (boxes - zero_point)
-
-                        # scale, zero_point = output_details[1]['quantization']
-                        # classes = scale * (classes - zero_point)
-
-                        scale, zero_point = output_details[2]['quantization']
-                        scores = scale * (scores - zero_point)
-
-                    t2 = datetime.utcnow()
-                    delta = (t2 - t1).total_seconds()
-                    logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
+                    # interpreter.set_tensor(input_details[0]['index'], input_data)
+                    # interpreter.invoke()
+                    #
+                    # # Bounding box coordinates of detected objects
+                    # boxes = interpreter.get_tensor(output_details[0]['index'])[0]
+                    # # Class index of detected objects
+                    # # classes = interpreter.get_tensor(output_details[1]['index'])[0]
+                    # # Confidence of detected objects
+                    # scores = interpreter.get_tensor(output_details[2]['index'])[0]
+                    #
+                    # # Dequantize if input and output is int quantized
+                    # if INTQUANT:
+                    #     scale, zero_point = output_details[0]['quantization']
+                    #     boxes = scale * (boxes - zero_point)
+                    #
+                    #     # scale, zero_point = output_details[1]['quantization']
+                    #     # classes = scale * (classes - zero_point)
+                    #
+                    #     scale, zero_point = output_details[2]['quantization']
+                    #     scores = scale * (scores - zero_point)
+                    #
+                    # t2 = datetime.utcnow()
+                    # delta = (t2 - t1).total_seconds()
+                    # logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
 
                     blurred = np.zeros([img.shape[0], img.shape[1]])
 
-                    for i in range(len(boxes)):
-                        if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
-                            # if scores[i] == np.max(scores):
-                            # Get bounding box coordinates and draw box
-                            # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                            ymin = int(max(1, (boxes[i, 0] * imH)))
-                            xmin = int(max(1, (boxes[i, 1] * imW)))
-                            ymax = int(min(imH, (boxes[i, 2] * imH)))
-                            xmax = int(min(imW, (boxes[i, 3] * imW)))
-
-                            blurred[ymin:ymax, xmin:xmax] = 255
-                            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                            img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
-                                                0.5, (255, 0, 0), 2, cv2.LINE_AA)
-
-                    t3 = datetime.utcnow()
-                    logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
-
-                    # Forwarding result to VPF extraction
-                    logger.debug(f'Queue length{raw_vision_stream.qsize()}')
+                    # for i in range(len(boxes)):
+                    #     if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                    #         # if scores[i] == np.max(scores):
+                    #         # Get bounding box coordinates and draw box
+                    #         # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                    #         ymin = int(max(1, (boxes[i, 0] * imH)))
+                    #         xmin = int(max(1, (boxes[i, 1] * imW)))
+                    #         ymax = int(min(imH, (boxes[i, 2] * imH)))
+                    #         xmax = int(min(imW, (boxes[i, 3] * imW)))
+                    #
+                    #         blurred[ymin:ymax, xmin:xmax] = 255
+                    #         cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                    #         img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
+                    #                             0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                    #
+                    # t3 = datetime.utcnow()
+                    # logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
+                    #
+                    # # Forwarding result to VPF extraction
+                    # logger.debug(f'Queue length{raw_vision_stream.qsize()}')
                     high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
                     t4 = datetime.utcnow()
                     logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
