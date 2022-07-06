@@ -483,7 +483,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                              f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
 
                 # Generates a 3D RGB array and stores it in rawCapture
-                raw_capture = PiRGBArray(picam, size=(1000, 600)) #camera.RESOLUTION)
+                raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
                 # Wait a certain number of seconds to allow the camera time to warmup
                 logger.info('Waiting 8 secs for camera warmup!')
