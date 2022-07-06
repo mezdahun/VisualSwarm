@@ -92,7 +92,7 @@ def start_application(with_control=False):
     if vision.RECOGNITION_TYPE=="Color":
         vp_target = vprocess.high_level_vision
     elif vision.RECOGNITION_TYPE=="CNN":
-        vp_target = vprocess.high_level_vision_CNN_calib
+        vp_target = vprocess.high_level_vision_CNN
     high_level_vision_pool = [Process(target=vp_target,
                                       args=(raw_vision_stream,
                                             high_level_vision_stream,
