@@ -517,7 +517,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # unwarping image according to calibration maps
                     img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
 
-                    frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    frame_rgb = img.copy() #cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     frame_resized = cv2.resize(frame_rgb, (width, height))
                     input_data = np.expand_dims(frame_resized, 0).astype('float32')
 
@@ -586,7 +586,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
-                            cv2.imwrite(frame_path, img) # frame_rgb)
+                            cv2.imwrite(frame_path, frame_rgb)
                             CNN_TD_last_collect = capture_timestamp
 
                     # Forwarding result for visualization if requested
