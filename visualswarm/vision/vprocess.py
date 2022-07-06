@@ -514,7 +514,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     t0 = capture_timestamp
 
                     # unwarping image according to calibration maps
-                    img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+                    # img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
 
                     frame_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                     frame_resized = cv2.resize(frame_rgb, (width, height))
