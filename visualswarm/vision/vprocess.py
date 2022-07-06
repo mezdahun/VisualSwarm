@@ -577,8 +577,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # # Forwarding result to VPF extraction
                     # logger.debug(f'Queue length{raw_vision_stream.qsize()}')
                     high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
-                    t4 = datetime.utcnow()
-                    logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
+                    # t4 = datetime.utcnow()
+                    # logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
 
                     # Collecting training data for CNN fine tune if requested
                     if monitoring.SAVE_CNN_TRAINING_DATA:
@@ -596,8 +596,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     if env.EXIT_CONDITION:
                         break
 
-                    t5 = datetime.utcnow()
-                    logger.info(f'total vision_rate: {1 / (t5 - t0).total_seconds()}')
+                    # t5 = datetime.utcnow()
+                    # logger.info(f'total vision_rate: {1 / (t5 - t0).total_seconds()}')
 
                     frame_id += 1
             except KeyboardInterrupt:
