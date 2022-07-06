@@ -663,9 +663,9 @@ def visualizer(visualization_stream, target_config_stream=None):
 
                 (img, mask, frame_id) = visualization_stream.get()
 
-                if vision.USE_VPF_FISHEYE_CORRECTION:
-                    img = center_fisheye_circle(img, ROBOT_NAME)
-                    img = correct_fisheye_approx(img, ROBOT_NAME)
+                # if vision.USE_VPF_FISHEYE_CORRECTION:
+                #     img = center_fisheye_circle(img, ROBOT_NAME)
+                #     img = correct_fisheye_approx(img, ROBOT_NAME)
 
                 if vision.FIND_COLOR_INTERACTIVE:
                     if target_config_stream is not None:
@@ -705,7 +705,6 @@ def visualizer(visualization_stream, target_config_stream=None):
     except:
         if monitoring.SAVE_VISION_VIDEO:
             writer.release()
-
 
 def center_fisheye_circle(VPF, robot_name):
     """Centering fisheye projection circle on image according to lens specific offsets"""
