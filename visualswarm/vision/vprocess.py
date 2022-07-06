@@ -478,6 +478,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                 picam = PiCamera()
                 picam.resolution = camera.RESOLUTION
                 picam.framerate = camera.FRAMERATE
+                picam.sensor_mode = 4
                 logger.debug(f'\n{bcolors.OKBLUE}--Camera Params--{bcolors.ENDC}\n'
                              f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {camera.RESOLUTION} px\n'
                              f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {camera.FRAMERATE} fps')
