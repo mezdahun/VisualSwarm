@@ -498,6 +498,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     else:
                         img = frame.array
 
+                    logger.warning(img.shape)
+
                     # Clear the raw capture stream in preparation for the next frame
                     raw_capture.truncate(0)
 
