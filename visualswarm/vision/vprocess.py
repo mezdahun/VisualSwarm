@@ -405,7 +405,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     bcolors = logparams.BColors
 
     logger.info('Loading tensorflow model...')
-    CALIB_MAP = '/home/pi/VisualSwarm/CNNtools/data/cam_calib_maps/robot5_maps.npz'
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot5')
+    CALIB_MAP = f'/home/pi/VisualSwarm/CNNtools/data/cam_calib_maps/{ROBOT_NAME}_maps.npz'
     maps = np.load(CALIB_MAP)
     map1 = maps['map1']
     map2 = maps['map2']
