@@ -499,8 +499,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     else:
                         img = frame.array
 
-                    logger.warning(img.shape)
-
                     # Clear the raw capture stream in preparation for the next frame
                     raw_capture.truncate(0)
 
@@ -515,10 +513,15 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     t0 = capture_timestamp
 
                     # unwarping image according to calibration maps
-                    img = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+                    # we save the unwarped image
+                    frame_rgb = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+                    # but for current movement calculation we use still the legacy warped image
+                    frame_resized = cv2.resize(img, (width, height))
 
-                    frame_rgb = img.copy() #cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                    frame_resized = cv2.resize(frame_rgb, (width, height))
+                    # # if testing calibration use:
+                    # frame_rgb = img.copy()
+                    # frame_resized = cv2.resize(frame_rgb, (width, height))
+
                     input_data = np.expand_dims(frame_resized, 0).astype('float32')
 
                     # Normalize pixel values if using a floating model (i.e. if model is non-quantized)
