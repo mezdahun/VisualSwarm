@@ -557,9 +557,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
-                        print("Boxes: ", boxes)
-                        print("Classes: ", classes)
-                        print("Scores: ", scores)
+                        # print("Boxes: ", boxes)
+                        # print("Classes: ", classes)
+                        # print("Scores: ", scores)
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
