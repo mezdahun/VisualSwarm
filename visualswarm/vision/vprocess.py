@@ -454,6 +454,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     # Get model details
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
+    from pprint import pprint
+    pprint(output_details)
 
     height = input_details[0]['shape'][1]
     width = input_details[0]['shape'][2]
@@ -576,7 +578,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             xmax = int(min(imW, (boxes[i, 3] * imW)))
 
                             blurred[ymin:ymax, xmin:xmax] = 255
-                            cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                            cv2.rectangle(frame_rgb, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                             frame_rgb = cv2.putText(frame_rgb, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
                                                 0.5, (255, 0, 0), 2, cv2.LINE_AA)
 
