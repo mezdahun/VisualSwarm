@@ -548,13 +548,13 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # Dequantize if input and output is int quantized
                     if INTQUANT:
-                        scale, zero_point = output_details[0]['quantization']
+                        scale, zero_point = output_details[1]['quantization']
                         boxes = scale * (boxes - zero_point)
 
-                        scale, zero_point = output_details[1]['quantization']
+                        scale, zero_point = output_details[3]['quantization']
                         classes = scale * (classes - zero_point)
 
-                        scale, zero_point = output_details[2]['quantization']
+                        scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
                         print("Boxes: ", boxes)
