@@ -596,7 +596,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
-                            cv2.imwrite(frame_path, img)
+                            cv2.imwrite(frame_path, frame_rgb)
                             CNN_TD_last_collect = capture_timestamp
 
                     # Forwarding result for visualization if requested
