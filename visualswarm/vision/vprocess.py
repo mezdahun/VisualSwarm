@@ -415,7 +415,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     print(map2)
 
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'fixedlense_6thfloor_general.tflite'
+    GRAPH_NAME = 'camcalib_fullinteger_edgetpu.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
     INTQUANT = True
@@ -517,7 +517,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # we save the unwarped image
                     frame_rgb = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
                     # but for current movement calculation we use still the legacy warped image
-                    frame_resized = cv2.resize(img, (width, height))
+                    frame_resized = cv2.resize(frame_rgb, (width, height))
 
                     # # if testing calibration use:
                     # frame_rgb = img.copy()
@@ -590,7 +590,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
-                            cv2.imwrite(frame_path, frame_rgb)
+                            cv2.imwrite(frame_path, img)
                             CNN_TD_last_collect = capture_timestamp
 
                     # Forwarding result for visualization if requested
