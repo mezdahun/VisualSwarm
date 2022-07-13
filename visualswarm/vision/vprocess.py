@@ -828,7 +828,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             # projection_field[projection_field < filter_limit] = 0
             # projection_field[projection_field >= filter_limit] = 255
 
-            o_projection_field = projection_field / 255
+            projection_field = projection_field / 255
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
                 projection_field = center_fisheye_circle(o_projection_field, ROBOT_NAME)
