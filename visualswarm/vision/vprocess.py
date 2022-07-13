@@ -599,7 +599,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
-                        visualization_stream.put((img, blurred, frame_id))
+                        visualization_stream.put((frame_rgb, blurred, frame_id))
 
                     # To test infinite loops
                     if env.EXIT_CONDITION:
