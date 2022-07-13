@@ -428,7 +428,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
         else:
             from tflite_runtime.interpreter import load_delegate
 
-    min_conf_threshold = 0.025
+    min_conf_threshold = 0.01
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
@@ -577,7 +577,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                             blurred[ymin:ymax, xmin:xmax] = 255
                             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
-                            img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
+                            frame_rgb = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
                                                 0.5, (255, 0, 0), 2, cv2.LINE_AA)
 
                     t3 = datetime.utcnow()
