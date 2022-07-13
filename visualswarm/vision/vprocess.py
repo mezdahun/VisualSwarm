@@ -540,7 +540,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # Bounding box coordinates of detected objects
                     boxes = interpreter.get_tensor(output_details[0]['index'])[0]
                     # Class index of detected objects
-                    # classes = interpreter.get_tensor(output_details[1]['index'])[0]
+                    classes = interpreter.get_tensor(output_details[1]['index'])[0]
                     # Confidence of detected objects
                     scores = interpreter.get_tensor(output_details[2]['index'])[0]
 
