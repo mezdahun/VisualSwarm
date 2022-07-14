@@ -415,7 +415,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     print(map2)
 
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'camcalib_fullinteger_edgetpu.tflite'
+    GRAPH_NAME = 'camcalib_fullinteger_edgetpu_2classes.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
     INTQUANT = True
@@ -557,9 +557,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
-                        # print("Boxes: ", boxes)
-                        # print("Classes: ", classes)
-                        # print("Scores: ", scores)
+                        print("Boxes: ", boxes)
+                        print("Classes: ", classes)
+                        print("Scores: ", scores)
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
