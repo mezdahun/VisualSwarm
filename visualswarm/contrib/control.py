@@ -67,7 +67,7 @@ EMERGENCY_PROX_THRESHOLD_BACK = 750
 
 # angle to turn away from obstacle during obstacle avoidance.
 turn_angle_correction = 30
-desired_alignemnt_angle = 45  # for simulations use 30
+desired_alignemnt_angle = 25  # for simulations use 30
 OBSTACLE_TURN_ANGLE = desired_alignemnt_angle + turn_angle_correction
 
 # PENDULUM TRAP
