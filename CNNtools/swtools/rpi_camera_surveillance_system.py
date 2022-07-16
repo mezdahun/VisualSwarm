@@ -43,6 +43,14 @@ PAGE = """\
 
 frame = None
 
+import cv2
+import Image
+import threading
+from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
+from SocketServer import ThreadingMixIn
+import StringIO
+import time
+
 class StreamingHandler(server.BaseHTTPRequestHandler):
     global frame
     def do_GET(self):
@@ -66,15 +74,15 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
-                    # with output.condition:
-                    #     output.condition.wait()
-                    #     frame = output.frame
-                    self.wfile.write(b'--FRAME\r\n')
-                    self.send_header('Content-Type', 'image/jpeg')
-                    self.send_header('Content-Length', len(frame))
+                    jpg = Image.fromarray(frame)
+                    tmpFile = StringIO.StringIO()
+                    jpg.save(tmpFile, 'JPEG')
+                    self.wfile.write("--jpgboundary")
+                    self.send_header('Content-type', 'image/jpeg')
+                    self.send_header('Content-length', str(tmpFile.len))
                     self.end_headers()
-                    self.wfile.write(frame)
-                    self.wfile.write(b'\r\n')
+                    jpg.save(self.wfile, 'JPEG')
+                    time.sleep(0.05)
             except Exception as e:
                 logging.warning(
                     'Removed streaming client %s: %s',
@@ -100,7 +108,7 @@ picam.framerate = camera.FRAMERATE
 picam.sensor_mode = 4
 
 # Generates a 3D RGB array and stores it in rawCapture
-raw_capture = io.BytesIO() #PiRGBArray(picam, size=camera.RESOLUTION)
+raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
 # Wait a certain number of seconds to allow the camera time to warmup
 frame_id = 0
@@ -112,8 +120,7 @@ threading.Thread(target=server.serve_forever).start()
 for frame_raw in picam.capture_continuous(raw_capture,
                                       format=camera.CAPTURE_FORMAT,
                                       use_video_port=camera.USE_VIDEO_PORT):
-    raw_capture.truncate()
-    frame = raw_capture.getvalue()
+    frame = frame_raw.array
     # Clear the raw capture stream in preparation for the next frame
     raw_capture.truncate(0)
 
