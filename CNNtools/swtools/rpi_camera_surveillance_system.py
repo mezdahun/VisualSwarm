@@ -62,26 +62,24 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(content)
         elif self.path == '/stream.mjpg':
-            # self.send_response(200)
-            # self.send_header('Age', 0)
-            # self.send_header('Cache-Control', 'no-cache, private')
-            # self.send_header('Pragma', 'no-cache')
-            # self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
-            # self.end_headers()
             self.send_response(200)
-            self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=--jpgboundary')
+            self.send_header('Age', 0)
+            self.send_header('Cache-Control', 'no-cache, private')
+            self.send_header('Pragma', 'no-cache')
+            self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
             self.end_headers()
             # try:
             while True:
                 jpg = Image.fromarray(frame)
-                tmpFile = io.BytesIO()
-                jpg.save(tmpFile, 'JPEG')
-                # self.wfile.write("--jpgboundary")
-                self.send_header('Content-type', 'image/jpeg')
-                self.send_header('Content-length', str(tmpFile.len))
+                buf = io.StringIO()
+                jpg.save(buf, format='JPEG')
+                frame = buf.getvalue()
+                self.wfile.write(b'--FRAME\r\n')
+                self.send_header('Content-Type', 'image/jpeg')
+                self.send_header('Content-Length', len(frame))
                 self.end_headers()
-                jpg.save(self.wfile, 'JPEG')
-                time.sleep(0.05)
+                self.wfile.write(frame)
+                self.wfile.write(b'\r\n')
             # except Exception as e:
             #     logging.warning(
             #         'Removed streaming client %s: %s',
