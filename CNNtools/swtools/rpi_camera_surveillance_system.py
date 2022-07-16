@@ -48,8 +48,8 @@ import threading
 import time
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
-    global frame
     def do_GET(self):
+        global frame
         if self.path == '/':
             self.send_response(301)
             self.send_header('Location', '/index.html')
