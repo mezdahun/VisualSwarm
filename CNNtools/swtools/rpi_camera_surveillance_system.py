@@ -31,10 +31,6 @@ import threading
 import time
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
-    def __init__(self, frame_queue):
-        super().__init__()
-        self.frame_queue = frame_queue
-
     def do_GET(self):
         global frame
         if self.path == '/':
@@ -57,7 +53,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
-                    print(self.frame_queue)
                     jpg = Image.fromarray(frame.astype('uint8'))
                     print(jpg)
                     buf = io.BytesIO()
@@ -100,7 +95,8 @@ raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 frame_id = 0
 
 address = ('', 8000)
-server = StreamingServer(address, StreamingHandler('test'))
+server = StreamingServer(address, StreamingHandler)
+help(server)
 threading.Thread(target=server.serve_forever).start()
 
 for frame_raw in picam.capture_continuous(raw_capture,
