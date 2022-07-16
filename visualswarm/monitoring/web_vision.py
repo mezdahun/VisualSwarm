@@ -6,6 +6,7 @@ from http import server
 frame = None
 from PIL import Image
 import logging
+from visualswarm.contrib import logparams
 
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
