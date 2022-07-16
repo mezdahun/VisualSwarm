@@ -71,7 +71,8 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             # try:
             while True:
                 jpg = Image.fromarray(frame)
-                buf = io.StringIO()
+                print(jpg)
+                buf = io.BytesIO()
                 jpg.save(buf, format='JPEG')
                 frame = buf.getvalue()
                 self.wfile.write(b'--FRAME\r\n')
