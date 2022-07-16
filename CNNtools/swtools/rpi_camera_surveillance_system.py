@@ -70,7 +70,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             # try:
             while True:
-                jpg = Image.fromarray(frame)
+                jpg = Image.fromarray(frame.values)
                 print(jpg)
                 buf = io.BytesIO()
                 jpg.save(buf, format='JPEG')
