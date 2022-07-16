@@ -78,8 +78,8 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-    def __init__(self):
-        super(StreamingServer, self).__init__()
+    def __init__(self, x, y, z):
+        super(StreamingServer, self).__init__(x, y, z)
         self.queue = "test"
 
 
