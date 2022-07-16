@@ -68,23 +68,23 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_header('Pragma', 'no-cache')
             self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
             self.end_headers()
-            # try:
-            while True:
-                jpg = Image.fromarray(frame.astype('uint8'))
-                print(jpg)
-                buf = io.BytesIO()
-                jpg.save(buf, format='JPEG')
-                frame_n = buf.getvalue()
-                self.wfile.write(b'--FRAME\r\n')
-                self.send_header('Content-Type', 'image/jpeg')
-                self.send_header('Content-Length', len(frame_n))
-                self.end_headers()
-                self.wfile.write(frame_n)
-                self.wfile.write(b'\r\n')
-            # except Exception as e:
-            #     logging.warning(
-            #         'Removed streaming client %s: %s',
-            #         self.client_address, str(e))
+            try:
+                while True:
+                    jpg = Image.fromarray(frame.astype('uint8'))
+                    print(jpg)
+                    buf = io.BytesIO()
+                    jpg.save(buf, format='JPEG')
+                    frame_n = buf.getvalue()
+                    self.wfile.write(b'--FRAME\r\n')
+                    self.send_header('Content-Type', 'image/jpeg')
+                    self.send_header('Content-Length', len(frame_n))
+                    self.end_headers()
+                    self.wfile.write(frame_n)
+                    self.wfile.write(b'\r\n')
+            except Exception as e:
+                logging.warning(
+                    'Removed streaming client %s: %s',
+                    self.client_address, str(e))
         else:
             self.send_error(404)
             self.end_headers()
