@@ -71,7 +71,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     #     frame = output.frame
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
-                    # self.send_header('Content-Length', len(frame))
+                    self.send_header('Content-Length', len(frame))
                     self.end_headers()
                     self.wfile.write(frame)
                     self.wfile.write(b'\r\n')
@@ -100,7 +100,7 @@ picam.framerate = camera.FRAMERATE
 picam.sensor_mode = 4
 
 # Generates a 3D RGB array and stores it in rawCapture
-raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
+raw_capture = io.BytesIO() #PiRGBArray(picam, size=camera.RESOLUTION)
 
 # Wait a certain number of seconds to allow the camera time to warmup
 frame_id = 0
