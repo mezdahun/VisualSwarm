@@ -112,6 +112,7 @@ threading.Thread(target=server.serve_forever).start()
 for frame_raw in picam.capture_continuous(raw_capture,
                                       format=camera.CAPTURE_FORMAT,
                                       use_video_port=camera.USE_VIDEO_PORT):
+    raw_capture.truncate()
     frame = raw_capture.getvalue()
     # Clear the raw capture stream in preparation for the next frame
     raw_capture.truncate(0)
