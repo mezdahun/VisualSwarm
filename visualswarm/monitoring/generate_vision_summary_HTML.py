@@ -8,7 +8,7 @@ message = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Raspberry Pi - Surveillance Camera</title>
+<title>VSWRM - Vision Summary</title>
 </head>
 <body>
 
