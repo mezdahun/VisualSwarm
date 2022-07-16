@@ -45,7 +45,6 @@ frame = None
 
 from PIL import Image
 import threading
-import StringIO
 import time
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
@@ -72,7 +71,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             try:
                 while True:
                     jpg = Image.fromarray(frame)
-                    tmpFile = StringIO.StringIO()
+                    tmpFile = io.StringIO()
                     jpg.save(tmpFile, 'JPEG')
                     self.wfile.write("--jpgboundary")
                     self.send_header('Content-type', 'image/jpeg')
