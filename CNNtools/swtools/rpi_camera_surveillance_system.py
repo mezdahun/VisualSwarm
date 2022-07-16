@@ -74,10 +74,10 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
 
 
-def Class_Factory(video_queue):
+def Class_Factory(x, y, z, video_queue):
     class CustomStreamingHandler(StreamingHandler):
-        def __init__(self, *args, **kwargs):
-             super(CustomStreamingHandler, self).__init__(*args, **kwargs)
+        def __init__(self, x, y, z, video_queue):
+             super(CustomStreamingHandler, self).__init__(x, y, z)
              self.video_queue = video_queue
     return CustomStreamingHandler
 
@@ -103,7 +103,7 @@ raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 frame_id = 0
 
 address = ('', 8000)
-server = StreamingServer(address, lambda x, y, z: Class_Factory('test'))
+server = StreamingServer(address, lambda x, y, z: Class_Factory(x, y, z, 'test'))
 threading.Thread(target=server.serve_forever).start()
 
 for frame_raw in picam.capture_continuous(raw_capture,
