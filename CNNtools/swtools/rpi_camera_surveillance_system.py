@@ -53,6 +53,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
+                    print(self.video_queue)
                     jpg = Image.fromarray(frame.astype('uint8'))
                     print(jpg)
                     buf = io.BytesIO()
@@ -72,6 +73,13 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_error(404)
             self.end_headers()
 
+
+def Class_Factory(video_queue):
+    class CustomStreamingHandler(StreamingHandler):
+        def __init__(self, *args, **kwargs):
+             super(CustomStreamingHandler, self).__init__(*args, **kwargs)
+             self.video_queue = video_queue
+    return CustomStreamingHandler
 
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
@@ -95,7 +103,7 @@ raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 frame_id = 0
 
 address = ('', 8000)
-server = StreamingServer(address, StreamingHandler)
+server = StreamingServer(address, lambda: Class_Factory('test'))
 help(server)
 threading.Thread(target=server.serve_forever).start()
 
