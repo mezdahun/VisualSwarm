@@ -40,8 +40,10 @@ PAGE = """\
 #             self.buffer.seek(0)
 #         return self.buffer.write(buf)
 
+frame = None
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
+    global frame
     def do_GET(self):
         if self.path == '/':
             self.send_response(301)
@@ -109,6 +111,7 @@ server.serve_forever()
 for frame in picam.capture_continuous(raw_capture,
                                       format=camera.CAPTURE_FORMAT,
                                       use_video_port=camera.USE_VIDEO_PORT):
+    print(frame)
     # Clear the raw capture stream in preparation for the next frame
     raw_capture.truncate(0)
 
