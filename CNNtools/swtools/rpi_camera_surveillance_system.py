@@ -104,7 +104,6 @@ frame_id = 0
 
 address = ('', 8000)
 server = StreamingServer(address, lambda: Class_Factory('test'))
-help(server)
 threading.Thread(target=server.serve_forever).start()
 
 for frame_raw in picam.capture_continuous(raw_capture,
