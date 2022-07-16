@@ -23,12 +23,12 @@ PAGE = """\
 </html>
 """
 
-
 frame = None
 
 from PIL import Image
 import threading
 import time
+
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -53,7 +53,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
-                    print(self.video_queue)
+                    print(self.server.queue)
                     jpg = Image.fromarray(frame.astype('uint8'))
                     print(jpg)
                     buf = io.BytesIO()
@@ -74,16 +74,13 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
 
 
-def Class_Factory(x, y, z, video_queue):
-    class CustomStreamingHandler(StreamingHandler):
-        def __init__(self, x, y, z, video_queue):
-             super(CustomStreamingHandler, self).__init__(x, y, z)
-             self.video_queue = video_queue
-    return CustomStreamingHandler
-
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
+
+    def __init__(self):
+        super(StreamingServer, self).__init__()
+        self.queue = "test"
 
 
 from picamera import PiCamera
@@ -103,12 +100,12 @@ raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 frame_id = 0
 
 address = ('', 8000)
-server = StreamingServer(address, lambda x, y, z: Class_Factory(x, y, z, 'test'))
+server = StreamingServer(address, StreamingHandler)
 threading.Thread(target=server.serve_forever).start()
 
 for frame_raw in picam.capture_continuous(raw_capture,
-                                      format=camera.CAPTURE_FORMAT,
-                                      use_video_port=camera.USE_VIDEO_PORT):
+                                          format=camera.CAPTURE_FORMAT,
+                                          use_video_port=camera.USE_VIDEO_PORT):
     print('cap')
     frame = frame_raw.array
     print(frame.shape)
