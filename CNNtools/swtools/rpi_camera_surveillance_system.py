@@ -85,12 +85,10 @@
 #             self.end_headers()
 #
 #
-import threading
-
-
-class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
-    allow_reuse_address = True
-    daemon_threads = True
+#
+# class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
+#     allow_reuse_address = True
+#     daemon_threads = True
 #
 #
 # from picamera import PiCamera
@@ -136,6 +134,7 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 import io
 import socket
 import struct
+import threading
 import time
 import picamera
 
