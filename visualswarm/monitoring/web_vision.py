@@ -7,6 +7,7 @@ frame = None
 from PIL import Image
 import logging
 from visualswarm.contrib import logparams
+import cv2
 
 logger = logging.getLogger('visualswarm.app')
 bcolors = logparams.BColors
@@ -49,7 +50,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     item = self.server.queue.get()
                     if item is not None:
                         frame = item[0]
-                    jpg = Image.fromarray(frame.astype('uint8'))
+                    jpg = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).astype('uint8'))
                     print(jpg)
                     buf = io.BytesIO()
                     jpg.save(buf, format='JPEG')
