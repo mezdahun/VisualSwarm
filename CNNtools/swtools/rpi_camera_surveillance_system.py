@@ -43,11 +43,8 @@ PAGE = """\
 
 frame = None
 
-import cv2
 from PIL import Image
 import threading
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-from SocketServer import ThreadingMixIn
 import StringIO
 import time
 
