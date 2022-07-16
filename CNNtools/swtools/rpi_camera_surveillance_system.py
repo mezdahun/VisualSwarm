@@ -73,7 +73,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     self.send_header('Content-Type', 'image/jpeg')
                     # self.send_header('Content-Length', len(frame))
                     self.end_headers()
-                    self.wfile.write(frame.array.asbytes())
+                    self.wfile.write(frame.array.tobytes())
                     self.wfile.write(b'\r\n')
             except Exception as e:
                 logging.warning(
