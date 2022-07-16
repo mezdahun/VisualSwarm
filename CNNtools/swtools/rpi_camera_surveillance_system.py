@@ -109,11 +109,11 @@ address = ('', 8000)
 server = StreamingServer(address, StreamingHandler)
 threading.Thread(target=server.serve_forever).start()
 
-for frame in picam.capture_continuous(raw_capture,
+for frame_raw in picam.capture_continuous(raw_capture,
                                       format=camera.CAPTURE_FORMAT,
                                       use_video_port=camera.USE_VIDEO_PORT):
-    frame = frame.array
-    print(frame)
+    frame = frame_raw.array
+    print('cap')
     # Clear the raw capture stream in preparation for the next frame
     raw_capture.truncate(0)
 
