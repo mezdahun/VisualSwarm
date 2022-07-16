@@ -71,21 +71,21 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'multipart/x-mixed-replace; boundary=--jpgboundary')
             self.end_headers()
-            try:
-                while True:
-                    jpg = Image.fromarray(frame)
-                    tmpFile = io.StringIO()
-                    jpg.save(tmpFile, 'JPEG')
-                    self.wfile.write("--jpgboundary")
-                    self.send_header('Content-type', 'image/jpeg')
-                    self.send_header('Content-length', str(tmpFile.len))
-                    self.end_headers()
-                    jpg.save(self.wfile, 'JPEG')
-                    time.sleep(0.05)
-            except Exception as e:
-                logging.warning(
-                    'Removed streaming client %s: %s',
-                    self.client_address, str(e))
+            # try:
+            while True:
+                jpg = Image.fromarray(frame)
+                tmpFile = io.StringIO()
+                jpg.save(tmpFile, 'JPEG')
+                self.wfile.write("--jpgboundary")
+                self.send_header('Content-type', 'image/jpeg')
+                self.send_header('Content-length', str(tmpFile.len))
+                self.end_headers()
+                jpg.save(self.wfile, 'JPEG')
+                time.sleep(0.05)
+            # except Exception as e:
+            #     logging.warning(
+            #         'Removed streaming client %s: %s',
+            #         self.client_address, str(e))
         else:
             self.send_error(404)
             self.end_headers()
