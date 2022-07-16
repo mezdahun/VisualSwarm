@@ -577,10 +577,12 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             ymax = int(min(imH, (boxes[i, 2] * imH)))
                             xmax = int(min(imW, (boxes[i, 3] * imW)))
 
-                            if classes[i] == 0:
+                            if np.rint(classes[i]) == 0:
                                 box_color = (10, 255, 0)
-                            elif classes[i] == 1:
+                            elif np.rint(classes[i]) == 1:
                                 box_color = (255, 10, 0)
+                            else:
+                                box_color = (0, 10, 255)
 
                             blurred[ymin:ymax, xmin:xmax] = 255
                             cv2.rectangle(frame_rgb, (xmin, ymin), (xmax, ymax), box_color, 2)
