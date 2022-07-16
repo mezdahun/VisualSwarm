@@ -415,7 +415,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     print(map2)
 
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'camcalib_fullinteger_edgetpu_2classes.tflite'
+    GRAPH_NAME = 'camcalib_fullinteger_edgetpu_2classes_v2.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
     INTQUANT = True
@@ -577,8 +577,13 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             ymax = int(min(imH, (boxes[i, 2] * imH)))
                             xmax = int(min(imW, (boxes[i, 3] * imW)))
 
+                            if classes[i] == 0:
+                                box_color = (10, 255, 0)
+                            elif classes[i] == 1:
+                                box_color = (255, 10, 0)
+
                             blurred[ymin:ymax, xmin:xmax] = 255
-                            cv2.rectangle(frame_rgb, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
+                            cv2.rectangle(frame_rgb, (xmin, ymin), (xmax, ymax), box_color, 2)
                             frame_rgb = cv2.putText(frame_rgb, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
                                                 0.5, (255, 0, 0), 2, cv2.LINE_AA)
 
