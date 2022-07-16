@@ -73,7 +73,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     self.send_header('Content-Type', 'image/jpeg')
                     # self.send_header('Content-Length', len(frame))
                     self.end_headers()
-                    self.wfile.write(frame.array.tobytes('A'))
+                    self.wfile.write(frame)
                     self.wfile.write(b'\r\n')
             except Exception as e:
                 logging.warning(
@@ -112,7 +112,7 @@ threading.Thread(target=server.serve_forever).start()
 for frame_raw in picam.capture_continuous(raw_capture,
                                       format=camera.CAPTURE_FORMAT,
                                       use_video_port=camera.USE_VIDEO_PORT):
-    frame = frame_raw
+    frame = raw_capture.get_value()
     # Clear the raw capture stream in preparation for the next frame
     raw_capture.truncate(0)
 
