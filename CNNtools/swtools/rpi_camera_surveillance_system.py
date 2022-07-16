@@ -27,9 +27,9 @@ PAGE = """\
 
 
 class StreamingOutput(object):
-    def __init__(self, buffer):
+    def __init__(self):
         self.frame = None
-        self.buffer = buffer
+        self.buffer = io.BytesIO()
         self.condition = Condition()
 
     def write(self, buf):
@@ -101,8 +101,9 @@ picam.framerate = camera.FRAMERATE
 picam.sensor_mode = 4
 
 # Generates a 3D RGB array and stores it in rawCapture
-raw_capture = io.BytesIO() # PiRGBArray(picam, size=camera.RESOLUTION)
-output = StreamingOutput(raw_capture)
+
+output = StreamingOutput()
+# raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
 # Wait a certain number of seconds to allow the camera time to warmup
 frame_id = 0
@@ -111,14 +112,14 @@ address = ('', 8000)
 server = StreamingServer(address, StreamingHandler)
 threading.Thread(target=server.serve_forever).start()
 
-for frame_raw in picam.capture_continuous(raw_capture,
+for frame_raw in picam.capture_continuous(output.buffer,
                                       format=camera.CAPTURE_FORMAT,
                                       use_video_port=camera.USE_VIDEO_PORT):
     print('cap')
     # Clear the raw capture stream in preparation for the next frame
-    raw_capture.truncate(0)
-    # raw_capture.seek(0)
-    # raw_capture.truncate()
+    # raw_capture.truncate(0)
+    output.buffer.seek(0)
+    output.buffer.truncate()
 
 # with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
 #     output = StreamingOutput()
