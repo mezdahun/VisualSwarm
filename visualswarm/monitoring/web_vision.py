@@ -51,7 +51,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     if item is not None:
                         frame = item[0]
                     jpg = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).astype('uint8'))
-                    print(jpg)
                     buf = io.BytesIO()
                     jpg.save(buf, format='JPEG')
                     frame_n = buf.getvalue()
