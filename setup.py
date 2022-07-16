@@ -29,7 +29,8 @@ setup(
         'google-cloud-logging==2.5.0',
         'google-api-python-client==2.11.0',
         'google-auth-httplib2==0.1.0',
-        'google-auth-oauthlib==0.4.4'
+        'google-auth-oauthlib==0.4.4',
+        'Pillow'
     ],
     extras_require={
         'test': [
