@@ -103,7 +103,7 @@ raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 frame_id = 0
 
 address = ('', 8000)
-server = StreamingServer(address, lambda x: Class_Factory('test'))
+server = StreamingServer(address, lambda x, y, z: Class_Factory('test'))
 threading.Thread(target=server.serve_forever).start()
 
 for frame_raw in picam.capture_continuous(raw_capture,
