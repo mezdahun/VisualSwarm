@@ -24,22 +24,22 @@ PAGE = """\
 """
 
 
-class StreamingOutput(object):
-    def __init__(self):
-        self.frame = None
-        self.buffer = io.BytesIO()
-        self.condition = Condition()
-
-    def write(self, buf):
-        if buf.startswith(b'\xff\xd8'):
-            # New frame, copy the existing buffer's content and notify all
-            # clients it's available
-            self.buffer.truncate()
-            with self.condition:
-                self.frame = self.buffer.getvalue()
-                self.condition.notify_all()
-            self.buffer.seek(0)
-        return self.buffer.write(buf)
+# class StreamingOutput(object):
+#     def __init__(self):
+#         self.frame = None
+#         self.buffer = io.BytesIO()
+#         self.condition = Condition()
+#
+#     def write(self, buf):
+#         if buf.startswith(b'\xff\xd8'):
+#             # New frame, copy the existing buffer's content and notify all
+#             # clients it's available
+#             self.buffer.truncate()
+#             with self.condition:
+#                 self.frame = self.buffer.getvalue()
+#                 self.condition.notify_all()
+#             self.buffer.seek(0)
+#         return self.buffer.write(buf)
 
 frame = None
 
@@ -66,10 +66,10 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
-                    with output.condition:
-                        output.condition.wait()
-                        frame = output.frame
-                        help(frame)
+                    # with output.condition:
+                    #     output.condition.wait()
+                    #     frame = output.frame
+                    #     help(frame)
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
                     self.send_header('Content-Length', len(frame))
@@ -90,42 +90,42 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     daemon_threads = True
 
 
-# from picamera import PiCamera
-# from picamera.array import PiRGBArray
-# from picamera.exc import PiCameraValueError
-# import cv2
-#
-# picam = PiCamera()
-# picam.resolution = camera.RESOLUTION
-# picam.framerate = camera.FRAMERATE
-# picam.sensor_mode = 4
-#
-# # Generates a 3D RGB array and stores it in rawCapture
-# raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
-#
-# # Wait a certain number of seconds to allow the camera time to warmup
-# frame_id = 0
-#
-# address = ('', 8000)
-# server = StreamingServer(address, StreamingHandler)
-# threading.Thread(target=server.serve_forever).start()
-#
-# for frame_raw in picam.capture_continuous(raw_capture,
-#                                       format=camera.CAPTURE_FORMAT,
-#                                       use_video_port=camera.USE_VIDEO_PORT):
-#     frame = frame_raw.array
-#     print('cap')
-#     # Clear the raw capture stream in preparation for the next frame
-#     raw_capture.truncate(0)
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+from picamera.exc import PiCameraValueError
+import cv2
 
-with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
-    output = StreamingOutput()
-    # Uncomment the next line to change your Pi's Camera rotation (in degrees)
-    # camera.rotation = 90
-    camera.start_recording(output, format='mjpeg')
-    try:
-        address = ('', 8000)
-        server = StreamingServer(address, StreamingHandler)
-        server.serve_forever()
-    finally:
-        camera.stop_recording()
+picam = PiCamera()
+picam.resolution = camera.RESOLUTION
+picam.framerate = camera.FRAMERATE
+picam.sensor_mode = 4
+
+# Generates a 3D RGB array and stores it in rawCapture
+raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
+
+# Wait a certain number of seconds to allow the camera time to warmup
+frame_id = 0
+
+address = ('', 8000)
+server = StreamingServer(address, StreamingHandler)
+threading.Thread(target=server.serve_forever).start()
+
+for frame_raw in picam.capture_continuous(raw_capture,
+                                      format=camera.CAPTURE_FORMAT,
+                                      use_video_port=camera.USE_VIDEO_PORT):
+    frame = frame_raw.array.tobytes()
+    print('cap')
+    # Clear the raw capture stream in preparation for the next frame
+    raw_capture.truncate(0)
+
+# with picamera.PiCamera(resolution='640x480', framerate=24) as camera:
+#     output = StreamingOutput()
+#     # Uncomment the next line to change your Pi's Camera rotation (in degrees)
+#     # camera.rotation = 90
+#     camera.start_recording(output, format='mjpeg')
+#     try:
+#         address = ('', 8000)
+#         server = StreamingServer(address, StreamingHandler)
+#         server.serve_forever()
+#     finally:
+#         camera.stop_recording()
