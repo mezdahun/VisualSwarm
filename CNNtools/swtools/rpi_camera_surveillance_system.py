@@ -1,6 +1,7 @@
 # Web streaming example
 # Source code from the official PiCamera package
 # http://picamera.readthedocs.io/en/latest/recipes2.html#web-streaming
+import threading
 
 from visualswarm.contrib import camera
 import io
@@ -106,7 +107,7 @@ frame_id = 0
 
 address = ('', 8000)
 server = StreamingServer(address, StreamingHandler)
-server.serve_forever()
+threading.Thread(target=server.serve_forever).start()
 
 for frame in picam.capture_continuous(raw_capture,
                                       format=camera.CAPTURE_FORMAT,
