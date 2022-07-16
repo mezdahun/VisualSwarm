@@ -44,7 +44,7 @@ PAGE = """\
 frame = None
 
 import cv2
-import Image
+from PIL import Image
 import threading
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from SocketServer import ThreadingMixIn
