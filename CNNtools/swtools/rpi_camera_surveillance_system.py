@@ -177,6 +177,8 @@ def start_streaming_server():
 
 threading.Thread(target=start_streaming_server).start()
 
+time.sleep(5)
+
 client_socket = socket.socket()
 client_socket.connect(('0.0.0.0', 8000))
 connection = client_socket.makefile('wb')
