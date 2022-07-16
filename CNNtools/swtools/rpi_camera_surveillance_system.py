@@ -74,7 +74,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             # try:
             while True:
                 jpg = Image.fromarray(frame)
-                tmpFile = io.StringIO()
+                tmpFile = io.BytesIO()
                 jpg.save(tmpFile, 'JPEG')
                 self.wfile.write("--jpgboundary")
                 self.send_header('Content-type', 'image/jpeg')
