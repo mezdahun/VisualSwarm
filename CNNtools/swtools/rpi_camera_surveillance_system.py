@@ -70,16 +70,16 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             # try:
             while True:
-                jpg = Image.fromarray(frame.values)
+                jpg = Image.fromarray(frame.astype('uint8'))
                 print(jpg)
                 buf = io.BytesIO()
                 jpg.save(buf, format='JPEG')
-                frame = buf.getvalue()
+                frame_n = buf.getvalue()
                 self.wfile.write(b'--FRAME\r\n')
                 self.send_header('Content-Type', 'image/jpeg')
-                self.send_header('Content-Length', len(frame))
+                self.send_header('Content-Length', len(frame_n))
                 self.end_headers()
-                self.wfile.write(frame)
+                self.wfile.write(frame_n)
                 self.wfile.write(b'\r\n')
             # except Exception as e:
             #     logging.warning(
