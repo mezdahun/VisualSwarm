@@ -116,7 +116,8 @@ def start_webcam_only(port=8000):
     server.queue = raw_vision_stream
 
     # Starting server on different thread
-    t = threading.Thread(target=server.serve_forever).start()
+    t = threading.Thread(target=server.serve_forever)
+    t.start()
 
     # Wait a certain number of seconds to allow the camera time to warmup
     frame_id = 0
