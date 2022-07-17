@@ -125,5 +125,5 @@ def start_webcam_only(port=8000):
                                           use_video_port=webcamera.USE_VIDEO_PORT):
         img = frame.array
         raw_capture.truncate(0)
-        logger.info(raw_vision_stream.qsize())
+        print(raw_vision_stream.qsize())
         raw_vision_stream.put((img, None, frame_id, None))
