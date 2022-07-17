@@ -1,5 +1,5 @@
 import webbrowser
-from visualswarm.contrib.puppetmaster import HOSTS
+from visualswarm.contrib.puppetmaster import HOSTS, WEBCAM_HOSTS
 
 filename = 'vision_summary.html'
 f = open(filename, 'w')
@@ -12,35 +12,46 @@ message = f"""
 </head>
 <body>
 
-
 <table class="tg" height="100%" width="100%">
-<thead>
-  <tr height="50%">
-    <th class="tg-0lax">
-        <center><h1>Robot1</h1></center>
-        <center><img src="http://{HOSTS["Robot1"]}:8000/stream.mjpg" width="100%" height="100%"></center>
+  <tr height="100%">
+    <th class="tg-0lax" width="100%">
+        <center><h1>Robot Vision</h1></center>        
+        <table class="tg" height="100%" width="100%">
+            <thead>
+              <tr height="50%">
+                <th class="tg-0lax">
+                    <center><h1>Robot1</h1></center>
+                    <center><img src="http://{HOSTS["Robot1"]}:8000/stream.mjpg" width="100%" height="100%"></center>
+                </th>
+                <th class="tg-0lax">
+                        <center><h1>Robot2</h1></center>
+                        <center><img src="http://{HOSTS["Robot2"]}:8000/stream.mjpg" width="100%" height="100%"></center></th>
+                <th class="tg-0lax">
+                        <center><h1>Robot3</h1></center>
+                        <center><img src="http://{HOSTS["Robot3"]}:8000/stream.mjpg" width="100%" height="100%"></center></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr height="50%">
+                <td class="tg-0lax">
+                        <center><h1>Robot4</h1></center>
+                        <center><img src="http://{HOSTS["Robot4"]}:8000/stream.mjpg" width="100%" height="100%"></center>
+                </td>
+                <td class="tg-0lax">
+                        <center><h1>Robot5</h1></center>
+                        <center><img src="http://{HOSTS["Robot5"]}:8000/stream.mjpg" width="100%" height="100%"></center>
+                </td>
+                <td class="tg-0lax"></td>
+              </tr>
+            </tbody>
+            </table>
+        
     </th>
-    <th class="tg-0lax">
-            <center><h1>Robot2</h1></center>
-            <center><img src="http://{HOSTS["Robot2"]}:8000/stream.mjpg" width="100%" height="100%"></center></th>
-    <th class="tg-0lax">
-            <center><h1>Robot3</h1></center>
-            <center><img src="http://{HOSTS["Robot3"]}:8000/stream.mjpg" width="100%" height="100%"></center></th>
+    <th class="tg-0lax" width="100%">
+        <center><h1>Birdseye View</h1></center>
+        <center><img src="http://{WEBCAM_HOSTS["Birdseye Cam"]}:8000/stream.mjpg" width="600" height="600"></center>
+    </th>
   </tr>
-</thead>
-<tbody>
-  <tr height="50%">
-    <td class="tg-0lax">
-            <center><h1>Robot4</h1></center>
-            <center><img src="http://{HOSTS["Robot4"]}:8000/stream.mjpg" width="100%" height="100%"></center>
-    </td>
-    <td class="tg-0lax">
-            <center><h1>Robot5</h1></center>
-            <center><img src="http://{HOSTS["Robot5"]}:8000/stream.mjpg" width="100%" height="100%"></center>
-    </td>
-    <td class="tg-0lax"></td>
-  </tr>
-</tbody>
 </table>
 </body>
 </html>
