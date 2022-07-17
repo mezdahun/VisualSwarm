@@ -125,6 +125,6 @@ def start_webcam_only(port=8000):
                                           use_video_port=webcamera.USE_VIDEO_PORT):
         img = frame.array
         raw_capture.truncate(0)
-        if raw_vision_stream.qsize() > 2:
+        if raw_vision_stream.qsize() > 20:
             raw_vision_stream.get_nowait()
         raw_vision_stream.put((img, None, frame_id, None))
