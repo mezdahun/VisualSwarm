@@ -4,7 +4,7 @@
 """
 import os
 # Basic parameters
-RESOLUTION = (1000, 500)
+RESOLUTION = (2028, 1128)
 FRAMERATE = 20
 CAPTURE_FORMAT = "bgr"
 USE_VIDEO_PORT = True
