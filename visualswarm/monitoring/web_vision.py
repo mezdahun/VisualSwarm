@@ -83,3 +83,46 @@ def web_vision_process(vision_queue, port=8000):
     server = StreamingServer(address, StreamingHandler)
     server.queue = vision_queue
     server.serve_forever()
+
+def start_webcam_only(port=8000):
+    """In case visualswarm is installed on a raspberry pi used for observation camera, running this function
+    will start a camera and publishes on a simple webserver that can be fetched form the same network."""
+    from multiprocessing import Queue
+    import logging
+    from picamera import PiCamera
+    from picamera.array import PiRGBArray
+    from picamera.exc import PiCameraValueError
+    from visualswarm.contrib import webcamera, logparams
+    import threading
+
+    raw_vision_stream = Queue()
+    logger = logging.getLogger('visualswarm.app')
+    bcolors = logparams.BColors
+
+    logger.info('Starting observation process (webcam)...')
+
+    picam = PiCamera()
+    picam.resolution = webcamera.RESOLUTION
+    picam.framerate = webcamera.FRAMERATE
+    logger.debug(f'\n{bcolors.OKBLUE}--WebCamera Params--{bcolors.ENDC}\n'
+                 f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {webcamera.RESOLUTION} px\n'
+                 f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {webcamera.FRAMERATE} fps')
+
+    # Generates a 3D RGB array and stores it in rawCapture
+    raw_capture = PiRGBArray(picam, size=webcamera.RESOLUTION)
+
+    address = ('', port)
+    server = StreamingServer(address, StreamingHandler)
+    server.queue = raw_vision_stream
+
+    # Starting server on different thread
+
+    # Wait a certain number of seconds to allow the camera time to warmup
+    frame_id = 0
+    for frame in picam.capture_continuous(raw_capture,
+                                          format=webcamera.CAPTURE_FORMAT,
+                                          use_video_port=webcamera.USE_VIDEO_PORT):
+        img = frame.array
+        raw_capture.truncate(0)
+        raw_vision_stream.get_nowait()
+        raw_vision_stream.put((img, None, frame_id, None))

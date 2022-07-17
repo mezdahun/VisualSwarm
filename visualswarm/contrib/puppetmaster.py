@@ -11,5 +11,8 @@ HOSTS = {'Robot1': '192.168.100.162',
          'Robot3': '192.168.100.131',
          'Robot4': '192.168.100.170',
          'Robot5': '192.168.100.181'}
+WEBCAM_HOSTS = {
+    'Birdseye Cam': '192.168.100.131'
+}
 UNAME = 'pi'
 INSTALL_DIR = '/home/pi/VisualSwarm'
