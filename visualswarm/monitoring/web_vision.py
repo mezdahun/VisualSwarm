@@ -122,15 +122,31 @@ def start_webcam_only(port=8000):
     # Wait a certain number of seconds to allow the camera time to warmup
     frame_id = 0
     try:
-        for frame in picam.capture_continuous(raw_capture,
-                                              format=webcamera.CAPTURE_FORMAT,
-                                              use_video_port=webcamera.USE_VIDEO_PORT):
-            img = frame.array
-            raw_capture.truncate(0)
-            if raw_vision_stream.qsize() > 20:
-                raw_vision_stream.get()
-            raw_vision_stream.put((img, None, frame_id, None))
-            print(raw_vision_stream.qsize())
+        try:
+            try:
+                for frame in picam.capture_continuous(raw_capture,
+                                                      format=webcamera.CAPTURE_FORMAT,
+                                                      use_video_port=webcamera.USE_VIDEO_PORT):
+                    img = frame.array
+                    raw_capture.truncate(0)
+                    if raw_vision_stream.qsize() > 20:
+                        raw_vision_stream.get()
+                    raw_vision_stream.put((img, None, frame_id, None))
+                    print(raw_vision_stream.qsize())
+
+            except KeyboardInterrupt:
+                try:
+                    print("Shutting down server!")
+                    t.join()
+                    print("ByeBye!")
+                except PiCameraValueError:
+                    print("Shutting down server!")
+                    t.join()
+                    print("ByeBye!")
+        except PiCameraValueError:
+            print("Shutting down server!")
+            t.join()
+            print("ByeBye!")
     except KeyboardInterrupt:
         print("Shutting down server!")
         t.join()
