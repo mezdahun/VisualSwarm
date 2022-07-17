@@ -87,7 +87,7 @@ def web_vision_process(vision_queue, port=8000):
 def start_webcam_only(port=8000):
     """In case visualswarm is installed on a raspberry pi used for observation camera, running this function
     will start a camera and publishes on a simple webserver that can be fetched form the same network."""
-    from multiprocessing import Queue
+    from multiprocessing import Queue, Process
     import logging
     from picamera import PiCamera
     from picamera.array import PiRGBArray
@@ -116,7 +116,7 @@ def start_webcam_only(port=8000):
     server.queue = raw_vision_stream
 
     # Starting server on different thread
-    t = threading.Thread(target=server.serve_forever)
+    t = Process(target=server.serve_forever)
     t.start()
 
     # Wait a certain number of seconds to allow the camera time to warmup
@@ -137,17 +137,17 @@ def start_webcam_only(port=8000):
             except KeyboardInterrupt:
                 try:
                     print("Shutting down server!")
-                    t.join()
+                    t.terminate()
                     print("ByeBye!")
                 except PiCameraValueError:
                     print("Shutting down server!")
-                    t.join()
+                    t.terminate()
                     print("ByeBye!")
         except PiCameraValueError:
             print("Shutting down server!")
-            t.join()
+            t.terminate()
             print("ByeBye!")
     except KeyboardInterrupt:
         print("Shutting down server!")
-        t.join()
+        t.terminate()
         print("ByeBye!")
