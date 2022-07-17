@@ -104,7 +104,7 @@ def start_webcam_only(port=8000):
     picam = PiCamera()
     picam.resolution = webcamera.RESOLUTION
     picam.framerate = webcamera.FRAMERATE
-    picam.sensor_mode = 4
+    picam.sensor_mode = 5
     logger.debug(f'\n{bcolors.OKBLUE}--WebCamera Params--{bcolors.ENDC}\n'
                  f'{bcolors.OKBLUE}Resolution:{bcolors.ENDC} {webcamera.RESOLUTION} px\n'
                  f'{bcolors.OKBLUE}Frame Rate:{bcolors.ENDC} {webcamera.FRAMERATE} fps')
