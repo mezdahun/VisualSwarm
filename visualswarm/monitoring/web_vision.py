@@ -47,10 +47,11 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
+                    print(f"Queue size: {self.server.queue}")
                     item = self.server.queue.get()
                     if item is not None:
                         frame = item[0]
-                    jpg = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB).astype('uint8'))
+                    jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), (160, 100)).astype('uint8'))
                     buf = io.BytesIO()
                     jpg.save(buf, format='JPEG')
                     frame_n = buf.getvalue()
