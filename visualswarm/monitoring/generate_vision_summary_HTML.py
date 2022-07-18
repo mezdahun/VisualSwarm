@@ -18,7 +18,6 @@ function AutoChangeImage(){{
     document.getElementById('image_r3').src="http://{HOSTS["Robot3"]}:8000/"+ Date.now() +"stream.mjpg";
     document.getElementById('image_r4').src="http://{HOSTS["Robot4"]}:8000/"+ Date.now() +"stream.mjpg";
     document.getElementById('image_r5').src="http://{HOSTS["Robot5"]}:8000/"+ Date.now() +"stream.mjpg";
-    document.getElementById('image_c1').src="http://{WEBCAM_HOSTS["Birdseye Cam"]}:8000/stream.mjpg";
 }}
 window.onload = function () {{
     setInterval(AutoChangeImage, 1000);
@@ -61,7 +60,7 @@ window.onload = function () {{
     </th>
     <th class="tg-0lax" width="100%">
         <center><h1>Birdseye View</h1></center>
-        <center><img  id="image_c1" src="" width="600" height="600"></center>
+        <center><img  id="image_c1" src="http://{WEBCAM_HOSTS["Birdseye Cam"]}:8000/stream.mjpg" width="600" height="600"></center>
     </th>
   </tr>
 </table>
