@@ -47,7 +47,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
-                    print(f"Queue size: {self.server.queue}")
+                    print(f"Queue size: {self.server.queue.qsize()}")
                     item = self.server.queue.get()
                     if item is not None:
                         frame = item[0]
