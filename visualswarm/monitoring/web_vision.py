@@ -3,7 +3,6 @@ import io
 import logging
 import socketserver
 from http import server
-frame = None
 from PIL import Image
 import logging
 from visualswarm.contrib import logparams
@@ -54,7 +53,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     if self.server.queue.qsize() < 3:
                         if item is not None:
                             frame = item[0]
-                        jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), (160, 100)).astype('uint8'))
+                        jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), self.server.des_res).astype('uint8'))
                         buf = io.BytesIO()
                         jpg.save(buf, format='JPEG')
                         frame_n = buf.getvalue()
@@ -80,12 +79,15 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     def __init__(self, x, y):
         super(StreamingServer, self).__init__(x, y)
         self.queue = None
+        self.des_res = None
 
 def web_vision_process(vision_queue, port=8000):
     """Sending vision queue to simple mjpg server, on selected port"""
+    from visualswarm.contrib import camera
     address = ('', port)
     server = StreamingServer(address, StreamingHandler)
     server.queue = vision_queue
+    server.des_res = camera.RESOLUTION
     server.serve_forever()
 
 def start_webcam_only(port=8000):
@@ -118,6 +120,7 @@ def start_webcam_only(port=8000):
 
     address = ('', port)
     server = StreamingServer(address, StreamingHandler)
+    server.des_res = webcamera.RESOLUTION
     server.queue = raw_vision_stream
 
     # Starting server on different thread
