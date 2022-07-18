@@ -55,7 +55,6 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     buf = io.BytesIO()
                     jpg.save(buf, format='JPEG')
                     frame_n = buf.getvalue()
-                    help(self.wfile)
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
                     self.send_header('Content-Length', len(frame_n))
