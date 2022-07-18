@@ -490,8 +490,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                 raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
                 # Wait a certain number of seconds to allow the camera time to warmup
-                logger.info('Waiting 8 secs for camera warmup!')
-                time.sleep(8)
+                logger.info('Waiting 4 secs for camera warmup!')
+                time.sleep(4)
                 frame_id = 0
                 for frame in picam.capture_continuous(raw_capture,
                                                       format=camera.CAPTURE_FORMAT,
@@ -557,9 +557,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
-                        print("Boxes: ", boxes)
-                        print("Classes: ", classes)
-                        print("Scores: ", scores)
+                        # print("Boxes: ", boxes)
+                        # print("Classes: ", classes)
+                        # print("Scores: ", scores)
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
@@ -586,8 +586,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                             blurred[ymin:ymax, xmin:xmax] = 255
                             cv2.rectangle(frame_rgb, (xmin, ymin), (xmax, ymax), box_color, 2)
-                            frame_rgb = cv2.putText(frame_rgb, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
-                                                0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                            # frame_rgb = cv2.putText(frame_rgb, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
+                            #                     0.5, (255, 0, 0), 2, cv2.LINE_AA)
 
                     t3 = datetime.utcnow()
                     logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
