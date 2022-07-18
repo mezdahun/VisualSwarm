@@ -57,7 +57,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     frame_n = buf.getvalue()
                     self.wfile.write(b'--FRAME\r\n')
                     self.send_header('Content-Type', 'image/jpeg')
-                    self.send_header('Content-Length', len(frame_n))
+                    # self.send_header('Content-Length', len(frame_n))
                     self.end_headers()
                     self.wfile.write(frame_n)
                     self.wfile.write(b'\r\n')
