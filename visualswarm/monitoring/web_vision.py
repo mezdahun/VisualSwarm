@@ -20,7 +20,6 @@ PAGE = """\
 <body>
 <center><h1>Raspberry Pi - Surveillance Camera</h1></center>
 <center><img src="stream.mjpg" width="640" height="480"></center>
-<meta http-equiv="refresh" content="1">
 </body>
 </html>
 """
@@ -51,20 +50,20 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 while True:
-                    print(f"Queue size: {self.server.queue.qsize()}")
                     item = self.server.queue.get()
-                    if item is not None:
-                        frame = item[0]
-                    jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), (160, 100)).astype('uint8'))
-                    buf = io.BytesIO()
-                    jpg.save(buf, format='JPEG')
-                    frame_n = buf.getvalue()
-                    self.wfile.write(b'--FRAME\r\n')
-                    self.send_header('Content-Type', 'image/jpeg')
-                    # self.send_header('Content-Length', len(frame_n))
-                    self.end_headers()
-                    self.wfile.write(frame_n)
-                    self.wfile.write(b'\r\n')
+                    if self.server.queue.qsize() < 3:
+                        if item is not None:
+                            frame = item[0]
+                        jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), (160, 100)).astype('uint8'))
+                        buf = io.BytesIO()
+                        jpg.save(buf, format='JPEG')
+                        frame_n = buf.getvalue()
+                        self.wfile.write(b'--FRAME\r\n')
+                        self.send_header('Content-Type', 'image/jpeg')
+                        # self.send_header('Content-Length', len(frame_n))
+                        self.end_headers()
+                        self.wfile.write(frame_n)
+                        self.wfile.write(b'\r\n')
             except Exception as e:
                 logging.warning(
                     'Removed streaming client %s: %s',
