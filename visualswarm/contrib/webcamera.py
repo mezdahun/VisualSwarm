@@ -4,8 +4,8 @@
 """
 import os
 # Basic parameters
-RESOLUTION = (500, 500)
-FRAMERATE = 30
+RESOLUTION = (1000, 1000)
+FRAMERATE = 15
 CAPTURE_FORMAT = "bgr"
 USE_VIDEO_PORT = True
 FLIP_CAMERA = bool(int(os.getenv('FLIP_CAMERA', '0')))
