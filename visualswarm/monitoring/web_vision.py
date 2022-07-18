@@ -41,7 +41,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
         elif self.path.endswith('.mjpg'):
             self.send_response(200)
             self.send_header('Age', 0)
-            self.send_header('Cache-Control', 'max-age=0, must-revalidate')
+            self.send_header('Cache-Control', 'no-store')
             self.send_header('Pragma', 'no-cache')
             self.send_header('Pragma-directive', 'no-cache')
             self.send_header('Cache-directive', 'no-cache')
