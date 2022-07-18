@@ -50,7 +50,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             try:
                 while True:
                     item = self.server.queue.get()
-                    if self.server.queue.qsize() < 3:
+                    if self.server.queue.qsize() < self.server.max_qsize:
                         if item is not None:
                             frame = item[0]
                         jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), self.server.des_res).astype('uint8'))
@@ -88,6 +88,7 @@ def web_vision_process(vision_queue, port=8000):
     server = StreamingServer(address, StreamingHandler)
     server.queue = vision_queue
     server.des_res = camera.RESOLUTION
+    server.max_qsize = 3
     server.serve_forever()
 
 def start_webcam_only(port=8000):
@@ -123,6 +124,7 @@ def start_webcam_only(port=8000):
     server = StreamingServer(address, StreamingHandler)
     server.des_res = webcamera.RESOLUTION
     server.queue = raw_vision_stream
+    server.max_qsize = 20
 
     # Starting server on different thread
     t = Process(target=server.serve_forever)
