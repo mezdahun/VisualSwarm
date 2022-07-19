@@ -517,7 +517,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # unwarping image according to calibration maps
                     # we save the unwarped image
-                    frame_rgb = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+                    frame_rgb_raw = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+                    frame_rgb = frame_rgb_raw.copy()
                     # but for current movement calculation we use still the legacy warped image
                     frame_resized = cv2.resize(frame_rgb, (width, height))
 
@@ -603,7 +604,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
-                            cv2.imwrite(frame_path, img)
+                            cv2.imwrite(frame_path, frame_rgb_raw)
                             CNN_TD_last_collect = capture_timestamp
 
                     # Forwarding result for visualization if requested
