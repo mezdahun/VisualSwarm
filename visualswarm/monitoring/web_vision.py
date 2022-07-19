@@ -58,11 +58,11 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                                 # if there is a prepared mask we also show the projection field
                                 projection_field = np.max(item[1], axis=0) / 255
                                 # edge of detection boxes will influence blob edges for us, we need to corrigate
-                                if projection_field[0] == 0 and projection_field[1]:
-                                    projection_field[0] = 1
-                                if projection_field[-1] == 0 and projection_field[-2] == 1:
-                                    projection_field[-1] = 1
-                                mask = (projection_field == 1)
+                                if projection_field[0] == 0 and projection_field[1] > 0:
+                                    projection_field[0] = projection_field[1]
+                                if projection_field[-1] == 0 and projection_field[-2] > 0:
+                                    projection_field[-1] = projection_field[-2]
+                                mask = (projection_field > 0)
                                 frame[0:10, mask] = 255
                         jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), self.server.des_res).astype('uint8'))
                         buf = io.BytesIO()

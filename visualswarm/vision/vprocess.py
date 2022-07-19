@@ -839,10 +839,10 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             projection_field = projection_field / 255
 
             # edge of detection boxes will influence blob edges for us, we need to corrigate
-            if projection_field[0]==0 and projection_field[1]:
-                projection_field[0] = 1
-            if projection_field[-1]==0 and projection_field[-2]==1:
-                projection_field[-1] = 1
+            if projection_field[0]==0 and projection_field[1]>0:
+                projection_field[0] = projection_field[1]
+            if projection_field[-1]==0 and projection_field[-2]>0:
+                projection_field[-1] = projection_field[-2]
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
                 projection_field = center_fisheye_circle(projection_field, ROBOT_NAME)
