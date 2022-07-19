@@ -415,7 +415,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     print(map2)
 
     MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'camcalib_fullinteger_edgetpu.tflite'
+    GRAPH_NAME = 'camcalib_fullinteger_edgetpu_2classes_v3.tflite.tflite'
     LABELMAP_NAME = 'labelmap.txt'
     USE_TPU = True
     INTQUANT = True
@@ -845,7 +845,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
                 projection_field[-1] = 1
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
-                projection_field = center_fisheye_circle(o_projection_field, ROBOT_NAME)
+                projection_field = center_fisheye_circle(projection_field, ROBOT_NAME)
                 projection_field = correct_fisheye_approx(projection_field, ROBOT_NAME)
                 # cv2.imshow("VPF", np.vstack((o_projection_field, projection_field)))
                 # cv2.waitKey(1)
