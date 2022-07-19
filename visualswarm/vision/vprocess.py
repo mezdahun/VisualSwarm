@@ -580,7 +580,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                             if np.rint(classes[i]) == 0:
                                 box_color = (10, 255, 0)
-                                blurred[ymin:ymax, xmin:xmax] = 2.25 * 255
+                                blurred[ymin:ymax, xmin:xmax] = 2.75 * 255
                             elif np.rint(classes[i]) == 1:
                                 box_color = (255, 10, 0)
                                 blurred[ymin:ymax, xmin:xmax] = 255
