@@ -88,7 +88,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 dpsi = dpsi_before + 0.5
             elif delta_dpsi < -0.5:
                 dpsi = dpsi_before - 0.5
-            print(f"DPSI: {dpsi}")
+            # print(f"DPSI: {dpsi}")
 
             ## TODO: this is temporary smooth reandom walk
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
