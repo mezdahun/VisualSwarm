@@ -57,7 +57,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                             if item[1] is not None:
                                 projection_field = np.max(item[1], axis=0) / 255
                                 mask = (projection_field == 1)
-                                frame[mask, -10::] = 255
+                                frame[-10::, mask] = 255
                         jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), self.server.des_res).astype('uint8'))
                         buf = io.BytesIO()
                         jpg.save(buf, format='JPEG')
