@@ -57,7 +57,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
         ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
         EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
-        statevar_timestamp =  datetime.datetime.now().strftime("%d-%m-%y-%H%M%S")
+        statevar_timestamp = datetime.datetime.now().strftime("%d-%m-%y-%H%M%S")
         statevars_fpath = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{statevar_timestamp}_{EXP_ID}_{ROBOT_NAME}_statevars.npy')
         if monitoring.ENABLE_CLOUD_STORAGE:
             os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
@@ -78,6 +78,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
+            print(f"DPSI: {dpsi}")
 
             ## TODO: this is temporary smooth reandom walk
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
