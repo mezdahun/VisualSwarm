@@ -596,7 +596,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             if is_persistent or env.EXIT_CONDITION:
                                 # Behavior according to Romanczuk and Bastien 2020
                                 # distributing desired forward speed according to dpsi
-                                [v_left, v_right] = distribute_overall_speed(v, dpsi)
+                                [v_left, v_right] = distribute_overall_speed(min(v, 500), dpsi)
 
                                 # hard limit motor velocities but keep their ratio for desired movement
                                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
