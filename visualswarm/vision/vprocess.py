@@ -567,8 +567,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
 
                     # extending mask on sides so that we can extend it
-                    blurred = np.zeros([img.shape[0] + 2*img.shape[1], img.shape[1]])
-                    print(f"IMG SHAPE: {img.shape}")
+                    blurred = np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
+                    print(f"BLURRED SHAPE: {blurred.shape}")
 
                     for i in range(len(boxes)):
                         if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
@@ -577,10 +577,10 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
                             # ymin = int(max(1, (boxes[i, 0] * imH)))
                             # ymax = int(min(imH, (boxes[i, 2] * imH)))
-                            ymin = int(max(0, (boxes[i, 0] * imH))) + img.shape[1]
-                            ymax = int(min(imH, (boxes[i, 2] * imH))) + img.shape[1]
-                            xmin = int(max(0, (boxes[i, 1] * imW)))
-                            xmax = int(min(imW, (boxes[i, 3] * imW)))
+                            ymin = int(max(0, (boxes[i, 0] * imH)))
+                            ymax = int(min(imH, (boxes[i, 2] * imH)))
+                            xmin = int(max(0, (boxes[i, 1] * imW))) + img.shape[0]
+                            xmax = int(min(imW, (boxes[i, 3] * imW))) + img.shape[0]
 
                             b_width = xmax - xmin
                             b_height = ymax - ymin
