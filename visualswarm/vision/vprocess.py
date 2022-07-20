@@ -593,9 +593,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                             # extending partial detections on perphery assuming cubic bodies
                             # if the height is large, the object is closer
-                            if xmin_orig == 0:
+                            if xmin_orig <= 2:
                                 xmin_extend -= (b_height - b_width)
-                            elif xmax_orig == imW:
+                            elif xmax_orig >= imW-2:
                                 xmax_extend += (b_height - b_width)
 
                             if np.rint(classes[i]) == 0:
