@@ -569,7 +569,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # extending mask on sides so that we can extend it
                     # shape[0] 200
                     # shape[1] 320
-                    blurred = np.zeros([img.shape[0], img.shape[1]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
+                    blurred = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
                     print(f"BLURRED SHAPE: {blurred.shape}")
 
                     for i in range(len(boxes)):
