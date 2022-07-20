@@ -79,15 +79,16 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             t_now = datetime.datetime.now()
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
+            ## TODO: Find out what causes weird turning behavior
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-            if dpsi_before is None:
-                dpsi_before = dpsi
-            delta_dpsi = dpsi - dpsi_before
-            if delta_dpsi > 0.5:
-                dpsi = dpsi_before + 0.5
-            elif delta_dpsi < -0.5:
-                dpsi = dpsi_before - 0.5
+            # if dpsi_before is None:
+            #     dpsi_before = dpsi
+            # delta_dpsi = dpsi - dpsi_before
+            # if delta_dpsi > 0.5:
+            #     dpsi = dpsi_before + 0.5
+            # elif delta_dpsi < -0.5:
+            #     dpsi = dpsi_before - 0.5
             # print(f"DPSI: {dpsi}")
 
             ## TODO: this is temporary smooth reandom walk
