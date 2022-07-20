@@ -566,17 +566,30 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     delta = (t2 - t1).total_seconds()
                     logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
 
-                    blurred = np.zeros([img.shape[0], img.shape[1]])
+                    # extending mask on sides so that we can extend it
+                    blurred = np.zeros([img.shape[0] + 2*img.shape[1], img.shape[1]])
 
                     for i in range(len(boxes)):
                         if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
                             # if scores[i] == np.max(scores):
                             # Get bounding box coordinates and draw box
                             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                            ymin = int(max(1, (boxes[i, 0] * imH)))
-                            xmin = int(max(1, (boxes[i, 1] * imW)))
-                            ymax = int(min(imH, (boxes[i, 2] * imH)))
+                            # ymin = int(max(1, (boxes[i, 0] * imH)))
+                            # ymax = int(min(imH, (boxes[i, 2] * imH)))
+                            ymin = int(max(0, (boxes[i, 0] * imH))) + img.shape[1]
+                            ymax = int(min(imH, (boxes[i, 2] * imH))) + img.shape[1]
+                            xmin = int(max(0, (boxes[i, 1] * imW)))
                             xmax = int(min(imW, (boxes[i, 3] * imW)))
+
+                            b_width = xmax - xmin
+                            b_height = ymax - ymin
+
+                            # extending partial detections on perphery assuming cubic bodies
+                            # if the height is large, the object is closer
+                            if xmin == imH:
+                                xmin -= (b_height - b_width)
+                            elif ymax == imW + imH:
+                                xmin += (b_height - b_width)
 
                             if np.rint(classes[i]) == 0:
                                 box_color = (10, 255, 0)
@@ -609,7 +622,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
-                        visualization_stream.put((frame_rgb, blurred, frame_id))
+                        visualization_stream.put((frame_rgb, cv2.resize(blurred, (img.shape[0], img.shape[1]), frame_id))
 
                     # To test infinite loops
                     if env.EXIT_CONDITION:
