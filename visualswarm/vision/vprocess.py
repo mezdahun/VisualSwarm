@@ -567,7 +567,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
 
                     # extending mask on sides so that we can extend it
-                    blurred = np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
+                    blurred = np.zeros([img.shape[1], img.shape[0]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
                     print(f"BLURRED SHAPE: {blurred.shape}")
 
                     for i in range(len(boxes)):
