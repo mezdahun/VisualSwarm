@@ -570,7 +570,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # shape[0] 200
                     # shape[1] 320
                     blurred = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
-                    print(f"BLURRED SHAPE: {blurred.shape}")
 
                     for i in range(len(boxes)):
                         if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
@@ -581,28 +580,30 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # ymax = int(min(imH, (boxes[i, 2] * imH)))
                             ymin = int(max(0, (boxes[i, 0] * imH)))
                             ymax = int(min(imH, (boxes[i, 2] * imH)))
-                            xmin = int(max(0, (boxes[i, 1] * imW))) + img.shape[0]
-                            xmax = int(min(imW, (boxes[i, 3] * imW))) + img.shape[0]
+                            xmin_orig = int(max(0, (boxes[i, 1] * imW)))
+                            xmax_orig = int(min(imW, (boxes[i, 3] * imW)))
+                            xmin_extend = xmin_orig + img.shape[0]
+                            xmax_extend = xmax_orig + img.shape[0]
 
-                            b_width = xmax - xmin
+                            b_width = xmax_orig - xmin_orig
                             b_height = ymax - ymin
 
                             # extending partial detections on perphery assuming cubic bodies
                             # if the height is large, the object is closer
-                            if xmin == imH:
-                                xmin -= (b_height - b_width)
-                            elif ymax == imW + imH:
-                                xmin += (b_height - b_width)
+                            if xmin_extend == imH:
+                                xmin_extend -= (b_height - b_width)
+                            elif xmax_extend == imW + imH:
+                                xmax_extend += (b_height - b_width)
 
                             if np.rint(classes[i]) == 0:
                                 box_color = (10, 255, 0)
-                                blurred[ymin:ymax, xmin:xmax] = 2.75 * 255
+                                blurred[ymin:ymax, xmin_extend:xmax_extend] = 2.75 * 255
                             elif np.rint(classes[i]) == 1:
                                 box_color = (255, 10, 0)
-                                blurred[ymin:ymax, xmin:xmax] = 255
+                                blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
                             else:
                                 box_color = (0, 10, 255)
-                            cv2.rectangle(frame_rgb, (xmin, ymin), (xmax, ymax), box_color, 2)
+                            cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
                             # frame_rgb = cv2.putText(frame_rgb, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
                             #                     0.5, (255, 0, 0), 2, cv2.LINE_AA)
 
