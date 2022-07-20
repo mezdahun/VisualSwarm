@@ -853,7 +853,6 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             # projection_field[projection_field >= filter_limit] = 255
 
             projection_field = projection_field / 255
-            print(f"PROJ FIELD LEN: ", len(projection_field))
 
             # edge of detection boxes will influence blob edges for us, we need to corrigate
             if projection_field[0]==0 and projection_field[1]>0:
