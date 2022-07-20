@@ -83,9 +83,9 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
             if dpsi > 0:
-                dpsi = np.min(dpsi, 1)
+                dpsi = min(dpsi, 1)
             elif dpsi < 0:
-                dpsi = np.max(dpsi, -1)
+                dpsi = max(dpsi, -1)
             # if dpsi_before is None:
             #     dpsi_before = dpsi
             # delta_dpsi = dpsi - dpsi_before
