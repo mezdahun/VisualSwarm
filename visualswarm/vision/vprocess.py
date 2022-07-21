@@ -429,6 +429,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
             from tflite_runtime.interpreter import load_delegate
 
     min_conf_threshold = 0.2
+    min_conf_threshold_shoes = 0.6
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
@@ -598,9 +599,11 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             elif xmax_orig >= imW-2:
                                 xmax_extend += (b_height - b_width)
 
+                            # shoes
                             if np.rint(classes[i]) == 0:
-                                box_color = (10, 255, 0)
-                                blurred[ymin:ymax, xmin_extend:xmax_extend] = 2.75 * 255
+                                if scores[i] > min_conf_threshold_shoes:
+                                    box_color = (10, 255, 0)
+                                    blurred[ymin:ymax, xmin_extend:xmax_extend] = 2.75 * 255
                             elif np.rint(classes[i]) == 1:
                                 box_color = (255, 10, 0)
                                 blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
