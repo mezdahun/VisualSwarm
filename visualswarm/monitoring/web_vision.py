@@ -72,7 +72,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                                 mask_c1 = (projection_field_class_1 > 0)
                                 frame[0:5, mask_c1] = 255
                                 mask_c0 = (projection_field_class_0 > 0)
-                                frame[0:10, mask_c1] = 127
+                                frame[0:10, mask_c0] = 127
 
                         jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), self.server.des_res).astype('uint8'))
                         buf = io.BytesIO()
