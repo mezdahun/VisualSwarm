@@ -568,7 +568,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         # sorting
                         scores = sorted(scores)
                         classes = [x for _, x in sorted(zip(scores, classes))]
-                        boxes = [x for _, x in sorted(zip(scores, boxes_list))]
+                        boxes = [x for _, x in sorted(zip(scores, boxes_list), key=lambda pair: pair[0])]
 
                         print("Boxes: ", boxes)
                         print("Classes: ", classes)
