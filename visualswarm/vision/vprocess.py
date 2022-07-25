@@ -430,6 +430,10 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
     min_conf_threshold = 0.2
     min_conf_threshold_shoes = 0.3
+    # shoe
+    max_num_detection_class_0 = 2
+    # robot
+    max_num_detection_class_1 = 3
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
@@ -559,17 +563,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
-                        print("Boxespre: ", boxes)
-                        boxes_list = [boxes[i, :] for i in range(boxes.shape[0])]
-                        print("Boxesprelist: ", boxes)
-                        print("Classesopre: ", classes)
-                        print("Scorespre: ", scores)
-
-                        # sorting
-                        scores = sorted(scores)
-                        classes = [x for _, x in sorted(zip(scores, classes))]
-                        boxes = [x for _, x in sorted(zip(scores, boxes_list), key=lambda pair: pair[0])]
-
                         print("Boxes: ", boxes)
                         print("Classes: ", classes)
                         print("Scores: ", scores)
@@ -583,6 +576,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # shape[1] 320
                     blurred = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
 
+
+                    num_detections_class_0 = 0
+                    num_detections_class_1 = 0
                     for i in range(len(boxes)):
                         if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
                             # if scores[i] == np.max(scores):
@@ -613,11 +609,15 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # shoes
                             if np.rint(classes[i]) == 0:
                                 if scores[i] > min_conf_threshold_shoes:
-                                    box_color = (10, 255, 0)
-                                    blurred[ymin:ymax, xmin_extend:xmax_extend] = 2.75 * 255
+                                    if num_detections_class_0 < max_num_detection_class_0:
+                                        box_color = (10, 255, 0)
+                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = 2.75 * 255
+                                        num_detections_class_0 += 1
                             elif np.rint(classes[i]) == 1:
-                                box_color = (255, 10, 0)
-                                blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                if num_detections_class_1 < max_num_detection_class_1:
+                                    box_color = (255, 10, 0)
+                                    blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                    num_detections_class_1 += 1
                             else:
                                 box_color = (0, 10, 255)
                             cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
