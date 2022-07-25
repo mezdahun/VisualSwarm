@@ -10,7 +10,7 @@ SAVE_PROJECTION_FIELD = False
 DOWNGRADING_FACTOR = 10
 
 # Parameters regarding monitoring of flocking parameters of the main algorithm
-SAVE_CONTROL_PARAMS = True
+SAVE_CONTROL_PARAMS = False
 
 # Enabling cloud logging via Google Cloud
 ENABLE_CLOUD_LOGGING = bool(int(os.getenv('ENABLE_CLOUD_LOGGING', '0')))
