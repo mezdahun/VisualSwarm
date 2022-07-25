@@ -98,14 +98,14 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             v = float(v)
 
             if dpsi > 0:
-                dpsi = min(dpsi, 1)
+                dpsi = min(dpsi, 0.5)
             elif dpsi < 0:
-                dpsi = max(dpsi, -1)
+                dpsi = max(dpsi, 0.5)
 
             if dpsic2 > 0:
-                dpsic2 = min(dpsic2, 1)
+                dpsic2 = min(dpsic2, 0.5)
             elif dpsic2 < 0:
-                dpsic2 = max(dpsic2, -1)
+                dpsic2 = max(dpsic2, 0.5)
 
             dpsi = float(dpsi)
             dpsic2 = float(dpsic2)
