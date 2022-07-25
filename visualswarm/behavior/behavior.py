@@ -82,7 +82,9 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             ## TODO: Find out what causes weird turning behavior
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-            dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2)
+            dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
+                                                                V0=80, ALP0=200, BET=10,
+                                                                ALP1=0.0014, BET1=0.0014)
 
             if v > 0:
                 v = min(v, 300)

@@ -56,14 +56,24 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                             frame = item[0]
                             if item[1] is not None:
                                 # if there is a prepared mask we also show the projection field
-                                projection_field = np.max(item[1], axis=0) / 255
+                                projection_field_class_1 = np.max(item[1], axis=0) / 255
+                                projection_field_class_0 = np.min(item[1], axis=0) / -255
+
                                 # edge of detection boxes will influence blob edges for us, we need to corrigate
-                                if projection_field[0] == 0 and projection_field[1] > 0:
-                                    projection_field[0] = projection_field[1]
-                                if projection_field[-1] == 0 and projection_field[-2] > 0:
-                                    projection_field[-1] = projection_field[-2]
-                                mask = (projection_field > 0)
-                                frame[0:10, mask] = 255
+                                if projection_field_class_0[0] == 0 and np.abs(projection_field_class_0[1]) > 0:
+                                    projection_field_class_0[0] = projection_field_class_0[1]
+                                if projection_field_class_0[-1] == 0 and np.abs(projection_field_class_0[-2]) > 0:
+                                    projection_field_class_0[-1] = projection_field_class_0[-2]
+                                if projection_field_class_1[0] == 0 and np.abs(projection_field_class_1[1]) > 0:
+                                    projection_field_class_1[0] = projection_field_class_1[1]
+                                if projection_field_class_1[-1] == 0 and np.abs(projection_field_class_1[-2]) > 0:
+                                    projection_field_class_1[-1] = projection_field_class_1[-2]
+
+                                mask_c1 = (projection_field_class_1 > 0)
+                                frame[0:5, mask_c1] = 255
+                                mask_c0 = (projection_field_class_0 > 0)
+                                frame[0:10, mask_c1] = 127
+
                         jpg = Image.fromarray(cv2.resize(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), self.server.des_res).astype('uint8'))
                         buf = io.BytesIO()
                         jpg.save(buf, format='JPEG')

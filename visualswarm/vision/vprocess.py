@@ -880,7 +880,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             # projection_field_class_1[projection_field_class_1 >= filter_limit] = 255
 
             projection_field_class_1 = projection_field_class_1 / 255
-            projection_field_class_0 = projection_field_class_0 / 255
+            projection_field_class_0 = projection_field_class_0 / -255
 
             # edge of detection boxes will influence blob edges for us, we need to corrigate
             if projection_field_class_0[0] == 0 and np.abs(projection_field_class_0[1]) > 0:
