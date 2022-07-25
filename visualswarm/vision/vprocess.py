@@ -613,16 +613,25 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                         box_color = (10, 255, 0)
                                         blurred[ymin:ymax, xmin_extend:xmax_extend] = 2.75 * 255
                                         num_detections_class_0 += 1
+                                        cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                                        frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                                                cv2.FONT_HERSHEY_SIMPLEX,
+                                                                0.5, (255, 0, 0), 1, cv2.LINE_AA)
                             elif np.rint(classes[i]) == 1:
                                 if num_detections_class_1 < max_num_detection_class_1:
                                     box_color = (255, 10, 0)
                                     blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
                                     num_detections_class_1 += 1
+                                    cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                                    frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                                            cv2.FONT_HERSHEY_SIMPLEX,
+                                                            0.5, (255, 0, 0), 1, cv2.LINE_AA)
                             else:
                                 box_color = (0, 10, 255)
-                            cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                            frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i]*100)}', (xmin_orig, ymin), cv2.FONT_HERSHEY_SIMPLEX,
-                                                0.5, (255, 0, 0), 1, cv2.LINE_AA)
+                                cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                                frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                                        cv2.FONT_HERSHEY_SIMPLEX,
+                                                        0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
                     t3 = datetime.utcnow()
                     logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
