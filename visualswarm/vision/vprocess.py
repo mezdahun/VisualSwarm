@@ -560,13 +560,15 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scores = scale * (scores - zero_point)
 
                         print("Boxespre: ", boxes)
+                        boxes_list = [boxes[i, :] for i in range(boxes.shape[0])]
+                        print("Boxesprelist: ", boxes)
                         print("Classesopre: ", classes)
                         print("Scorespre: ", scores)
 
                         # sorting
                         scores = sorted(scores)
                         classes = [x for _, x in sorted(zip(scores, classes))]
-                        boxes = [x for _, x in sorted(zip(scores, boxes))]
+                        boxes = [x for _, x in sorted(zip(scores, boxes_list))]
 
                         print("Boxes: ", boxes)
                         print("Classes: ", classes)
