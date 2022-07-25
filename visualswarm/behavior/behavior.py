@@ -136,7 +136,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 add_psi = 0.1
 
             if is_initialized:
-                v += (dv + 2 * dvc2) * dt
+                v += (dv + dvc2) * dt
                 dpsi
             else:
                 is_initialized = True
