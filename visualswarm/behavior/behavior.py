@@ -51,7 +51,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         # start_behave = t_prev
         # prev_sign = 0
 
-        (projection_field, capture_timestamp, _) = VPF_stream.get()
+        (projection_field, capture_timestamp, projection_field_c2) = VPF_stream.get()
         phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
                           len(projection_field))
 
@@ -69,7 +69,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         dpsi_before = None
 
         while True:
-            (projection_field, capture_timestamp, _) = VPF_stream.get()
+            (projection_field, capture_timestamp, projection_field_c2) = VPF_stream.get()
 
             if np.mean(projection_field) == 0 and control.EXP_MOVE_TYPE != 'NoExploration':
                 movement_mode = "EXPLORE"
@@ -82,6 +82,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             ## TODO: Find out what causes weird turning behavior
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
+            dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2)
 
             if v > 0:
                 v = min(v, 300)
