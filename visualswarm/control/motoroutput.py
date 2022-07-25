@@ -602,7 +602,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
                                         np.abs(v_right) > control.MAX_MOTOR_SPEED:
                                     logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
-                                    [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
+                                    #[v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
                                 # sending motor values to robot
                                 if not simulation.ENABLE_SIMULATION:
