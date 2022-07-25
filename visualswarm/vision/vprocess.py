@@ -864,37 +864,43 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             # logger.info(high_level_vision_stream.qsize())
             cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
-            projection_field = np.max(cropped_image, axis=0)
+            projection_field_class_1 = np.max(cropped_image, axis=0)
+            projection_field_class_0 = np.min(cropped_image, axis=0)
 
             # if proj_f_stack is None:
             #     N_filter = 5
             #     filter_below = 4
             #     filter_limit = (filter_below * 255) / N_filter
-            #     proj_f_stack = np.zeros((N_filter, len(projection_field)))
+            #     proj_f_stack = np.zeros((N_filter, len(projection_field_class_1)))
             #
             # proj_f_stack = np.roll(proj_f_stack, 1, axis=0)
-            # proj_f_stack[-1, :] = projection_field
-            # projection_field = np.mean(proj_f_stack, axis=0)
-            # projection_field[projection_field < filter_limit] = 0
-            # projection_field[projection_field >= filter_limit] = 255
+            # proj_f_stack[-1, :] = projection_field_class_1
+            # projection_field_class_1 = np.mean(proj_f_stack, axis=0)
+            # projection_field_class_1[projection_field_class_1 < filter_limit] = 0
+            # projection_field_class_1[projection_field_class_1 >= filter_limit] = 255
 
-            projection_field = projection_field / 255
+            projection_field_class_1 = projection_field_class_1 / 255
+            projection_field_class_0 = projection_field_class_0 / 255
 
             # edge of detection boxes will influence blob edges for us, we need to corrigate
-            if projection_field[0]==0 and projection_field[1]>0:
-                projection_field[0] = projection_field[1]
-            if projection_field[-1]==0 and projection_field[-2]>0:
-                projection_field[-1] = projection_field[-2]
+            if projection_field_class_0[0] == 0 and np.abs(projection_field_class_0[1]) > 0:
+                projection_field_class_0[0] = projection_field_class_0[1]
+            if projection_field_class_0[-1] == 0 and np.abs(projection_field_class_0[-2]) > 0:
+                projection_field_class_0[-1] = projection_field_class_0[-2]
+            if projection_field_class_1[0] == 0 and np.abs(projection_field_class_1[1]) > 0:
+                projection_field_class_1[0] = projection_field_class_1[1]
+            if projection_field_class_1[-1] == 0 and np.abs(projection_field_class_1[-2]) > 0:
+                projection_field_class_1[-1] = projection_field_class_1[-2]
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
-                projection_field = center_fisheye_circle(projection_field, ROBOT_NAME)
-                projection_field = correct_fisheye_approx(projection_field, ROBOT_NAME)
+                projection_field_class_1 = center_fisheye_circle(projection_field_class_1, ROBOT_NAME)
+                projection_field_class_1 = correct_fisheye_approx(projection_field_class_1, ROBOT_NAME)
                 # cv2.imshow("VPF", np.vstack((o_projection_field, projection_field)))
                 # cv2.waitKey(1)
 
             if monitoring.SAVE_PROJECTION_FIELD and not simulation.ENABLE_SIMULATION:
                 # Saving projection field data to InfluxDB to visualize with Grafana
-                proj_field_vis = projection_field[0:-1:monitoring.DOWNGRADING_FACTOR]
+                proj_field_vis = projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR]
 
                 # take a timestamp for this measurement
                 time = datetime.datetime.utcnow()
@@ -914,7 +920,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
                 ifclient.write_points(body, time_precision='ms')
 
-            VPF_stream.put((projection_field, capture_timestamp))
+            VPF_stream.put((projection_field_class_1, capture_timestamp, projection_field_class_0))
 
             # To test infinite loops
             if env.EXIT_CONDITION:
