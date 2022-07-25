@@ -428,8 +428,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
         else:
             from tflite_runtime.interpreter import load_delegate
 
-    min_conf_threshold = 0.2
-    min_conf_threshold_shoes = 0.3
+    min_conf_threshold_class_1 = 0.2
+    min_conf_threshold_class_0= 0.3
     # shoe
     max_num_detection_class_0 = 2
     # robot
@@ -580,7 +580,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     num_detections_class_0 = 0
                     num_detections_class_1 = 0
                     for i in range(len(boxes)):
-                        if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
+                        if (scores[i] > min_conf_threshold_class_1) and (scores[i] <= 1.0):
                             # if scores[i] == np.max(scores):
                             # Get bounding box coordinates and draw box
                             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
@@ -608,7 +608,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                             # shoes
                             if np.rint(classes[i]) == 0:
-                                if scores[i] > min_conf_threshold_shoes:
+                                if scores[i] > min_conf_threshold_class_0:
                                     if num_detections_class_0 < max_num_detection_class_0:
                                         box_color = (10, 255, 0)
                                         blurred[ymin:ymax, xmin_extend:xmax_extend] = 2.75 * 255
