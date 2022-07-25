@@ -14,6 +14,7 @@ from visualswarm.contrib import behavior, monitoring
 # using main logger
 # setup logging
 import os
+
 ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
 logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
 logger.setLevel(monitoring.LOG_LEVEL)
@@ -49,7 +50,10 @@ def dPhi_V_of(Phi: npt.ArrayLike, V: npt.ArrayLike) -> npt.ArrayLike:
 
 
 def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.ArrayLike,
-                            t_now=None, V_prev=None, t_prev=None):
+                            t_now=None, V_prev=None, t_prev=None,
+                            GAM=None, V0=None,
+                            ALP0=None, ALP1=None, ALP2=None,
+                            BET0=None, BET1=None, BET2=None):
     """Calculating state variables of a given agent according to the main algorithm as in
     https://advances.sciencemag.org/content/6/6/eaay0792.
         Args:
@@ -59,6 +63,10 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
             t_now: current time
             V_prev: previous binary visual projection field array
             t_prev: previous time
+        Optional:
+            All behavioral parameter can be optionally passed to the
+            function if default values are to be overwritten, e.g.
+            when multiple classes are detected
         Returns:
             dvel: temporal change in agent velocity
             dpsi: temporal change in agent heading angle
@@ -73,18 +81,36 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     # else:
     #     dt_V = np.zeros(len(Phi))
 
+    # getting behavioral parameters if they are not overwritten
+    if GAM is None:
+        GAM = behavior.GAM
+    if V0 is None:
+        V0 = behavior.V0
+    if ALP0 is None:
+        ALP0 = behavior.ALP0
+    if ALP1 is None:
+        ALP1 = behavior.ALP1
+    if ALP2 is None:
+        ALP2 = behavior.ALP2
+    if BET0 is None:
+        BET0 = behavior.BET0
+    if BET1 is None:
+        BET1 = behavior.BET1
+    if BET2 is None:
+        BET2 = behavior.BET2
+
     dt_V = np.zeros(len(Phi))
 
     # Deriving over Phi
     dPhi_V = dPhi_V_of(Phi, V_now)
 
     # Calculating series expansion of functional G
-    G_vel = (-V_now + behavior.ALP2 * dt_V)
+    G_vel = (-V_now + ALP2 * dt_V)
 
     # Spikey parts shall be handled separately because of numerical integration
     G_vel_spike = np.square(dPhi_V)
 
-    G_psi = (-V_now + behavior.BET2 * dt_V)
+    G_psi = (-V_now + BET2 * dt_V)
 
     # Spikey parts shall be handled separately because of numerical integration
     G_psi_spike = np.square(dPhi_V)
@@ -94,10 +120,10 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     FOV_rescaling_cos = 1
     FOV_rescaling_sin = 1
 
-    dvel = behavior.GAM * (behavior.V0 - vel_now) + \
-           behavior.ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
-           behavior.ALP0 * behavior.ALP1 * np.sum(np.cos(Phi) * G_vel_spike) * dPhi
-    dpsi = behavior.BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
-           behavior.BET0 * behavior.BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike) * dPhi
+    dvel = GAM * (V0 - vel_now) + \
+           ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
+           ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike) * dPhi
+    dpsi = BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
+           BET0 * BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike) * dPhi
 
     return dvel, dpsi
