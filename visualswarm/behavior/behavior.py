@@ -69,7 +69,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         dpsi_before = None
 
         while True:
-            (projection_field, capture_timestamp) = VPF_stream.get()
+            (projection_field, capture_timestamp, _) = VPF_stream.get()
 
             if np.mean(projection_field) == 0 and control.EXP_MOVE_TYPE != 'NoExploration':
                 movement_mode = "EXPLORE"
