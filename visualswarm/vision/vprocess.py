@@ -563,9 +563,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
-                        print("Boxes: ", boxes)
-                        print("Classes: ", classes)
-                        print("Scores: ", scores)
+                        # print("Boxes: ", boxes)
+                        # print("Classes: ", classes)
+                        # print("Scores: ", scores)
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
@@ -592,9 +592,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             xmax_orig = int(min(imW, (boxes[i, 3] * imW)))
                             xmin_extend = xmin_orig + img.shape[0]
                             xmax_extend = xmax_orig + img.shape[0]
-                            print(f"xmin_orig: {xmin_orig}, xmin_e: {xmin_extend}")
-                            print(f"xmax_orig: {xmax_orig}, xmax_e: {xmin_extend}")
-                            print(f"imH: {imH}, imW: {imW}")
+                            # print(f"xmin_orig: {xmin_orig}, xmin_e: {xmin_extend}")
+                            # print(f"xmax_orig: {xmax_orig}, xmax_e: {xmin_extend}")
+                            # print(f"imH: {imH}, imW: {imW}")
 
                             b_width = xmax_orig - xmin_orig
                             b_height = ymax - ymin
