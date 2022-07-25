@@ -51,7 +51,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         # start_behave = t_prev
         # prev_sign = 0
 
-        (projection_field, capture_timestamp) = VPF_stream.get()
+        (projection_field, capture_timestamp, _) = VPF_stream.get()
         phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
                           len(projection_field))
 
