@@ -84,7 +84,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
             if np.mean(projection_field_c2) > 0:
                 dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
-                                                                    V0=120, ALP0=200, BET0=10,
+                                                                    V0=80, ALP0=150, BET0=8,
                                                                     ALP1=0.00165, BET1=0.00175)
             else:
                 dvc2 = 0
