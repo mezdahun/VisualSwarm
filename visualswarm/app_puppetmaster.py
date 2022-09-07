@@ -5,6 +5,7 @@ from getpass import getpass
 
 import os
 import logging
+
 # # setup logging
 # logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ def update_robots():
             c.connect_kwargs.password = PSWD
             result = c.run(f'cd {puppetmaster.INSTALL_DIR} && '
                            'git pull && '
-                           'pipenv install -d --skip-lock -e .',
+                           'pipenv install -d -e .',
                            pty=False)
             print(result.stdout)
         except Exception as e:
@@ -51,10 +52,32 @@ def vswrm_start(c, robot_name):
     c.connect_kwargs.password = PSWD
     c.run(f'cd {puppetmaster.INSTALL_DIR} && '
           'git pull && '
-          f'ENABLE_CLOUD_LOGGING=0 ENABLE_CLOUD_STORAGE=1 SAVE_VISION_VIDEO=1 SHOW_VISION_STREAMS=0 '
-          f'ROBOT_NAME={robot_name} EXP_ID={EXP_ID} LOG_LEVEL=DEBUG FLIP_CAMERA=0 ROBOT_FOV=3.8 BET0=10 ALP0=180 '
+          f'ENABLE_CLOUD_STORAGE=1 SAVE_VISION_VIDEO=0 SHOW_VISION_STREAMS=1 '
+          f'SAVE_CNN_TRAINING_DATA=1 '
+          f'RES_WIDTH=320 RES_HEIGHT=200 '
+          f'ROBOT_NAME={robot_name} EXP_ID={EXP_ID} LOG_LEVEL=DEBUG FLIP_CAMERA=0 ROBOT_FOV=8.5 BET0=8 ALP0=60 V0=80 '
+          f'ALP1=0.0014 BET1=0.0014 '
           'dtach -n /tmp/tmpdtach '
           'pipenv run vswrm-start')
+
+
+def vswrm_start_webcam(c, camera_name):
+    """Starts simple webcam on a given camera IP"""
+    c.connect_kwargs.password = PSWD
+    c.run(f'cd {puppetmaster.INSTALL_DIR} && '
+          'git pull && '
+          'dtach -n /tmp/tmpdtach '
+          'pipenv run vswrm-start-webcam')
+
+
+def vswrm_stop_webcam(c):
+    """Stops simple webcam on a given camera IP"""
+    c.connect_kwargs.password = PSWD
+    start_result = c.run('ps -x  | grep "/bin/vswrm-start-webcam"')
+    PID = start_result.stdout.split()[0]  # get PID of first subrocess of vswrm
+    print(PID)
+    # sending INT SIG to any of the subprocesses will trigger graceful exit (equivalent to KeyboardInterrup)
+    c.run(f'cd {puppetmaster.INSTALL_DIR} && kill -INT {int(PID)}')
 
 
 def vswrm_stop(c):
@@ -64,7 +87,8 @@ def vswrm_stop(c):
     PID = start_result.stdout.split()[0]  # get PID of first subrocess of vswrm
     print(PID)
     # sending INT SIG to any of the subprocesses will trigger graceful exit (equivalent to KeyboardInterrup)
-    c.run(f'cd {puppetmaster.INSTALL_DIR} && touch release.txt && sleep 2 && kill -INT {int(PID)} && rm -rf release.txt')
+    c.run(
+        f'cd {puppetmaster.INSTALL_DIR} && touch release.txt && sleep 2 && kill -INT {int(PID)} && rm -rf release.txt')
 
 
 def start_swarm():
@@ -93,6 +117,31 @@ def start_swarm():
             logger.error(f'Could not stop VSWRM on robot: {connection}')
             logger.error(f'Error: {e}')
 
+def start_webcams():
+    """Start all available webcams provided in contrib.puppetmaster"""
+    logger.info('Puppetmaster webcam started!')
+    webcams = Group(*list(puppetmaster.WEBCAM_HOSTS.values()), user=puppetmaster.UNAME)
+    print(webcams)
+    for connection in webcams:
+        wc_name = list(puppetmaster.WEBCAM_HOSTS.keys())[list(puppetmaster.WEBCAM_HOSTS.values()).index(connection.host)]
+        print(f'Start VSWRM-webcam on {wc_name} with host {connection.host}')
+        try:
+            vswrm_start_webcam(connection, wc_name)
+        except Exception as e:
+            logger.error(f'Could not start VSWRM-webcam on webcam: {connection}')
+            logger.error(f'Error: {e}')
+
+    getpass('VSWRM-webcam started on webcams. Press any key to stop them...')
+
+    logger.info('Killing VSWRM-webcam processes by collected PIDs...')
+    for connection in webcams:
+        wc_name = list(puppetmaster.WEBCAM_HOSTS.keys())[list(puppetmaster.WEBCAM_HOSTS.values()).index(connection.host)]
+        logger.info(f'Stop VSWRM-webcam on {wc_name} with host {connection.host}')
+        try:
+            vswrm_stop_webcam(connection)
+        except Exception as e:
+            logger.error(f'Could not stop VSWRM on robot: {connection}')
+            logger.error(f'Error: {e}')
 
 def shutdown_swarm(shutdown='shutdown'):
     """Shutdown/Reboot a swarm of robots defined with HOSTS in contrib.puppetmaster"""
