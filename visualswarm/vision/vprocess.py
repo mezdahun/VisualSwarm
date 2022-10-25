@@ -433,7 +433,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     # shoe
     max_num_detection_class_0 = 2
     # robot
-    max_num_detection_class_1 = 4
+    max_num_detection_class_1 = 9
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
