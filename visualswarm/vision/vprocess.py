@@ -431,7 +431,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     min_conf_threshold_class_1 = 0.2
     min_conf_threshold_class_0 = 0.25
     # shoe
-    max_num_detection_class_0 = 2
+    max_num_detection_class_0 = 0
     # robot
     max_num_detection_class_1 = 9
 
