@@ -50,7 +50,11 @@ def ensure_tokens():
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except:
+                    os.remove(token_path)
+                    print("Token was expired and could not refreshed, so it has been deleted!")
             else:
                 logger.info('No token has been found, opening OAuth in Browser. Please open the link in a private tab if'
                             'you experience problems with login. '
