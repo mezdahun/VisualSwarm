@@ -54,7 +54,7 @@ def ensure_tokens():
                     creds.refresh(Request())
                 except:
                     os.remove(token_path)
-                    print("Token was expired and could not refreshed, so it has been deleted!")
+                    raise Exception("Token was expired and could not be refreshed, so it has been deleted!")
             else:
                 logger.info('No token has been found, opening OAuth in Browser. Please open the link in a private tab if'
                             'you experience problems with login. '
