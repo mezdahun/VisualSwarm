@@ -428,12 +428,14 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
         else:
             from tflite_runtime.interpreter import load_delegate
 
-    min_conf_threshold_class_1 = 0.2
+    # change confidence threshold fro robots
     min_conf_threshold_class_0 = 0.25
-    # shoe
     max_num_detection_class_0 = 10
-    # robot
+
+
+    min_conf_threshold_class_1 = 1
     max_num_detection_class_1 = 0
+
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
@@ -611,7 +613,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                 if scores[i] > min_conf_threshold_class_0:
                                     if num_detections_class_0 < max_num_detection_class_0:
                                         box_color = (10, 255, 0)
-                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = -255
+                                        # set to -255 for double class detection
+                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
                                         num_detections_class_0 += 1
                                         cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
                                         frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
