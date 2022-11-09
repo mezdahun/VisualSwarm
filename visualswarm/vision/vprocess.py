@@ -614,7 +614,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                     if num_detections_class_0 < max_num_detection_class_0:
                                         box_color = (10, 255, 0)
                                         # set to -255 for double class detection
-                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = -255
                                         num_detections_class_0 += 1
                                         cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
                                         frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
@@ -623,7 +623,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             elif np.rint(classes[i]) == 1:
                                 if num_detections_class_1 < max_num_detection_class_1:
                                     box_color = (255, 10, 0)
-                                    blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                    blurred[ymin:ymax, xmin_extend:xmax_extend] = -255
                                     num_detections_class_1 += 1
                                     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
                                     frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
