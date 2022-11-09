@@ -6,16 +6,23 @@ example command on robot: ENABLE_CLOUD_LOGGING=0 ENABLE_CLOUD_STORAGE=0 SAVE_VIS
 FLIP_CAMERA=0 ROBOT_FOV=3.8 LOG_LEVEL=DEBUG SAVE_CNN_TRAINING_DATA=0 ROBOT_NAME=Robot2 vswrm-start-vision
 """
 
-HOSTS = {'Robot1': '192.168.100.162',
-         'Robot2': '192.168.100.179',
-         'Robot3': '192.168.100.131',
-         'Robot4': '192.168.100.170',
-         'Robot5': '192.168.100.181',
-         'Robot6': '192.168.100.163',
-         'Robot7': '192.168.100.112',
-         'Robot8': '192.168.100.165',
-         'Robot9': '192.168.100.120',
-         'Robot10': '192.168.100.108'}
+selected_robots = [3, 8]
+
+ALL_HOSTS = {'Robot1': '192.168.100.162',
+             'Robot2': '192.168.100.179',
+             'Robot3': '192.168.100.131',
+             'Robot4': '192.168.100.170',
+             'Robot5': '192.168.100.181',
+             'Robot6': '192.168.100.163',
+             'Robot7': '192.168.100.112',
+             'Robot8': '192.168.100.165',
+             'Robot9': '192.168.100.120',
+             'Robot10': '192.168.100.108'}
+
+HOSTS = {}
+for rid in selected_robots:
+    HOSTS[f"Robot{rid}"] = ALL_HOSTS[f"Robot{rid}"]
+
 
 WEBCAM_HOSTS = {
     'Birdseye Cam': '192.168.100.105'
