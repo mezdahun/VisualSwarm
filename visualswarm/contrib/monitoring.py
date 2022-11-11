@@ -24,7 +24,7 @@ DRIVE_SHARED_FOLDER_ID = "1M3_D-bh5r9wFRQh7KIwoqUCPLXjljjVF"
 
 # Collect training data during experiment to finetune CNN based vision
 SAVE_CNN_TRAINING_DATA = bool(int(os.getenv('SAVE_CNN_TRAINING_DATA', '0')))
-CNN_TRAINING_DATA_FREQ = 0.33  # in Hz
+CNN_TRAINING_DATA_FREQ = 1  # in Hz
 
 # Uploading saved videos to Google Drive
 ENABLE_CLOUD_STORAGE = bool(int(os.getenv('ENABLE_CLOUD_STORAGE', '1')))
