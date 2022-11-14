@@ -713,6 +713,9 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
             logger.info(f'START: len{sensor_stream.qsize()}')
             empty_queue(sensor_stream)
 
+        # saving previous proximity values to only react to consistent proximity signals
+        # that last at least 3 time steps
+        prev_prev_prox = np.zeros(7)
         prev_prox = np.zeros(7)
         while True:
             # enforcing checks on a regular basis
@@ -729,14 +732,19 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
 
                 try:
                     # TODO: think over filtering of IR signals
-                    if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD) and np.any(prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD):
+                    if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD) \
+                            and np.any(prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD) \
+                            and np.any(prev_prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD):
                         logger.info('Triggered Obstacle Avoidance!')
                         emergency_stream.put((True, prox_val))
-                    elif np.any(prox_val[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK) and np.any(prev_prox[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
+                    elif np.any(prox_val[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK) \
+                            and np.any(prev_prox[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK) \
+                            and np.any(prev_prev_prox[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
                         logger.info('Triggered obstacle avoidance from back!')
                         emergency_stream.put((True, prox_val))
                     else:
                         emergency_stream.put((False, None))
+                    prev_prev_prox = prev_prox
                     prev_prox = prox_val
                 except IndexError:   # pragma: no cover
                     logger.warning('IndexError in sentinel process!!!')
