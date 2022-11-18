@@ -62,7 +62,7 @@ def is_summarized(data_path, experiment_name):
         logger.info("Experiment not yet summarized")
         return False
 
-def optitrackcsv_to_VSWRM(csv_path):
+def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
     """Reading an exported optitrack tracking data csv file into a VSWRM summary sata file that can be further used
     for data analysis and plotting with VSWRM
 
@@ -70,6 +70,14 @@ def optitrackcsv_to_VSWRM(csv_path):
     rotationX, rotationY, rotationZ, positionX, positionY, positionZ
 
     timepoints where tracking of robots has been lost will be simply cut from the data."""
+
+    data_path = os.path.dirname(csv_path)
+    _, csv_filename = os.path.split(csv_path)
+    experiment_name = csv_filename.split('.')[0]
+    if is_summarized(data_path, experiment_name) and skip_already_summed:
+        logger.info(f"Skipping already summed experiment as requested!")
+        return True
+
     df_orig = pd.read_csv(csv_path)
 
     # QUICKNDIRTY dropping timepoints where optitrack lost track of robots
@@ -83,15 +91,18 @@ def optitrackcsv_to_VSWRM(csv_path):
     num_attributes = len(attributes)
 
     data = np.zeros((1, num_robots, num_attributes, t_len))
+    from scipy.spatial.transform import Rotation
 
     for robi in range(num_robots):
         startindex = int(robi * 6)
-        # x_rot = df.iloc[:, startindex + 1].values[5::].astype('float')
-        orient = df.iloc[:, startindex + 1].values[5::].astype('float')
-        # z_rot = df.iloc[:, startindex + 1].values[5::].astype('float')
-        x_pos = df.iloc[:, startindex + 1].values[5::].astype('float')
-        y_pos = df.iloc[:, startindex + 1].values[5::].astype('float')
-        z_pos = df.iloc[:, startindex + 1].values[5::].astype('float')
+        orient_x = df.iloc[:, startindex + 0].values[5::].astype('float') #x axis
+        orient_y = df.iloc[:, startindex + 1].values[5::].astype('float') #y axis
+        orient_z = df.iloc[:, startindex + 2].values[5::].astype('float') #z axis
+        orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler('yzx', degrees=False)[0] for i in range(len(orient_y))])
+        orient += np.pi
+        x_pos = df.iloc[:, startindex + 3].values[5::].astype('float')
+        y_pos = df.iloc[:, startindex + 4].values[5::].astype('float')
+        z_pos = df.iloc[:, startindex + 5].values[5::].astype('float')
 
         data[0, robi, attributes.index('t'), :] = time
         data[0, robi, attributes.index('pos_x'), :] = x_pos
@@ -100,9 +111,6 @@ def optitrackcsv_to_VSWRM(csv_path):
         data[0, robi, attributes.index('or'), :] = orient
 
 
-    _, csv_filename = os.path.split(csv_path)
-    experiment_name = csv_filename.split('.')[0]
-
     experiment_summary = {'params': None,
                           'num_runs': 1,
                           'num_robots': num_robots,
@@ -110,7 +118,6 @@ def optitrackcsv_to_VSWRM(csv_path):
                           'attributes': attributes,
                           'experiment_name': experiment_name}
 
-    data_path = os.path.dirname(csv_path)
 
     with open(os.path.join(data_path, f'{experiment_name}_summaryp.json'), 'w') as sump_f:
         json.dump(experiment_summary, sump_f, indent=4)
