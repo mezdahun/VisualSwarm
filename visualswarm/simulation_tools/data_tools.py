@@ -78,13 +78,18 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
         logger.info(f"Skipping already summed experiment as requested!")
         return True
 
-    df_orig = pd.read_csv(csv_path)
+    df_orig = pd.read_csv(csv_path, skiprows=[i for i in range(6)])
 
     # QUICKNDIRTY dropping timepoints where optitrack lost track of robots
     df = df_orig.dropna()
+    print("Dropped NA values from dataframe.")
+    print("columns: ", df.columns)
 
     num_robots = int(len(df.columns) / 6) # for each robot 3 rotation and 3 position coordinate
-    time = np.array([a[1] for a in df.index.values[5::]]).astype('float') / 1000
+    print(f"Found {num_robots} robots data in csv file.")
+    time = df['Time (Seconds)'].values
+    print(time)
+    # time = np.array([a[1] for a in df.index.values[5::]]).astype('float') / 1000
     t_len = len(time)
 
     attributes = ['t', 'pos_x', 'pos_y', 'pos_z', 'or']
@@ -95,14 +100,14 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
 
     for robi in range(num_robots):
         startindex = int(robi * 6)
-        orient_x = df.iloc[:, startindex + 0].values[5::].astype('float') #x axis
-        orient_y = df.iloc[:, startindex + 1].values[5::].astype('float') #y axis
-        orient_z = df.iloc[:, startindex + 2].values[5::].astype('float') #z axis
+        orient_x = df.iloc[:, startindex + 0].values.astype('float') #x axis
+        orient_y = df.iloc[:, startindex + 1].values.astype('float') #y axis
+        orient_z = df.iloc[:, startindex + 2].values.astype('float') #z axis
         orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler('yzx', degrees=False)[0] for i in range(len(orient_y))])
         orient += np.pi
-        x_pos = df.iloc[:, startindex + 3].values[5::].astype('float')
-        y_pos = df.iloc[:, startindex + 4].values[5::].astype('float')
-        z_pos = df.iloc[:, startindex + 5].values[5::].astype('float')
+        x_pos = df.iloc[:, startindex + 3].values.astype('float')
+        y_pos = df.iloc[:, startindex + 4].values.astype('float')
+        z_pos = df.iloc[:, startindex + 5].values.astype('float')
 
         data[0, robi, attributes.index('t'), :] = time
         data[0, robi, attributes.index('pos_x'), :] = x_pos
