@@ -35,12 +35,13 @@ HSV_LOW = uint8([TARGET_HSV_COLOR[0][0][0] - HSV_HUE_RANGE, SV_MINIMUM, SV_MINIM
 HSV_HIGH = uint8([TARGET_HSV_COLOR[0][0][0] + HSV_HUE_RANGE, SV_MAXIMUM, SV_MAXIMUM])
 
 # VPF Preprocessing
-GAUSSIAN_KERNEL_WIDTH = 9  # 15
-MEDIAN_BLUR_WIDTH = 5  # 9
+GAUSSIAN_KERNEL_WIDTH = 1  # 15
+MEDIAN_BLUR_WIDTH = 1  # 9
 MIN_BLOB_AREA = 0
 
 # Visual Projection
-FOV = float(os.getenv('ROBOT_FOV', '6.28'))
+FOV = 2 * pi  # for simulation kept for 2pi and used REAL_FOV to then cut the resulting image
+REAL_FOV = float(os.getenv('ROBOT_FOV', '6.28'))
 H_MARGIN = 1  # 10
 W_MARGIN = 1  # 10
 PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
