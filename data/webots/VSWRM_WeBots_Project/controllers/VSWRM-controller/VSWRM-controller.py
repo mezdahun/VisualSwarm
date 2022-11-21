@@ -7,36 +7,36 @@ from controller import Camera, GPS, Compass, Supervisor, Pen
 from visualswarm.simulation_tools import webots_tools
 
 sbasepath = "/mnt/DATA/mezey/VSWRMSimulationData"  # os.path.dirname(os.path.abspath(__file__))
-confbasebath = os.path.dirname(os.path.abspath(__file__))
+confbasebath = os.getenv('WEBOTS_CONFBASEPATH', os.path.dirname(os.path.abspath(__file__)))
 
 ####### START CONFIG ######
 
-### with external json file
-# env_config_path = os.path.join(confbasebath, 'VAR_environment_config.json')
-# env_config_dict = webots_tools.read_run_config(env_config_path)
+### with external json files (for example for batch scripts)
+env_config_path = os.path.join(confbasebath, 'VAR_environment_config.json')
+env_config_dict = webots_tools.read_run_config(env_config_path)
 
 ### manually
 
-# EXPERIMENT_NAME = 'TEST'  # change it before recording data or programatically with input config files
-
+# EXPERIMENT_NAME = 'EQDISTANCE_DV'  # change it before recording data or programatically with input config files
+#
 # env_config_dict = {
 #     'ENABLE_SIMULATION': str(int(True)),  # should be always true if using simulation instead of real robots
-#     'SHOW_VISION_STREAMS': str(int(False)),  # visualize what robots see in external openCV window
-#     'LOG_LEVEL': 'DEBUG',  # verbosity of logging
+#     'SHOW_VISION_STREAMS': str(int(True)),  # visualize what robots see in external openCV window
+#     'LOG_LEVEL': 'WARNING',  # verbosity of logging
 #     'WEBOTS_LOG_PERFORMANCE': str(int(False)),  # if true, measured times between functional steps will be logged
 #     'SPARE_RESCOURCES': str(int(True)),  # Threading for true, multiprocessing for false
-#     'BORDER_CONDITIONS': "Infinite",  # or "Reality"
+#     'BORDER_CONDITIONS': "Reality",  # or "Reality"
 #     'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)),
 #     'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(True)), # save video automatically
 #     'WEBOTS_SIM_SAVE_FOLDER': os.path.join(sbasepath, f'{EXPERIMENT_NAME}'),
-#     'PAUSE_SIMULATION_AFTER': '30',  # in seconds
+#     'PAUSE_SIMULATION_AFTER': '900',  # in seconds
 #     'PAUSE_BEHAVIOR': 'Pause',  # or 'Quit'
 #     'BEHAVE_PARAMS_JSON_PATH': os.path.join(confbasebath, 'VAR_behavior_params.json'),
 #     'INITIAL_CONDITION_PATH': os.path.join(confbasebath, 'VAR_initial_conditions.json'),
 #     'USE_ROBOT_PEN': str(int(True)),  # enable or disable robot pens
-#     'ROBOT_FOV': '3',
-#     'EXP_MOVEMENT': 'RandomWalk',
-#     'WITH_LEADER': str(int(True))
+#     'ROBOT_FOV': '3.8',
+#     'EXP_MOVEMENT': 'NoExploration',
+#     'WITH_LEADER': str(int(False))
 # }
 
 ######## END CONFIG #######
@@ -97,7 +97,7 @@ def setup_leds(robot):
 def setup_camera(robot):
     # create and enable the camera on the robot
     camera = Camera("rPi4_Camera_Module_v2.1")
-    sampling_freq = 60  # Hz
+    sampling_freq = 8  # Hz
     sampling_period = int(1 / sampling_freq * 1000)
     camera.enable(sampling_period)
 
