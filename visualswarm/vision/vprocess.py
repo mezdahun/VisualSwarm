@@ -72,23 +72,27 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             # Selecting appropriate contours
             fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= visualswarm.contrib.vision.MIN_BLOB_AREA]
 
-            # Creating convex hull from selected contours
-            hull_list = []
-            for i in range(len(fconts)):
-                hull = cv2.convexHull(fconts[i])
-                hull_list.append(hull)
-
             # visualize contours and convex hull on the original image and the area on the new mask
             cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
-            cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
-            cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
+
+            # final mask
+            blurred_ext = np.zeros_like(blurred)
+
+            # cutting back mask according to real FOV
+            w_start = int(blurred.shape[1] / 2) - int(camera.RESOLUTION[0] / 2)
+            w_end = w_start + camera.RESOLUTION[0]
+
+            for c in fconts:
+                x, y, w, h = cv2.boundingRect(c)
+                if w_start <= x <= w_end or w_start <= x+w <= w_end:
+                    cv2.rectangle(blurred_ext, (x, y), (x + w, y + h), (255, 255, 255), -1)
 
             # Forwarding result to VPF extraction
-            high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+            high_level_vision_stream.put((img[:, w_start:w_end], blurred_ext, frame_id, capture_timestamp))
 
             # Forwarding result for visualization if requested
             if visualization_stream is not None:
-                visualization_stream.put((img, blurred, frame_id))
+                visualization_stream.put((img[:, w_start:w_end], blurred_ext, frame_id))
 
             # To test infinite loops
             if env.EXIT_CONDITION:
@@ -144,8 +148,8 @@ def visualizer(visualization_stream, target_config_stream=None):
                         target_config_stream.put((R, B, G, HSV_HUE_RANGE, SV_MINIMUM, SV_MAXIMUM))
                 vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
                 vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
-                cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
-                cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
+                cv2.imshow("Object Contours", img)
+                cv2.imshow("Final Area", mask)
                 if vision.FIND_COLOR_INTERACTIVE:
                     cv2.imshow("Segmentation Parameters", color_sample)
                 cv2.waitKey(1)

@@ -1,11 +1,13 @@
 import json
 import logging
+
+import cv2
 import numpy as np
 import pickle
 from contextlib import ExitStack
 
 from visualswarm import env
-from visualswarm.contrib import logparams, simulation, control, behavior, vision
+from visualswarm.contrib import logparams, simulation, control, behavior, vision, camera
 from visualswarm.simulation_tools import processing_tools, webots_tools
 
 from freezegun import freeze_time
@@ -39,14 +41,20 @@ def getWebotsCameraImage(devices):
     width = devices['params']['c_width']
     height = devices['params']['c_height']
 
+    input_res_width = int(((2 * np.pi) / vision.REAL_FOV) * camera.RESOLUTION[0])
+    input_res_height = camera.RESOLUTION[1]
+    logger.debug(
+        f"generated input res ({input_res_width}x{input_res_height}) from requested FOV {vision.REAL_FOV} and camera res {camera.RESOLUTION}")
+    logger.debug(f"sensor resolution {width}x{height}")
+
+    # acquiring raw sensor data from camera
     camera_data = devices['camera'].getImage()
     img = np.frombuffer(camera_data, np.uint8).reshape((height, width, 4))
 
-    use_pixel_w = int(width * (vision.FOV / 6.28))
-    w_start = int((width - use_pixel_w)/2)
-    w_end = w_start + use_pixel_w
+    # resizing acquired image so that after cutting to FOV the requested camera resolution will hold
+    img = cv2.resize(img, (input_res_width, input_res_height))
 
-    return img[:, w_start:w_end, :]
+    return img
 
 
 def webots_entrypoint(robot, devices, timestep, with_control=False):
