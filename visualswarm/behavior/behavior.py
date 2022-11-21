@@ -57,6 +57,19 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
+
+            if v > 0:
+                v = min(v, 300)
+            elif v < 0:
+                v = max(v, -300)
+
+            v = float(v)
+
+            if dpsi > 0:
+                dpsi = min(dpsi, 1)
+            elif dpsi < 0:
+                dpsi = max(dpsi, -1)
+
             v += dv * dt
 
             t_prev = t_now
