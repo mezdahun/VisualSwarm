@@ -99,12 +99,12 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
     from scipy.spatial.transform import Rotation
 
     for robi in range(num_robots):
-        startindex = int(robi * 6)
+        startindex = int(robi * 6) + 2
         orient_x = df.iloc[:, startindex + 0].values.astype('float') #x axis
         orient_y = df.iloc[:, startindex + 1].values.astype('float') #y axis
         orient_z = df.iloc[:, startindex + 2].values.astype('float') #z axis
-        orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler('yzx', degrees=False)[0] for i in range(len(orient_y))])
-        orient += np.pi
+        orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler('yxz', degrees=False)[0] for i in range(len(orient_y))])
+        orient = - np.pi/2 - (orient + np.pi)
         x_pos = df.iloc[:, startindex + 3].values.astype('float')
         y_pos = df.iloc[:, startindex + 4].values.astype('float')
         z_pos = df.iloc[:, startindex + 5].values.astype('float')
