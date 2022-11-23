@@ -13,11 +13,18 @@ from fastcluster import linkage
 from scipy.cluster.hierarchy import dendrogram
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 from scipy.cluster.hierarchy import linkage
 
 data_path = "/home/david/Desktop/database/OptiTrackCSVs"
-EXPERIMENT_NAMES = [f"E8s1r{i+1}" for i in range(3)]
+EXPERIMENT_NAMES = [f"E8s1r{i+1}" for i in range(1, 2)]
 DISTANCE_REFERENCE = [0, 0, 0]
+
+def draw_line(x,y,angle,length):
+  terminus_x = x + length * math.cos(angle)
+  terminus_y = y + length * math.sin(angle)
+  print([x, terminus_x],[y,terminus_y])
+  plt.plot([x, terminus_x],[y,terminus_y])
 
 
 def seriation(Z, N, cur_index):
@@ -75,7 +82,7 @@ polrats_over_exps = []
 for expi in range(len(EXPERIMENT_NAMES)):
     # if data is freshly created first summarize it into multidimensional array
     csv_path = os.path.join(data_path, f"{EXPERIMENT_NAMES[expi]}.csv")
-    data_tools.optitrackcsv_to_VSWRM(csv_path)
+    data_tools.optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True)
 
     change_along = None
     change_along_alias = None
@@ -96,13 +103,10 @@ for expi in range(len(EXPERIMENT_NAMES)):
     # plotting_tools.plot_COMvelocity_summary_perinit(paths, titles, colors, "Mean Center-of-mass velocity for different intial conditions in polarized line regime")
 
     #
-    # center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
+
     #
     # import matplotlib.pyplot as plt
     #
-    # plt.scatter(data[0, :, 1, 100], data[0, :, 3, 100])
-    # plt.scatter(center_of_mass[0, 0, 100], center_of_mass[0, 2, 100], s=10)
-    # plt.show()
 
     # plotting data
     # plotting_tools.plot_velocities(summary, data, changed_along=change_along, changed_along_alias=change_along_alias)
@@ -111,20 +115,45 @@ for expi in range(len(EXPERIMENT_NAMES)):
     # plotting_tools.plot_iid(summary, data, 0)
     # #
     #
-    min_iid = data_tools.calculate_min_iid(summary, data)
+    runi = 0
+    iidm = data_tools.calculate_interindividual_distance(summary, data)[runi, ...]
     pm = data_tools.calculate_ploarization_matrix(summary, data)
     plt.ion()
-    for t in range(0, 35000, 5):
-        dist = 1-pm[0, :, :, t].astype('float')
+    fig, ax = plt.subplots(2, 1)
+    print(data.shape)
+    for t in range(0, 35000, 55):
+        plt.axes(ax[0])
+        center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
+        plt.scatter(data[runi, :, 1, t], data[0, :, 3, t], s=100)
+        print("x: ", data[runi, :, 1, t])
+        print("y: ", data[runi, :, 2, t])
+        print("z: ", data[runi, :, 3, t])
+        print("ori: ", data[runi, :, 4, t])
+        ori = data[runi, :, 4, t]
+        print(ori)
+        ms = 200
+        for ri in range(len(ori)):
+            x = data[runi, :, 1, t]
+            y = data[runi, :, 3, t]
+            angle = ori[ri] # (-np.pi/2 - ori[ri])
+            # print(angle)
+            plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
+        plt.scatter(center_of_mass[0, 0, t], center_of_mass[0, 2, t], s=50)
+        plt.xlim(-5000, 5000)
+        plt.ylim(-5000, 5000)
+
+        plt.axes(ax[1])
+        niidm = (iidm[:, :, t] - np.min(iidm[:, :, t])) / (np.max(iidm[:, :, t]) - np.min(iidm[:, :, t]))
+        dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
         print(dist.dtype)
         # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
         linkage_matrix = linkage(dist, "single")
         dendrogram(linkage_matrix, color_threshold=1, labels=[i for i in range(10)], show_leaf_counts=True)
-        # plt.imshow(sermat[0])
+
         plt.draw()
         input()
         plt.clf()
-    #
+
     # plotting_tools.plot_mean_pol_over_runs(summary, data, stdcolor='#FF9848')
     # plotting_tools.plot_mean_iid_over_runs(summary, data, stdcolor='#FF9848')
     # plotting_tools.plot_min_iid_over_runs(summary, data, stdcolor="#FF9848")
