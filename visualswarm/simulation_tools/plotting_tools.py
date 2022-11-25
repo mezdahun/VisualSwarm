@@ -2,11 +2,124 @@
 @author: mezdahun
 @description: tools to plot recorded values in webots (only works with saving data)
 """
-import numpy as np
-import matplotlib.pyplot as plt
 import os
+import time
+
 from visualswarm.simulation_tools import data_tools
 import matplotlib.patches as patches
+from scipy.spatial.distance import pdist, squareform
+from fastcluster import linkage
+from scipy.cluster.hierarchy import dendrogram
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+from scipy.cluster.hierarchy import linkage
+
+def draw_line(x,y,angle,length):
+  terminus_x = x + length * math.cos(angle)
+  terminus_y = y + length * math.sin(angle)
+  print([x, terminus_x],[y,terminus_y])
+  plt.plot([x, terminus_x],[y,terminus_y])
+
+
+def seriation(Z, N, cur_index):
+    '''
+        input:
+            - Z is a hierarchical tree (dendrogram)
+            - N is the number of points given to the clustering process
+            - cur_index is the position in the tree for the recursive traversal
+        output:
+            - order implied by the hierarchical tree Z
+
+        seriation computes the order implied by a hierarchical tree (dendrogram)
+    '''
+    if cur_index < N:
+        return [cur_index]
+    else:
+        left = int(Z[cur_index - N, 0])
+        right = int(Z[cur_index - N, 1])
+        return (seriation(Z, N, left) + seriation(Z, N, right))
+
+
+def compute_serial_matrix(dist_mat, method="ward"):
+    '''
+        input:
+            - dist_mat is a distance matrix
+            - method = ["ward","single","average","complete"]
+        output:
+            - seriated_dist is the input dist_mat,
+              but with re-ordered rows and columns
+              according to the seriation, i.e. the
+              order implied by the hierarchical tree
+            - res_order is the order implied by
+              the hierarhical tree
+            - res_linkage is the hierarhical tree (dendrogram)
+
+        compute_serial_matrix transforms a distance matrix into
+        a sorted distance matrix according to the order implied
+        by the hierarchical tree (dendrogram)
+    '''
+    N = len(dist_mat)
+    flat_dist_mat = squareform(dist_mat)
+    res_linkage = linkage(flat_dist_mat, method=method, preserve_input=True)
+    res_order = seriation(res_linkage, N, N + N - 2)
+    seriated_dist = np.zeros((N, N))
+    a, b = np.triu_indices(N, k=1)
+    seriated_dist[a, b] = dist_mat[[res_order[i] for i in a], [res_order[j] for j in b]]
+    seriated_dist[b, a] = seriated_dist[a, b]
+
+    return seriated_dist, res_order, res_linkage
+
+def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False, lenght_scale="mm"):
+    """Replaying experiment from summary and data in matplotlib plot"""
+    iidm = data_tools.calculate_interindividual_distance(summary, data)[runi, ...]
+    pm = data_tools.calculate_ploarization_matrix(summary, data)
+
+    if t_end is None:
+        t_end = data.shape[-1]
+    if t_step is None:
+        t_step = 100
+
+    plt.ion()
+    fig, ax = plt.subplots(2, 1)
+    for t in range(t_start, t_end, t_step):
+
+        plt.axes(ax[0])
+        niidm = (iidm[:, :, t] - np.min(iidm[:, :, t])) / (np.max(iidm[:, :, t]) - np.min(iidm[:, :, t]))
+        dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
+        # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
+        linkage_matrix = linkage(dist, "single")
+        ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(10)], show_leaf_counts=True)
+
+        plt.axes(ax[1])
+        center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
+        colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
+        plt.scatter(data[runi, :, 1, t], data[0, :, 3, t], s=100, c=colors)
+        for i in range(10):
+            plt.annotate(i, (data[runi, i, 1, t], data[0, i, 3, t] + 0.2))
+
+        ori = data[runi, :, 4, t]
+        ms = 200
+        for ri in range(len(ori)):
+            x = data[runi, :, 1, t]
+            y = data[runi, :, 3, t]
+            angle = ori[ri]  # (-np.pi/2 - ori[ri])
+            # print(angle)
+            plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
+        plt.scatter(center_of_mass[0, 0, t], center_of_mass[0, 2, t], s=50)
+        plt.xlim(-5000, 5000)
+        plt.ylim(-5000, 5000)
+
+        plt.draw()
+        if step_by_step:
+            input()
+        else:
+            fig.canvas.draw()
+            # to flush the GUI events
+            fig.canvas.flush_events()
+            time.sleep(0.05)
+        plt.clf()
+
 
 
 def plot_velocities(summary, data, changed_along=None, changed_along_alias=None):
