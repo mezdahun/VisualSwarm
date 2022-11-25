@@ -150,7 +150,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         try:
                             sensor_stream.get_nowait()
                         except:
-                            logger.debug("Exception duing fetching from sensory stream!")
+                            logger.debug("Exception during fetching from sensory stream!")
                         sensor_stream.put(prox_vals)
                         if np.any(np.array(prox_vals[0:5]) > control.EMERGENCY_PROX_THRESHOLD) and \
                                 simulation.WEBOTS_SAVE_SIMULATION_DATA:
