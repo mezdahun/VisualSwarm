@@ -6,6 +6,7 @@ import datetime
 from math import floor
 import os
 import shutil
+import logging
 
 import cv2
 import numpy as np
@@ -29,8 +30,6 @@ if vision.RECOGNITION_TYPE == "CNN":
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    import logging
-    import os
     ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
     logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
     logger.setLevel(monitoring.LOG_LEVEL)
