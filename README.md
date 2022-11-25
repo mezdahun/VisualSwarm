@@ -1,6 +1,18 @@
 # VisualSwarm
-Implementation of a minimal vision algorithm published by Bastien &amp; Romanczuk (2020) on a Raspberry PI for movement control of Thymio II robots.
+Implementation of a minimal vision-based flocking algorithm published by Bastien &amp; Romanczuk (2020) on a Raspberry PI for movement control of Thymio II robots.
 
+## Welcome
+Welcome to Project VisualSwarm. If you are interested in the theoretical background of the project, or HW/SW configuration before using the software please visit the [project wiki](https://github.com/mezdahun/VisualSwarm/wiki). 
+
+If you are looking for code documentation you can find it under the individual module and submodule README files and in the individual docstrings of the main python methods. An additional detailed code documentation with examples is planned to be created after v1.0. 
+
+If you are interested in other publications and projects of our group, visit us at one of the following pages:
+- http://lab.romanczuk.de/
+- https://www.scienceofintelligence.de/
+
+If you have any questions or remarks about the project, don't hesitate to contact us via visualswarm.scioi@gmail.com
+
+# Technical Details and the Repository
 ## Environment and Test Suite
  * The project is written in python (=3.7)
  * Your environment and SW should be prepared as described on [this wiki page](https://github.com/mezdahun/VisualSwarm/wiki/Software-Setup)

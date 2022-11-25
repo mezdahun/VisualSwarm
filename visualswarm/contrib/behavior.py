@@ -16,23 +16,54 @@ if BEHAVE_PARAMS_JSON_PATH is not None:
     else:
         raise Exception('The given parameter json file defined in "BEHAVE_PARAMS_JSON_PATH" is not found!')
 else:
-    # Otherwise we will use default values defined below
+    # Otherwise we will use default values defined below or values passed from env variables individually
     behave_params_dict = {}
 
+    GAM_ENV = os.getenv('GAM')
+    if GAM_ENV is not None:
+        behave_params_dict['GAM'] = float(GAM_ENV)
+
+    V0_ENV = os.getenv('V0')
+    if V0_ENV is not None:
+        behave_params_dict['V0'] = float(V0_ENV)
+
+    ALP0_ENV = os.getenv('ALP0')
+    if ALP0_ENV is not None:
+        behave_params_dict['ALP0'] = float(ALP0_ENV)
+
+    ALP1_ENV = os.getenv('ALP1')
+    if ALP1_ENV is not None:
+        behave_params_dict['ALP1'] = float(ALP1_ENV)
+
+    BET0_ENV = os.getenv('BET0')
+    if BET0_ENV is not None:
+        behave_params_dict['BET0'] = float(BET0_ENV)
+
+
+    BET1_ENV = os.getenv('BET1')
+    if BET1_ENV is not None:
+        behave_params_dict['BET1'] = float(BET1_ENV)
+
+
+    KAP_ENV = os.getenv('KAP')
+    if KAP_ENV is not None:
+        behave_params_dict['KAP'] = float(KAP_ENV)
+
+
 # Velocity Parameters
-GAM = behave_params_dict.get('GAM', 0.55)
-V0 = behave_params_dict.get('V0', 0.4)
-ALP0 = behave_params_dict.get('ALP0', 0.6)  # overall speed scale (limited by possible motor speed) : irl 0.5 si 0.45
-ALP1 = behave_params_dict.get('ALP1', 0.001)  # ~ 1 / equilibrium distance : irl 0.015 sim 0.005
+GAM = behave_params_dict.get('GAM', 0.1)
+V0 = behave_params_dict.get('V0', 125)
+ALP0 = behave_params_dict.get('ALP0', 125)
+ALP1 = behave_params_dict.get('ALP1', 0.00075)
 ALP2 = behave_params_dict.get('ALP2', 0)
 
 # Heading Vector Parameters
-BET0 = behave_params_dict.get('BET0', 0.6)  # overall responsiveness of heading change (turning "speed") : irl 0.5 sim 0.75
-BET1 = behave_params_dict.get('BET1', 0.0025)
+BET0 = behave_params_dict.get('BET0', 10)
+BET1 = behave_params_dict.get('BET1', 0.001)
 BET2 = behave_params_dict.get('BET2', 0)
 
 # Motor scale heuristics Kappa
-KAP = behave_params_dict.get('KAP', 50)
+KAP = behave_params_dict.get('KAP', 1)
 
 
 def get_params():

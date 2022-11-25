@@ -1,9 +1,9 @@
 import json
 import logging
-
 import cv2
 import numpy as np
-import pickle
+# pickle only used to write data, nosec
+import pickle  # nosec
 from contextlib import ExitStack
 
 from visualswarm import env
@@ -40,7 +40,7 @@ def getWebotsCameraImage(devices):
     """Fast way to get camera images from webots camera  objects"""
     width = devices['params']['c_width']
     height = devices['params']['c_height']
-
+    
     input_res_width = int(((2 * np.pi) / vision.REAL_FOV) * camera.RESOLUTION[0])
     input_res_height = camera.RESOLUTION[1]
     logger.debug(
@@ -129,7 +129,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         try:
                             raw_vision_stream.get_nowait()
                         except:
-                            pass
+                            logger.debug("Exception duing fetching from raw camera stream!")
 
                         img = getWebotsCameraImage(devices)
                         raw_vision_stream.put((img, frame_id, datetime.datetime.utcnow()))
@@ -150,7 +150,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         try:
                             sensor_stream.get_nowait()
                         except:
-                            pass
+                            logger.debug("Exception duing fetching from sensory stream!")
                         sensor_stream.put(prox_vals)
                         if np.any(np.array(prox_vals[0:5]) > control.EMERGENCY_PROX_THRESHOLD) and \
                                 simulation.WEBOTS_SAVE_SIMULATION_DATA:

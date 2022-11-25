@@ -6,7 +6,8 @@ if not simulation.ENABLE_SIMULATION:
     from visualswarm.control import motorinterface
 
 import logging
-from visualswarm.contrib import logparams, control, behavior, physconstraints
+
+from visualswarm.contrib import logparams, control, behavior, physconstraints, monitoring
 from visualswarm import env
 
 import numpy as np
@@ -16,13 +17,17 @@ from queue import Empty
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    logger = logging.getLogger('visualswarm.app')
+    # setup logging
+    import os
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+    logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+    logger.setLevel(monitoring.LOG_LEVEL)
 else:
-    logger = logging.getLogger('visualswarm.app_simulation')
+    logger = logging.getLogger('visualswarm.app_simulation')  # pragma: simulation no cover
 bcolors = logparams.BColors
 
 
-def rgb_to_hex(R, G, B):
+def rgb_to_hex(R, G, B):  # pragma: simulation no cover
     R = int((R / 32) * 200)
     G = int((G / 32) * 200)
     B = int((B / 32) * 200)
@@ -50,7 +55,7 @@ def light_up_led(network, R, G, B, webots_do_stream=None):
             aesl.seek(0)
             network.LoadScripts(aesl.name)
     else:
-        webots_do_stream.put(('LIGHTUP_LED', int(rgb_to_hex(R, G, B), 0)))
+        webots_do_stream.put(('LIGHTUP_LED', int(rgb_to_hex(R, G, B), 0)))  # pragma: simulation no cover
 
 
 def step_random_walk() -> list:
@@ -152,13 +157,14 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
     return [v_left, v_right]
 
 
-def get_latest_element(queue):
+def get_latest_element(queue):  # pragma: simulation no cover
     """
-    emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
+    fetching the latest element in queue and by that emptying the FIFO Queue object. Use this to consume queue elements
+    with a slow process that is filled up by a faster process
         Args:
-            queue2empty (multiprocessing.Queue): queue object to be emptied
+            queue (multiprocessing.Queue): queue object to be emptied and returned the latest element
         Returns:
-            status: True if successful
+            val: latest vaue in the queue
     """
     val = None
     while not queue.empty():
@@ -180,10 +186,8 @@ def empty_queue(queue2empty):
     while not queue2empty.empty():
         try:
             queue2empty.get_nowait()
-        except Empty:
-            logger.debug('Emptied passed queue')
+        except Empty:  # pragma: no cover
             return True
-    logger.debug('Emptied passed queue')
     return True
 
 
@@ -233,7 +237,7 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=125, blind_
             if not simulation.ENABLE_SIMULATION:
                 network.SetVariable("thymio-II", "motor.left.target", [np.sign(angle) * turning_motor_speed])
                 network.SetVariable("thymio-II", "motor.right.target", [-np.sign(angle) * turning_motor_speed])
-            else:
+            else:  # pragma: simulation no cover
                 webots_do_stream.put(("SET_MOTOR", {'left': float(np.sign(angle) * turning_motor_speed),
                                                     'right': float(-np.sign(angle) * turning_motor_speed)}))
 
@@ -311,7 +315,7 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
             if not simulation.ENABLE_SIMULATION:
                 network.SetVariable("thymio-II", "motor.left.target", [movesign * moving_motor_speed])
                 network.SetVariable("thymio-II", "motor.right.target", [movesign * moving_motor_speed])
-            else:
+            else:  # pragma: simulation no cover
                 webots_do_stream.put(("SET_MOTOR", {'left': float(movesign * moving_motor_speed),
                                                     'right': float(movesign * moving_motor_speed)}))
 
@@ -325,7 +329,19 @@ def move_robot(network, direction, distance, emergency_stream, moving_motor_spee
         (recursive_obstacle, proximity_values) = emergency_stream.get()
 
 
-def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream, protocol_time=0.5):
+def stop_robot(network, duration, webots_do_stream=None):
+    """Settin robot speed to zero."""
+    start_time = datetime.now()
+    while abs(start_time - datetime.now()).total_seconds() < duration:
+        if not simulation.ENABLE_SIMULATION:
+            network.SetVariable("thymio-II", "motor.left.target", [0])
+            network.SetVariable("thymio-II", "motor.right.target", [0])
+        else:  # pragma: simulation no cover
+            webots_do_stream.put(("SET_MOTOR", {'left': float(0),
+                                                'right': float(0)}))
+
+def speed_up_robot(network, additional_motor_speed_multiplier,  # pragma: no cover
+                   emergency_stream, protocol_time=0.5):
     """
     speeding up robot with a specified motor speed multiplier for a given time.
         Args:
@@ -338,7 +354,8 @@ def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream,
             None
         Note: recursively calling avoid_obstacle if obstacle is detected during moving as well as this
             method is called from avoid_obstacle after the turning maneuver. As a result the recursion is continued
-            until the proximity sensors are free, after which all recursively called avoid_obstacle methods will return.
+            until the proximity sensors are free, after which all recursively called avoid_obstacle methods will
+            return.
     """
     # # first getting current motor values
     # v_left_curr = network.GetVariable("thymio-II", "motor.left.speed")[0]
@@ -367,7 +384,7 @@ def speed_up_robot(network, additional_motor_speed_multiplier, emergency_stream,
     #         avoid_obstacle(network, proximity_values, emergency_stream)
     #
     #     (recursive_obstacle, proximity_values) = emergency_stream.get()
-    pass
+    pass  # pragma: no cover
 
 
 def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=None,
@@ -392,6 +409,11 @@ def turn_avoid_obstacle(network, prox_vals, emergency_stream, turn_avoid_angle=N
     # transforming prox_vals to array if not in desired format
     if isinstance(prox_vals, list):
         prox_vals = np.array(prox_vals)
+
+    # any of the back sensors are on
+    if np.any(prox_vals[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
+        # Stop the robot
+        return "Stop", 0.5
 
     # any of the front sensors are on
     if np.any(prox_vals[0:5] > 0):
@@ -469,6 +491,8 @@ def run_additional_protocol(network, additional_protocol, emergency_stream,
     elif protocol_name == "Move":
         move_robot(network, additional_protocol[1], additional_protocol[2], emergency_stream,
                    webots_do_stream=webots_do_stream)
+    elif protocol_name == "Stop":
+        stop_robot(network, additional_protocol[1], webots_do_stream=webots_do_stream)
     elif protocol_name == "End avoidance":
         return
 
@@ -536,12 +560,11 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 bus = dbus.SessionBus()
 
                 # Create Aseba network
-                # if network is None:
                 network = dbus.Interface(bus.get_object('ch.epfl.mobots.Aseba', '/'),
                                          dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
                 is_connection_healthy = motorinterface.asebamedulla_health(network)
-            else:
+            else:  # pragma: simulation no cover
                 network = "SimulationDummy"
                 is_connection_healthy = True
 
@@ -553,22 +576,19 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                     (v, dpsi) = control_stream.get()
                     movement_mode = motor_control_mode_stream.get()
                     try:
-                        if not simulation.ENABLE_SIMULATION:
-                            (emergency_mode, proximity_values) = emergency_stream.get_nowait()
+                        latest_emergency = get_latest_element(emergency_stream)
+                        if latest_emergency is not None:
+                            (emergency_mode, proximity_values) = latest_emergency
                         else:
-                            latest_emergency = get_latest_element(emergency_stream)
-                            if latest_emergency is not None:
-                                (emergency_mode, proximity_values) = latest_emergency
-                            else:
-                                emergency_mode = False
-                    except Empty:
+                            emergency_mode = False
+                    except Empty:  # pragma: no cover
                         emergency_mode = False
 
                     if not emergency_mode:
                         if movement_mode == "BEHAVE":
 
-                            # Switch between modes, change mode status LED
-                            if prev_movement_mode == "EXPLORE":
+                            # Switch between modes, change mode status LED (can not be tested with single cycle)
+                            if prev_movement_mode == "EXPLORE":  # pragma: no cover
                                 light_up_led(network, behR, behG, behB, webots_do_stream=webots_do_stream)
 
                             # Persistent change in movement mode
@@ -583,13 +603,14 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
                                         np.abs(v_right) > control.MAX_MOTOR_SPEED:
                                     logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
-                                    [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
+                                    #[v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
                                 # sending motor values to robot
                                 if not simulation.ENABLE_SIMULATION:
                                     network.SetVariable("thymio-II", "motor.left.target", [v_left])
                                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                                else:
+
+                                else:   # pragma: simulation no cover
                                     webots_do_stream.put(("SET_MOTOR", {'left': v_left, 'right': v_right}))
 
                                 logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
@@ -625,7 +646,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     if not simulation.ENABLE_SIMULATION:
                                         network.SetVariable("thymio-II", "motor.left.target", [v_left])
                                         network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                                    else:
+
+                                    else:   # pragma: simulation no cover
                                         webots_do_stream.put(("SET_MOTOR",
                                                               {'left': float(v_left), 'right': float(v_right)}))
 
@@ -651,7 +673,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                         # turn off emergency mode and return to normal mode, showing this with LEDs
                         emergency_mode = False
-                        if movement_mode == "EXPLORE":
+                        if movement_mode == "EXPLORE":  # pragma: no cover
                             light_up_led(network, expR, expG, expB, webots_do_stream=webots_do_stream)
                         elif movement_mode == "BEHAVE":
                             light_up_led(network, behR, behG, behB, webots_do_stream=webots_do_stream)
@@ -690,9 +712,15 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                                      dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
         t = datetime.now()
-        if simulation.ENABLE_SIMULATION and sensor_stream is not None:
+
+        if simulation.ENABLE_SIMULATION and sensor_stream is not None:   # pragma: simulation no cover
             logger.info(f'START: len{sensor_stream.qsize()}')
             empty_queue(sensor_stream)
+
+        # saving previous proximity values to only react to consistent proximity signals
+        # that last at least 3 time steps
+        prev_prev_prox = np.zeros(7)
+        prev_prox = np.zeros(7)
 
         while True:
             # enforcing checks on a regular basis
@@ -701,19 +729,30 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                 # reading proximity values
                 if not simulation.ENABLE_SIMULATION:
                     prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
-                else:
+
+                else:   # pragma: simulation no cover
                     if sensor_stream is not None:
                         prox_val = np.array(get_latest_element(sensor_stream))
                     else:
                         raise Exception('No sensor stream has been passed from Webots to sentinel process!')
 
                 try:
-                    if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD):
+                    # TODO: think over filtering of IR signals
+                    if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD) \
+                            and np.any(prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD) \
+                            and np.any(prev_prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD):
                         logger.info('Triggered Obstacle Avoidance!')
+                        emergency_stream.put((True, prox_val))
+                    elif np.any(prox_val[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK) \
+                            and np.any(prev_prox[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK) \
+                            and np.any(prev_prev_prox[5::] > control.EMERGENCY_PROX_THRESHOLD_BACK):
+                        logger.info('Triggered obstacle avoidance from back!')
                         emergency_stream.put((True, prox_val))
                     else:
                         emergency_stream.put((False, None))
-                except IndexError:
+                    prev_prev_prox = prev_prox
+                    prev_prox = prox_val
+                except IndexError:   # pragma: no cover
                     logger.warning('IndexError in sentinel process!!!')
 
                 t = datetime.now()

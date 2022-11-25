@@ -13,16 +13,30 @@ if not simulation.ENABLE_SIMULATION:
 else:
     import numpy as np
 
+from visualswarm.contrib import simulation
+
+if not simulation.ENABLE_SIMULATION:
+    from picamera import PiCamera
+    from picamera.array import PiRGBArray
+    from picamera.exc import PiCameraValueError
+else:
+    import numpy as np   # pragma: simulation no cover
+
+import cv2
 import time
 from datetime import datetime
 
-from visualswarm.contrib import camera, logparams
+from visualswarm.contrib import camera, logparams, monitoring
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    logger = logging.getLogger('visualswarm.app')
+    # setup logging
+    import os
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+    logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+    logger.setLevel(monitoring.LOG_LEVEL)
 else:
-    logger = logging.getLogger('visualswarm.app_simulation')
+    logger = logging.getLogger('visualswarm.app_simulation')   # pragma: simulation no cover
 bcolors = logparams.BColors
 
 
@@ -68,16 +82,25 @@ def raw_vision(raw_vision_stream):
             raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
             # Wait a certain number of seconds to allow the camera time to warmup
-            time.sleep(0.1)
+            logger.info('Waiting for camera warmup!')
+            time.sleep(8)
+            logger.info('--proceed--')
             frame_id = 0
             for frame in picam.capture_continuous(raw_capture,
                                                   format=camera.CAPTURE_FORMAT,
                                                   use_video_port=camera.USE_VIDEO_PORT):
                 # Grab the raw NumPy array representing the image
-                image = frame.array
+                image = cv2.flip(frame.array, -1)
 
                 # Adding time of capture for delay measurement
                 capture_timestamp = datetime.utcnow()
+
+                # clear vision stream if polluted to avoid delay
+                try:
+                    raw_vision_stream.get_nowait()
+                    logger.warning('Queue in raw vision processing.')
+                except:
+                    pass
 
                 # pushing the captured image to the vision stream
                 raw_vision_stream.put((image, frame_id, capture_timestamp))
@@ -90,11 +113,11 @@ def raw_vision(raw_vision_stream):
                 pass
             except PiCameraValueError:
                 pass
-    except PiCameraValueError:
+    except PiCameraValueError:   # pragma: no cover
         pass
 
 
-def simulated_vision(raw_vision_stream):
+def simulated_vision(raw_vision_stream):   # pragma: simulation no cover
     t = datetime.now()
     frame_id = 0
     while True:

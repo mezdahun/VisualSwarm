@@ -10,7 +10,9 @@ import time
 from visualswarm.contrib import control, logparams
 
 # using main logger
-logger = logging.getLogger('visualswarm.app')
+# setup logging
+ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
 bcolors = logparams.BColors
 
 

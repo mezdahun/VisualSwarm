@@ -8,7 +8,7 @@ import logging
 
 from visualswarm import env
 from visualswarm.vision import vprocess
-from visualswarm.contrib import logparams, vision, simulation
+from visualswarm.contrib import logparams, vision, simulation, monitoring
 from visualswarm.behavior import behavior
 from visualswarm.control import motoroutput
 
@@ -21,7 +21,7 @@ else:
 # setup logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(env.LOG_LEVEL)
+logger.setLevel(monitoring.LOG_LEVEL)
 bcolors = logparams.BColors
 
 

@@ -13,11 +13,18 @@ from visualswarm.contrib import monitoring, simulation, control
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 
+if monitoring.ENABLE_CLOUD_STORAGE:
+    import pickle  # nosec
+
 # using main logger
 if not simulation.ENABLE_SIMULATION:
-    logger = logging.getLogger('visualswarm.app')
+    # setup logging
+    import os
+    ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+    logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
+    logger.setLevel(monitoring.LOG_LEVEL)
 else:
-    logger = logging.getLogger('visualswarm.app_simulation')
+    logger = logging.getLogger('visualswarm.app_simulation')  # pragma: simulation no cover
 
 
 def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_control=False):
@@ -40,13 +47,29 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         phi = None
         v = 0
         t_prev = datetime.datetime.now()
+        is_initialized = False
+        # start_behave = t_prev
+        # prev_sign = 0
 
-        (projection_field, capture_timestamp) = VPF_stream.get()
+        (projection_field, capture_timestamp, projection_field_c2) = VPF_stream.get()
         phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
                           len(projection_field))
 
+        ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
+        EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
+        statevar_timestamp = datetime.datetime.now().strftime("%d-%m-%y-%H%M%S")
+        statevars_fpath = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{statevar_timestamp}_{EXP_ID}_{ROBOT_NAME}_statevars.npy')
+        if monitoring.ENABLE_CLOUD_STORAGE:
+            os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
+
+        rw_dt = 0
+        add_psi = 0.1
+        new_dpsi = 0.05
+
+        dpsi_before = None
+
         while True:
-            (projection_field, capture_timestamp) = VPF_stream.get()
+            (projection_field, capture_timestamp, projection_field_c2) = VPF_stream.get()
 
             if np.mean(projection_field) == 0 and control.EXP_MOVE_TYPE != 'NoExploration':
                 movement_mode = "EXPLORE"
@@ -56,7 +79,21 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             t_now = datetime.datetime.now()
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
+            ## TODO: Find out what causes weird turning behavior
+            #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
+
+            if not simulation.ENABLE_SIMULATION:
+                if np.mean(projection_field_c2) > 0:
+                    dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
+                                                                        V0=80, ALP0=150, BET0=8,
+                                                                        ALP1=0.00165, BET1=0.00175)
+                else:
+                    dvc2 = 0
+                    dpsic2 = 0
+            else:
+                dvc2 = 0
+                dpsic2 = 0
 
             if v > 0:
                 v = min(v, 300)
@@ -70,8 +107,43 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             elif dpsi < 0:
                 dpsi = max(dpsi, -1)
 
-            v += dv * dt
+            if simulation.ENABLE_SIMULATION:
+                v += dv * dt
+            else:
+                if dpsic2 > 0:
+                    dpsic2 = min(dpsic2, 1)
+                elif dpsic2 < 0:
+                    dpsic2 = max(dpsic2, -1)
 
+                dpsi = float(dpsi)
+                dpsic2 = float(dpsic2)
+
+                dpsi = dpsi + 2 * dpsic2
+
+                ## TODO: this is temporary smooth reandom walk
+                if np.mean(projection_field) == 0 and control.SMOOTH_RW:
+                    if rw_dt > 2:
+                        new_dpsi = np.random.uniform(-add_psi, add_psi, 1)
+                        rw_dt = 0
+                        # the more time spent without social cues the more extensive the exploration is
+                        if add_psi < 1.5:
+                            logger.error(f'add dpsi, {add_psi}')
+                            add_psi += 0.1
+                    dpsi = new_dpsi
+                    rw_dt += dt
+                else:
+                    # logger.error('zerodpsi')
+                    add_psi = 0.1
+
+                if is_initialized:
+                    v += (dv + dvc2) * dt
+                    dpsi
+                else:
+                    is_initialized = True
+                    dv = float(0)
+                    dpsi = float(0)
+
+            # prev_sign = now_sign
             t_prev = t_now
 
             if monitoring.SAVE_CONTROL_PARAMS and not simulation.ENABLE_SIMULATION:
@@ -80,7 +152,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 time = datetime.datetime.utcnow()
 
                 # generating data to dump in db
-                field_dict = {"agent_velocity": v,
+                field_dict = {"agent_velocity": dv,
                               "heading_angle": dpsi,
                               "processing_delay": (time - capture_timestamp).total_seconds()}
 
@@ -98,6 +170,12 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             if with_control:
                 control_stream.put((v, dpsi))
                 motor_control_mode_stream.put(movement_mode)
+
+            if monitoring.ENABLE_CLOUD_STORAGE:
+                with open(statevars_fpath, 'ab') as sv_f:
+                    statevars = np.concatenate((np.array([t_now]),
+                                                np.array([dv, dpsi])))
+                    pickle.dump(statevars, sv_f)
 
             # To test infinite loops
             if env.EXIT_CONDITION:
