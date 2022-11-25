@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from visualswarm.simulation_tools import data_tools, plotting_tools
 
-EXPERIMENT_FOLDER = "/mnt/DATA/mezey/Seafile/SwarmRobotics/VisualSwarm Simulation Data/RealExperiments_Exploration_10bots"
+BATCH_NAME = "TESTAFTERMERGE_Exploration_10bots"
+EXPERIMENT_FOLDER = f"/mnt/DATA/mezey/Seafile/SwarmRobotics/VisualSwarm Simulation Data/{BATCH_NAME}"
 iid_path = os.path.join(EXPERIMENT_FOLDER, "iid.npy")
 pol_path = os.path.join(EXPERIMENT_FOLDER, "pol.npy")
 
@@ -34,6 +35,7 @@ if not os.path.isfile(iid_path) or not os.path.isfile(pol_path):
             pol_matrix[:, ai, bi] = mean_pol
             donei += 1
             print(f"Process: {donei/num_data_points*100}%")
+
     print("Saving final IID and POL matrices")
     np.save(iid_path, iid_matrix)
     np.save(pol_path, pol_matrix)
