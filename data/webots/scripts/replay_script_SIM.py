@@ -6,10 +6,6 @@ import time
 """EXPERIMENT DESCRIPTION:
 
 @description: changing parameter gamma with a single controlled robot."""
-import numpy as np
-import os
-import matplotlib.pyplot as plt
-import numpy as np
 from scipy.spatial.distance import pdist, squareform
 from fastcluster import linkage
 from scipy.cluster.hierarchy import dendrogram
