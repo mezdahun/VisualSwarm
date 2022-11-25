@@ -71,16 +71,19 @@ def compute_serial_matrix(dist_mat, method="ward"):
     return seriated_dist, res_order, res_linkage
 
 def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False,
-                    x_min=-5000, x_max=5000, wall_coordinates=None):
+                    x_min=-5000, x_max=5000, wall_coordinates=None, history_length=0):
     """Replaying experiment from summary and data in matplotlib plot"""
     if wall_coordinates is not None:
-        x_min = np.min(wall_coordinates[0, :]) - 100
-        x_max = np.max(wall_coordinates[0, :]) + 100
-        y_min = np.min(wall_coordinates[1, :]) - 100
-        y_max = np.max(wall_coordinates[0, :]) + 100
+        x_min = np.nanmin(wall_coordinates[0, :]) - 100
+        x_max = np.nanmax(wall_coordinates[0, :]) + 100
+        y_min = np.nanmin(wall_coordinates[1, :]) - 100
+        y_max = np.nanmax(wall_coordinates[1, :]) + 100
+        print(x_min, x_max, y_min, y_max)
     else:
         y_min = x_min
         y_max = x_max
+
+    num_robots = data.shape[1]
 
     iidm = data_tools.calculate_interindividual_distance(summary, data)[runi, ...]
     pm = data_tools.calculate_ploarization_matrix(summary, data)
@@ -94,19 +97,25 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
     fig, ax = plt.subplots(2, 1)
     for t in range(t_start, t_end, t_step):
 
-        plt.axes(ax[0])
-        niidm = (iidm[:, :, t] - np.min(iidm[:, :, t])) / (np.max(iidm[:, :, t]) - np.min(iidm[:, :, t]))
-        dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
-        # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
-        linkage_matrix = linkage(dist, "single")
-        ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(10)], show_leaf_counts=True)
+        if num_robots > 1:
+            plt.axes(ax[0])
+            niidm = (iidm[:, :, t] - np.min(iidm[:, :, t])) / (np.max(iidm[:, :, t]) - np.min(iidm[:, :, t]))
+            dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
+            # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
+            linkage_matrix = linkage(dist, "single")
+            ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(num_robots)], show_leaf_counts=True)
 
         plt.axes(ax[1])
         center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
-        colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
+        if num_robots > 1:
+            colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
+        else:
+            colors = "blue"
+
         plt.scatter(data[runi, :, 1, t], data[runi, :, 3, t], s=100, c=colors)
-        for i in range(10):
-            plt.annotate(i, (data[runi, i, 1, t], data[runi, i, 3, t] + 0.2))
+
+        for i in range(num_robots):
+            plt.annotate(i+1, (data[runi, i, 1, t], data[runi, i, 3, t] + 0.2))
 
         ori = data[runi, :, 4, t]
         ms = 200
@@ -117,6 +126,17 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
 
         plt.scatter(center_of_mass[runi, 0, t], center_of_mass[runi, 2, t], s=50)
+
+        if history_length > 0:
+            for robi in range(num_robots):
+                if isinstance(colors, list):
+                    col = colors[robi]
+                else:
+                    col = "blue"
+                plt.plot(data[runi, robi, 1, t-history_length:t:5], data[runi, robi, 3, t-history_length:t:5], '-', c=col)
+
+        if wall_coordinates is not None:
+            plt.plot(wall_coordinates[0, :], wall_coordinates[1, :], '--', c="black")
 
         plt.xlim(x_min, x_max)
         plt.ylim(y_min, y_max)
