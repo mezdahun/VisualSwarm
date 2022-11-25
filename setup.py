@@ -8,7 +8,7 @@ setup(
                 'PI for movement control of Thymio II robots.'
                 ''
                 'ROBOT-AGENT SUBVERSION: Real robot controller',
-    version='0.1.4',
+    version='0.1.5',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
     packages=find_packages(exclude=['tests']),

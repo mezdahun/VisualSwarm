@@ -82,10 +82,15 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             ## TODO: Find out what causes weird turning behavior
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-            if np.mean(projection_field_c2) > 0:
-                dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
-                                                                    V0=80, ALP0=150, BET0=8,
-                                                                    ALP1=0.00165, BET1=0.00175)
+
+            if not simulation.ENABLE_SIMULATION:
+                if np.mean(projection_field_c2) > 0:
+                    dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
+                                                                        V0=80, ALP0=150, BET0=8,
+                                                                        ALP1=0.00165, BET1=0.00175)
+                else:
+                    dvc2 = 0
+                    dpsic2 = 0
             else:
                 dvc2 = 0
                 dpsic2 = 0
@@ -102,57 +107,41 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             elif dpsi < 0:
                 dpsi = max(dpsi, -1)
 
-            if dpsic2 > 0:
-                dpsic2 = min(dpsic2, 1)
-            elif dpsic2 < 0:
-                dpsic2 = max(dpsic2, -1)
-
-            dpsi = float(dpsi)
-            dpsic2 = float(dpsic2)
-
-            dpsi = dpsi + 2 * dpsic2
-            # if dpsi_before is None:
-            #     dpsi_before = dpsi
-            # delta_dpsi = dpsi - dpsi_before
-            # if delta_dpsi > 0.5:
-            #     dpsi = dpsi_before + 0.5
-            # elif delta_dpsi < -0.5:
-            #     dpsi = dpsi_before - 0.5
-            # print(f"DPSI: {dpsi}")
-
-            ## TODO: this is temporary smooth reandom walk
-            if np.mean(projection_field) == 0 and control.SMOOTH_RW:
-                if rw_dt > 2:
-                    new_dpsi = np.random.uniform(-add_psi, add_psi, 1)
-                    rw_dt = 0
-                    # the more time spent without social cues the more extensive the exploration is
-                    if add_psi < 1.5:
-                        logger.error(f'add dpsi, {add_psi}')
-                        add_psi += 0.1
-                dpsi = new_dpsi
-                rw_dt += dt
+            if simulation.ENABLE_SIMULATION:
+                v += dv * dt
             else:
-                # logger.error('zerodpsi')
-                add_psi = 0.1
+                if dpsic2 > 0:
+                    dpsic2 = min(dpsic2, 1)
+                elif dpsic2 < 0:
+                    dpsic2 = max(dpsic2, -1)
 
-            if is_initialized:
-                v += (dv + dvc2) * dt
-                dpsi
-            else:
-                is_initialized = True
-                dv = float(0)
-                dpsi = float(0)
+                dpsi = float(dpsi)
+                dpsic2 = float(dpsic2)
 
-            # now_sign = np.sign(dv)
+                dpsi = dpsi + 2 * dpsic2
 
-            # logger.warning(f'dV={dv * dt} with passed seconds {(t_now - start_behave).total_seconds()}')
-            # if np.abs(now_sign - prev_sign) == 2 and (t_now - start_behave).total_seconds() > 15:
-            #     control_stream.put((0, 0))
-            #     motor_control_mode_stream.put("BEHAVE")
-            #     logger.warning('STOP EXPERIMENT!!!!')
-            #     #raise KeyboardInterrupt('DV decreased to zero and already 5 sec gone from experiment!!!')
-            #     return
+                ## TODO: this is temporary smooth reandom walk
+                if np.mean(projection_field) == 0 and control.SMOOTH_RW:
+                    if rw_dt > 2:
+                        new_dpsi = np.random.uniform(-add_psi, add_psi, 1)
+                        rw_dt = 0
+                        # the more time spent without social cues the more extensive the exploration is
+                        if add_psi < 1.5:
+                            logger.error(f'add dpsi, {add_psi}')
+                            add_psi += 0.1
+                    dpsi = new_dpsi
+                    rw_dt += dt
+                else:
+                    # logger.error('zerodpsi')
+                    add_psi = 0.1
 
+                if is_initialized:
+                    v += (dv + dvc2) * dt
+                    dpsi
+                else:
+                    is_initialized = True
+                    dv = float(0)
+                    dpsi = float(0)
 
             # prev_sign = now_sign
             t_prev = t_now

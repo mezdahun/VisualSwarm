@@ -6,6 +6,7 @@ if not simulation.ENABLE_SIMULATION:
     from visualswarm.control import motorinterface
 
 import logging
+
 from visualswarm.contrib import logparams, control, behavior, physconstraints, monitoring
 from visualswarm import env
 
@@ -608,6 +609,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 if not simulation.ENABLE_SIMULATION:
                                     network.SetVariable("thymio-II", "motor.left.target", [v_left])
                                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
+
                                 else:   # pragma: simulation no cover
                                     webots_do_stream.put(("SET_MOTOR", {'left': v_left, 'right': v_right}))
 
@@ -644,6 +646,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     if not simulation.ENABLE_SIMULATION:
                                         network.SetVariable("thymio-II", "motor.left.target", [v_left])
                                         network.SetVariable("thymio-II", "motor.right.target", [v_right])
+
                                     else:   # pragma: simulation no cover
                                         webots_do_stream.put(("SET_MOTOR",
                                                               {'left': float(v_left), 'right': float(v_right)}))
@@ -709,6 +712,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                                      dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
         t = datetime.now()
+
         if simulation.ENABLE_SIMULATION and sensor_stream is not None:   # pragma: simulation no cover
             logger.info(f'START: len{sensor_stream.qsize()}')
             empty_queue(sensor_stream)
@@ -717,6 +721,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
         # that last at least 3 time steps
         prev_prev_prox = np.zeros(7)
         prev_prox = np.zeros(7)
+
         while True:
             # enforcing checks on a regular basis
             if abs(t - datetime.now()).total_seconds() > (1 / control.EMERGENCY_CHECK_FREQ):
@@ -724,6 +729,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                 # reading proximity values
                 if not simulation.ENABLE_SIMULATION:
                     prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
+
                 else:   # pragma: simulation no cover
                     if sensor_stream is not None:
                         prox_val = np.array(get_latest_element(sensor_stream))

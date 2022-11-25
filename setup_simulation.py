@@ -10,7 +10,7 @@ setup(
                 'and the corresponding wiki pages for more details and correct usage.'
                 ''
                 'WEBOTS SIMULATION SUBVERSION: Simulate real agents in Webots with VSWRM controller',
-    version='0.1.4',
+    version='0.1.5',
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
     packages=find_packages(exclude=['tests']),

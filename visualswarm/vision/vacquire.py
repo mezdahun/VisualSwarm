@@ -11,6 +11,15 @@ if not simulation.ENABLE_SIMULATION:
     from picamera.array import PiRGBArray
     from picamera.exc import PiCameraValueError
 else:
+    import numpy as np
+
+from visualswarm.contrib import simulation
+
+if not simulation.ENABLE_SIMULATION:
+    from picamera import PiCamera
+    from picamera.array import PiRGBArray
+    from picamera.exc import PiCameraValueError
+else:
     import numpy as np   # pragma: simulation no cover
 
 import cv2

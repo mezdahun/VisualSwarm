@@ -17,6 +17,7 @@ from visualswarm.monitoring import ifdb
 from visualswarm.contrib import camera, vision, monitoring, simulation
 
 from datetime import datetime
+from pprint import pformat
 
 if vision.RECOGNITION_TYPE == "CNN":
     import importlib.util
@@ -25,8 +26,6 @@ if vision.RECOGNITION_TYPE == "CNN":
         from tflite_runtime.interpreter import Interpreter
     else:
         from tensorflow.lite.python.interpreter import Interpreter
-
-from pprint import pformat
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
@@ -121,23 +120,28 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 # Selecting appropriate contours
                 fconts = [cnt for cnt in conts if cv2.contourArea(cnt) >= visualswarm.contrib.vision.MIN_BLOB_AREA]
 
-                # Creating convex hull from selected contours
-                hull_list = []
-                for i in range(len(fconts)):
-                    hull = cv2.convexHull(fconts[i])
-                    hull_list.append(hull)
+            # visualize contours and convex hull on the original image and the area on the new mask
+            cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
 
-                # visualize contours and convex hull on the original image and the area on the new mask
-                cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
-                cv2.drawContours(img, hull_list, -1, vision.CONVEX_CONTOUR_COLOR, vision.CONVEX_CONTOUR_WIDTH)
-                cv2.drawContours(blurred, hull_list, -1, (255, 255, 255), -1)
+            # final mask
+            blurred_ext = np.zeros_like(blurred)
+
+            # cutting back mask according to real FOV
+            w_start = int(blurred.shape[1] / 2) - int(camera.RESOLUTION[0] / 2)
+            w_end = w_start + camera.RESOLUTION[0]
+
+            for c in fconts:
+                x, y, w, h = cv2.boundingRect(c)
+                if w_start <= x <= w_end or w_start <= x+w <= w_end:
+                    cv2.rectangle(blurred_ext, (x, y), (x + w, y + h), (255, 255, 255), -1)
+
 
             # Forwarding result to VPF extraction
-            high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+            high_level_vision_stream.put((img[:, w_start:w_end], blurred_ext, frame_id, capture_timestamp))
 
             # Forwarding result for visualization if requested
             if visualization_stream is not None:
-                visualization_stream.put((img, blurred, frame_id))
+                visualization_stream.put((img[:, w_start:w_end], blurred_ext, frame_id))
 
             # To test infinite loops
             if env.EXIT_CONDITION:
@@ -867,20 +871,11 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             # logger.info(high_level_vision_stream.qsize())
             cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
                                  visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
-            projection_field_class_1 = np.max(cropped_image, axis=0)
-            projection_field_class_0 = np.min(cropped_image, axis=0)
 
-            # if proj_f_stack is None:
-            #     N_filter = 5
-            #     filter_below = 4
-            #     filter_limit = (filter_below * 255) / N_filter
-            #     proj_f_stack = np.zeros((N_filter, len(projection_field_class_1)))
-            #
-            # proj_f_stack = np.roll(proj_f_stack, 1, axis=0)
-            # proj_f_stack[-1, :] = projection_field_class_1
-            # projection_field_class_1 = np.mean(proj_f_stack, axis=0)
-            # projection_field_class_1[projection_field_class_1 < filter_limit] = 0
-            # projection_field_class_1[projection_field_class_1 >= filter_limit] = 255
+            # primariy class is 1
+            projection_field_class_1 = np.max(cropped_image, axis=0)
+            # secondary class is 0 and can be set to -255 in mask
+            projection_field_class_0 = np.min(cropped_image, axis=0)
 
             projection_field_class_1 = projection_field_class_1 / 255
             projection_field_class_0 = projection_field_class_0 / -255
@@ -895,11 +890,10 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             if projection_field_class_1[-1] == 0 and np.abs(projection_field_class_1[-2]) > 0:
                 projection_field_class_1[-1] = projection_field_class_1[-2]
 
-            if vision.USE_VPF_FISHEYE_CORRECTION:
-                projection_field_class_1 = center_fisheye_circle(projection_field_class_1, ROBOT_NAME)
-                projection_field_class_1 = correct_fisheye_approx(projection_field_class_1, ROBOT_NAME)
-                # cv2.imshow("VPF", np.vstack((o_projection_field, projection_field)))
-                # cv2.waitKey(1)
+            #if vision.USE_VPF_FISHEYE_CORRECTION:
+                #projection_field_class_1 = center_fisheye_circle(projection_field_class_1, ROBOT_NAME)
+                #projection_field_class_1 = correct_fisheye_approx(projection_field_class_1, ROBOT_NAME)
+
 
             if monitoring.SAVE_PROJECTION_FIELD and not simulation.ENABLE_SIMULATION:
                 # Saving projection field data to InfluxDB to visualize with Grafana

@@ -131,10 +131,6 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
     np.save(sumd_f, data)
 
 
-
-
-
-
 def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
     """This method summarizes separated WeBots simulation data into a unified satastructure. All measurements must
     have the same length. To accomplish this you should use a positive non-zero PAUSE_SIMULATION_AFTER parameter
@@ -208,7 +204,8 @@ def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
             data[j, i, attributes.index('pos_x'), :] = positions[j][:t_len, 1]
             data[j, i, attributes.index('pos_y'), :] = positions[j][:t_len, 2]
             data[j, i, attributes.index('pos_z'), :] = positions[j][:t_len, 3]
-            data[j, i, attributes.index('or'), :] = orientations[j][:t_len, 1]
+            data[j, i, attributes.index('or'), :] = np.pi/2 - orientations[j][:t_len, 1]
+
 
     experiment_summary = {'params': param_dict,
                           'num_runs': num_runs,

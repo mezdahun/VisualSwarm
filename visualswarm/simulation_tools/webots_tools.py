@@ -47,7 +47,7 @@ def initialize_run_w_config(env_config_dict):
 
 
 def generate_robot_config(robot_names, position_type, orientation_type, config_path,
-                          max_tries=5000, min_dist=0.5):
+                          max_tries=5000, min_dist=0.3):
     """generating robot specific configuration file according to the passed parameters
 
         Args:
@@ -79,9 +79,10 @@ def generate_robot_config(robot_names, position_type, orientation_type, config_p
         i = 0
         while i < max_tries:
             P = np.random.rand(num_robots, 2) * position_type['lim']
+
             if all(np.linalg.norm(p - q) > min_dist for p, q in combinations(P, 2)):
-                P[:, 0] -= ((position_type['lim'] / 2) - position_type['center'][0])
-                P[:, 1] -= ((position_type['lim'] / 2) - position_type['center'][1])
+                P[:, 0] += position_type['center'][0]
+                P[:, 1] += position_type['center'][1]
                 break
             i += 1
 

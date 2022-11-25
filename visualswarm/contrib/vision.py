@@ -3,6 +3,7 @@
 @description: Parameters related to visualization
 """
 from cv2 import cvtColor, COLOR_BGR2HSV
+from visualswarm.contrib import simulation
 import numpy as np
 import os
 
@@ -16,13 +17,17 @@ def calculate_reverse_mapping_fn(lens, orig_img_width):
 
 
 # Recognition Type, supported: 'Color' or 'CNN'
-RECOGNITION_TYPE = "CNN"
+if not simulation.ENABLE_SIMULATION:
+    RECOGNITION_TYPE = "CNN"
+else:
+    RECOGNITION_TYPE = "Color"
+
 
 # Interactive color tune
 FIND_COLOR_INTERACTIVE = False
 
 # Visualization on the fly
-SHOW_VISION_STREAMS = bool(int(os.getenv('SHOW_VISION_STREAMS', '1')))
+SHOW_VISION_STREAMS = bool(int(os.getenv('SHOW_VISION_STREAMS', '0')))
 VIS_DOWNSAMPLE_FACTOR = 1
 
 # Drawing, color in RGB
@@ -50,12 +55,20 @@ HSV_LOW = np.uint8([TARGET_HSV_COLOR[0][0][0] - HSV_HUE_RANGE, SV_MINIMUM, SV_MI
 HSV_HIGH = np.uint8([TARGET_HSV_COLOR[0][0][0] + HSV_HUE_RANGE, SV_MAXIMUM, SV_MAXIMUM])
 
 # VPF Preprocessing
-GAUSSIAN_KERNEL_WIDTH = 9  # 15
-MEDIAN_BLUR_WIDTH = 5  # 9
+
+GAUSSIAN_KERNEL_WIDTH = 1  # 15
+MEDIAN_BLUR_WIDTH = 1  # 9
 MIN_BLOB_AREA = 0
 
 # Visual Projection
-FOV = float(os.getenv('ROBOT_FOV', '6.28'))
+# for simulation keet FOV=2*pi and use REAL_FOV to then cut the resulting image
+# for real robots FOV will decide the FOV of robots
+if simulation.ENABLE_SIMULATION:
+    FOV = 2 * pi
+    REAL_FOV = float(os.getenv('ROBOT_FOV', '6.28'))
+else:
+    FOV = float(os.getenv('ROBOT_FOV', '6.28'))
+
 H_MARGIN = 1  # 10
 W_MARGIN = 1  # 10
 PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
