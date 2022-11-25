@@ -4,6 +4,7 @@
 """
 import datetime
 import logging
+import os
 
 import numpy as np
 
@@ -19,7 +20,6 @@ if monitoring.ENABLE_CLOUD_STORAGE:
 # using main logger
 if not simulation.ENABLE_SIMULATION:
     # setup logging
-    import os
     ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
     logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
     logger.setLevel(monitoring.LOG_LEVEL)
@@ -59,7 +59,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
         statevar_timestamp = datetime.datetime.now().strftime("%d-%m-%y-%H%M%S")
         statevars_fpath = os.path.join(monitoring.SAVED_VIDEO_FOLDER, f'{statevar_timestamp}_{EXP_ID}_{ROBOT_NAME}_statevars.npy')
-        if monitoring.ENABLE_CLOUD_STORAGE:
+        if monitoring.ENABLE_CLOUD_STORAGE and not simulation.ENABLE_SIMULATION:
             os.makedirs(monitoring.SAVED_VIDEO_FOLDER, exist_ok=True)
 
         rw_dt = 0
@@ -171,7 +171,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 control_stream.put((v, dpsi))
                 motor_control_mode_stream.put(movement_mode)
 
-            if monitoring.ENABLE_CLOUD_STORAGE:
+            if monitoring.ENABLE_CLOUD_STORAGE and not simulation.ENABLE_SIMULATION:
                 with open(statevars_fpath, 'ab') as sv_f:
                     statevars = np.concatenate((np.array([t_now]),
                                                 np.array([dv, dpsi])))
