@@ -123,7 +123,10 @@ for alpi, alpha_0 in enumerate(alphas):
 
                 # call webots to run world file
                 print("\n\n ---------- NEW WEBOTS RUN ----------")
+                # To start N webots processes parallel
                 os.system(f"WEBOTS_CONFBASEPATH={base_path} nohup env WEBOTS_CONFBASEPATH={base_path} webots --mode=realtime --stdout --stderr --minimize {wbt_path} &")
+                # To start webots processing one by one after each other
+                # os.system(f"WEBOTS_CONFBASEPATH={base_path} webots --mode=realtime --stdout --stderr --minimize {wbt_path} &")
                 print('Started simulation\n\n\n')
                 print(f'PROGRESS: {(donei/(len(alphas)*len(bethas)*num_runs))*100}%')
                 donei += 1
