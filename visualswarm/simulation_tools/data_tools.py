@@ -62,7 +62,7 @@ def is_summarized(data_path, experiment_name):
         logger.info("Experiment not yet summarized")
         return False
 
-def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
+def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
     """Reading an exported optitrack tracking data csv file into a VSWRM summary sata file that can be further used
     for data analysis and plotting with VSWRM
 
