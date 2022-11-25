@@ -81,8 +81,12 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
     df_orig = pd.read_csv(csv_path, skiprows=[i for i in range(6)])
 
     # QUICKNDIRTY dropping timepoints where optitrack lost track of robots
-    df = df_orig.dropna()
-    print("Dropped NA values from dataframe.")
+    if dropna:
+        df = df_orig.dropna()
+        print("Dropped NA values from dataframe.")
+    else:
+        df = df_orig
+
     print("columns: ", df.columns)
 
     num_robots = int(len(df.columns) / 6) # for each robot 3 rotation and 3 position coordinate
