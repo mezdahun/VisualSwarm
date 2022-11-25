@@ -1,11 +1,8 @@
-"""
-@description: cPOC for processing optitrack data for publication.
-"""
-import time
-
 """EXPERIMENT DESCRIPTION:
 
 @description: changing parameter gamma with a single controlled robot."""
+import time
+import os
 from scipy.spatial.distance import pdist, squareform
 from fastcluster import linkage
 from scipy.cluster.hierarchy import dendrogram
@@ -16,7 +13,9 @@ from scipy.cluster.hierarchy import linkage
 from visualswarm.simulation_tools import data_tools, plotting_tools
 
 # if data is freshly created first summarize it into multidimensional array
-EXPERIMENT_NAMES = ["TestAfterLongPause_An1.5_Bn5_10bots_FOV3.455751918948773"]
+BASE_PATH = '/mnt/DATA/mezey/Seafile/SwarmRobotics/VisualSwarm Simulation Data'
+BATCH_NAME = "TESTAFTERMERGE_Exploration_10bots"
+EXPERIMENT_NAMES = ["TestAfterLongPause_An3_Bn3_10bots_FOV3.455751918948773"]
 DISTANCE_REFERENCE = [0, 0, 0]
 
 def draw_line(x,y,angle,length):
@@ -76,7 +75,7 @@ def compute_serial_matrix(dist_mat, method="ward"):
 
 polrats_over_exps = []
 for expi in range(len(EXPERIMENT_NAMES)):
-    data_path = f'/mnt/DATA/mezey/Seafile/SwarmRobotics/VisualSwarm Simulation Data/RealExperiments_Exploration_10bots/{EXPERIMENT_NAMES[expi]}'
+    data_path = os.path.join(BASE_PATH, BATCH_NAME, EXPERIMENT_NAMES[expi])
     # if data is freshly created first summarize it into multidimensional array
     change_along = None
     change_along_alias = None
@@ -85,7 +84,7 @@ for expi in range(len(EXPERIMENT_NAMES)):
     data_tools.summarize_experiment(data_path, EXPERIMENT_NAMES[expi], skip_already_summed=True)
     summary, data = data_tools.read_summary_data(data_path, EXPERIMENT_NAMES[expi])
 
-    runi = 1
+    runi = 0
     iidm = data_tools.calculate_interindividual_distance(summary, data)[runi, ...]
     pm = data_tools.calculate_ploarization_matrix(summary, data)
     plt.ion()
@@ -128,6 +127,7 @@ for expi in range(len(EXPERIMENT_NAMES)):
 
         # plt.draw()
         # re-drawing the figure
+        ax[1].invert_yaxis()
         fig.canvas.draw()
           # to flush the GUI events
         fig.canvas.flush_events()
