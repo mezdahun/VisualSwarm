@@ -89,7 +89,8 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
 
     print("columns: ", df.columns)
 
-    num_robots = int(len(df.columns) / 6) # for each robot 3 rotation and 3 position coordinate
+    data_holder_columns = [col for col in df.columns if col.startswith('X') or col.startswith('Y') or col.startswith('Z')]
+    num_robots = int(len(data_holder_columns) / 6) # for each robot 3 rotation and 3 position coordinate
     print(f"Found {num_robots} robots data in csv file.")
     time = df['Time (Seconds)'].values
     print(time)
