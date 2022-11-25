@@ -161,11 +161,12 @@ class MotorInterfaceTest(TestCase):
         network = "mock network"
         prox_vals = [0, 0, 0, 0, 0, 0, 0]
         emergency_stream = "mock emergency stream"
+        webots_do_stream = None
 
         # case 1: turn returns none, no additional protocol
         mock_turn_avoid.return_value = None
         motoroutput.avoid_obstacle(network, prox_vals, emergency_stream)
-        mock_turn_avoid.assert_called_once_with(network, prox_vals, emergency_stream)
+        mock_turn_avoid.assert_called_once_with(network, prox_vals, emergency_stream, webots_do_stream=webots_do_stream)
         mock_run_add_prot.assert_not_called()
 
         # case 2: we get back an additional protocol
@@ -173,19 +174,21 @@ class MotorInterfaceTest(TestCase):
         mock_run_add_prot.reset_mock()
         mock_turn_avoid.return_value = "Some additional protocol"
         motoroutput.avoid_obstacle(network, prox_vals, emergency_stream)
-        mock_turn_avoid.assert_called_once_with(network, prox_vals, emergency_stream)
-        mock_run_add_prot.assert_called_once_with(network, 'Some additional protocol', emergency_stream)
+        mock_turn_avoid.assert_called_once_with(network, prox_vals, emergency_stream, webots_do_stream=webots_do_stream)
+        mock_run_add_prot.assert_called_once_with(network, 'Some additional protocol',
+                                                  emergency_stream, webots_do_stream=webots_do_stream)
 
     @mock.patch('visualswarm.control.motoroutput.move_robot', return_value=None)
     @mock.patch('visualswarm.control.motoroutput.speed_up_robot', return_value=None)
     def test_run_additional_protocol(self, mock_speed, mock_move):
         network = "mock network"
         emergency_stream = "mock emergency stream"
+        webots_do_stream = None
 
         # case 1: move robot
         protocol = ("Move", "Forward", 20)
         motoroutput.run_additional_protocol(network, protocol, emergency_stream)
-        mock_move.assert_called_once_with(network, "Forward", 20, emergency_stream)
+        mock_move.assert_called_once_with(network, "Forward", 20, emergency_stream, webots_do_stream=webots_do_stream)
         mock_speed.assert_not_called()
 
         # case 2: we get back an additional protocol
@@ -216,51 +219,65 @@ class MotorInterfaceTest(TestCase):
     def test_turn_avoid_obstacle(self, mock_turn):
         network = "mock network"
         emergency_stream = "mock emergency stream"
+        webots_do_stream = None
         with mock.patch('visualswarm.contrib.control.OBSTACLE_TURN_ANGLE', 65):
             with mock.patch('visualswarm.contrib.control.SYMMETRICITY_THRESHOLD', 50):
                 with mock.patch('visualswarm.contrib.control.UNCONTINOUTY_THRESHOLD', 50):
                     with mock.patch('visualswarm.contrib.control.PENDULUM_TRAP_ANGLE', 115):
-                        # Case 1: left laterality of obstacle with no other values
-                        prox_vals = [100, 100, 0, 0, 0, 0, 0]
-                        motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
-                        mock_turn.assert_called_once_with(network, 65, emergency_stream)
-
-                        # Case 2: left laterality with non-zero frontal value
-                        mock_turn.reset_mock()
-                        prox_vals = [100, 100, 200, 0, 0, 0, 0]
-                        motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
-                        mock_turn.assert_called_once_with(network, 65, emergency_stream)
-
-                        # Case 3: right laterality of obstacle with no other values
-                        mock_turn.reset_mock()
-                        prox_vals = [0, 0, 0, 100, 100, 0, 0]
-                        motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
-                        mock_turn.assert_called_once_with(network, -65, emergency_stream)
-
-                        # Case 4: left laterality with non-zero frontal value
-                        mock_turn.reset_mock()
-                        prox_vals = [0, 0, 200, 100, 100, 0, 0]
-                        motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
-                        mock_turn.assert_called_once_with(network, -65, emergency_stream)
-
-                        # Case 5: frontal wall, not a pendulum trap
-                        mock_turn.reset_mock()
-                        prox_vals = [100, 100, 200, 100, 100, 0, 0]
-                        motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
-                        mock_turn.assert_called_once_with(network, -65, emergency_stream)
-
-                        # Case 6: pendulum trap (symmetric laterality, low center value)
-                        mock_turn.reset_mock()
-                        prox_vals = [100, 100, 20, 120, 110, 0, 0]
-                        motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
-                        mock_turn.assert_called_once_with(network, 115, emergency_stream, blind_mode=True)
-
-                        # Case 7: possibility of being locked
-                        with self.assertLogs('visualswarm.app', level='WARNING') as cm:
-                            prox_vals = np.array([100, 100, 100, 0, 0, 20, 20])
-                            log = f'WARNING:visualswarm.app:Agent might be locked! Proximity values: {prox_vals}'
+                        with mock.patch('visualswarm.contrib.control.AVOID_TURN_DIRECTION', 'Various'):
+                            # Case 1: left laterality of obstacle with no other values
+                            prox_vals = [100, 100, 0, 0, 0, 0, 0]
                             motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
-                            self.assertEqual(cm.output, [log])
+                            mock_turn.assert_called_once_with(network, 65, emergency_stream,
+                                                              webots_do_stream=webots_do_stream)
+
+                            # Case 2: left laterality with non-zero frontal value
+                            mock_turn.reset_mock()
+                            prox_vals = [100, 100, 200, 0, 0, 0, 0]
+                            motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
+                            mock_turn.assert_called_once_with(network, 65, emergency_stream,
+                                                              webots_do_stream=webots_do_stream)
+
+                            # Case 3: right laterality of obstacle with no other values
+                            mock_turn.reset_mock()
+                            prox_vals = [0, 0, 0, 100, 100, 0, 0]
+                            motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
+                            mock_turn.assert_called_once_with(network, -65, emergency_stream,
+                                                              webots_do_stream=webots_do_stream)
+
+                            # Case 4: left laterality with non-zero frontal value
+                            mock_turn.reset_mock()
+                            prox_vals = [0, 0, 200, 100, 100, 0, 0]
+                            motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
+                            mock_turn.assert_called_once_with(network, -65, emergency_stream,
+                                                              webots_do_stream=webots_do_stream)
+
+                            # Case 5: frontal wall, not a pendulum trap
+                            mock_turn.reset_mock()
+                            prox_vals = [100, 100, 200, 100, 100, 0, 0]
+                            motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
+                            mock_turn.assert_called_once_with(network, -65, emergency_stream,
+                                                              webots_do_stream=webots_do_stream)
+
+                            # Case 6: pendulum trap (symmetric laterality, low center value)
+                            mock_turn.reset_mock()
+                            prox_vals = [100, 100, 20, 120, 110, 0, 0]
+                            motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
+                            mock_turn.assert_called_once_with(network, 115, emergency_stream, blind_mode=True,
+                                                              webots_do_stream=webots_do_stream)
+
+                            # Case 7: possibility of being locked
+                            with self.assertLogs('VSWRM|Robot', level='WARNING') as cm:
+                                prox_vals = np.array([100, 100, 100, 0, 0, 20, 20])
+                                log = f'WARNING:VSWRM|Robot:Agent might be locked! Proximity values: {prox_vals}'
+                                motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
+                                self.assertEqual(cm.output, [log])
+
+                        mock_turn.reset_mock()
+                        with mock.patch('visualswarm.contrib.control.AVOID_TURN_DIRECTION', 'Uniform'):
+                            motoroutput.turn_avoid_obstacle(network, prox_vals, emergency_stream)
+                            mock_turn.assert_called_once_with(network, 65, emergency_stream,
+                                                              webots_do_stream=webots_do_stream)
 
     def test_rotate(self):
         with mock.patch('visualswarm.contrib.control.ROT_MOTOR_SPEED', 100):

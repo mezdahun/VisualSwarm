@@ -1,0 +1,55 @@
+<!DOCTYPE aesl-source>
+<network>
+
+
+<!--list of global events-->
+<event size="1" name="pair_run"/>
+
+
+<!--list of constants-->
+
+
+<!--show keywords state-->
+<keywords flag="true"/>
+
+
+<!--node thymio-II-->
+<node nodeId="57879" name="thymio-II"># Basic RC5 Remote control with numpad control
+#
+#2: move forward
+#4: turn right with 0 forward speed
+#6: turn left with 0 forward speed 
+#8: move backwards
+#5: stop robot
+
+
+onevent rc5
+    when rc5.command == 2 do  # forward
+        motor.left.target = 200
+        motor.right.target = 200     
+    end
+    when rc5.command == 6 do  # right
+        motor.left.target = 100
+        motor.right.target = 0     
+    end
+    when rc5.command == 7 do  # right
+        motor.left.target = 350
+        motor.right.target = 350     
+    end
+    when rc5.command == 4 do  # left
+        motor.left.target = 0
+        motor.right.target = 100     
+    end
+    when rc5.command == 8 do  # back
+        motor.left.target = -200
+        motor.right.target = -200     
+    end
+    when rc5.command == 5 do  # stop
+        motor.left.target = 0
+        motor.right.target = 0     
+    end
+
+</node>
+
+
+</network>
