@@ -70,8 +70,18 @@ def compute_serial_matrix(dist_mat, method="ward"):
 
     return seriated_dist, res_order, res_linkage
 
-def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False, lenght_scale="mm"):
+def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False,
+                    x_min=-5000, x_max=5000, wall_coordinates=None):
     """Replaying experiment from summary and data in matplotlib plot"""
+    if wall_coordinates is not None:
+        x_min = np.min(wall_coordinates[0, :]) - 100
+        x_max = np.max(wall_coordinates[0, :]) + 100
+        y_min = np.min(wall_coordinates[1, :]) - 100
+        y_max = np.max(wall_coordinates[0, :]) + 100
+    else:
+        y_min = x_min
+        y_max = x_max
+
     iidm = data_tools.calculate_interindividual_distance(summary, data)[runi, ...]
     pm = data_tools.calculate_ploarization_matrix(summary, data)
 
@@ -94,21 +104,22 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
         plt.axes(ax[1])
         center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
         colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
-        plt.scatter(data[runi, :, 1, t], data[0, :, 3, t], s=100, c=colors)
+        plt.scatter(data[runi, :, 1, t], data[runi, :, 3, t], s=100, c=colors)
         for i in range(10):
-            plt.annotate(i, (data[runi, i, 1, t], data[0, i, 3, t] + 0.2))
+            plt.annotate(i, (data[runi, i, 1, t], data[runi, i, 3, t] + 0.2))
 
         ori = data[runi, :, 4, t]
         ms = 200
         for ri in range(len(ori)):
             x = data[runi, :, 1, t]
             y = data[runi, :, 3, t]
-            angle = ori[ri]  # (-np.pi/2 - ori[ri])
-            # print(angle)
+            angle = ori[ri]
             plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
-        plt.scatter(center_of_mass[0, 0, t], center_of_mass[0, 2, t], s=50)
-        plt.xlim(-5000, 5000)
-        plt.ylim(-5000, 5000)
+
+        plt.scatter(center_of_mass[runi, 0, t], center_of_mass[runi, 2, t], s=50)
+
+        plt.xlim(x_min, x_max)
+        plt.ylim(y_min, y_max)
 
         plt.draw()
         if step_by_step:
@@ -119,8 +130,6 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             fig.canvas.flush_events()
             time.sleep(0.05)
         plt.clf()
-
-
 
 def plot_velocities(summary, data, changed_along=None, changed_along_alias=None):
     velocities = data_tools.calculate_velocity(summary, data)
