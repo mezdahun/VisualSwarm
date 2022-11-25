@@ -64,7 +64,7 @@ MIN_BLOB_AREA = 0
 # for simulation keet FOV=2*pi and use REAL_FOV to then cut the resulting image
 # for real robots FOV will decide the FOV of robots
 if simulation.ENABLE_SIMULATION:
-    FOV = 2 * pi
+    FOV = 2 * np.pi
     REAL_FOV = float(os.getenv('ROBOT_FOV', '6.28'))
 else:
     FOV = float(os.getenv('ROBOT_FOV', '6.28'))
