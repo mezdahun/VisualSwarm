@@ -17,7 +17,7 @@ import math
 from scipy.cluster.hierarchy import linkage
 
 data_path = "/home/david/Desktop/database/OptiTrackCSVs"
-EXPERIMENT_NAMES = [f"E8s1r{i+1}" for i in range(1, 2)]
+EXPERIMENT_NAMES = ["211_repetition3_tracking_data"]
 DISTANCE_REFERENCE = [0, 0, 0]
 
 def draw_line(x,y,angle,length):
@@ -123,32 +123,36 @@ for expi in range(len(EXPERIMENT_NAMES)):
     print(data.shape)
     for t in range(0, 35000, 55):
         plt.axes(ax[0])
-        center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
-        plt.scatter(data[runi, :, 1, t], data[0, :, 3, t], s=100)
-        print("x: ", data[runi, :, 1, t])
-        print("y: ", data[runi, :, 2, t])
-        print("z: ", data[runi, :, 3, t])
-        print("ori: ", data[runi, :, 4, t])
-        ori = data[runi, :, 4, t]
-        print(ori)
-        ms = 200
-        for ri in range(len(ori)):
-            x = data[runi, :, 1, t]
-            y = data[runi, :, 3, t]
-            angle = ori[ri] # (-np.pi/2 - ori[ri])
-            # print(angle)
-            plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
-        plt.scatter(center_of_mass[0, 0, t], center_of_mass[0, 2, t], s=50)
-        plt.xlim(-5000, 5000)
-        plt.ylim(-5000, 5000)
-
-        plt.axes(ax[1])
         niidm = (iidm[:, :, t] - np.min(iidm[:, :, t])) / (np.max(iidm[:, :, t]) - np.min(iidm[:, :, t]))
         dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
         print(dist.dtype)
         # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
         linkage_matrix = linkage(dist, "single")
-        dendrogram(linkage_matrix, color_threshold=1, labels=[i for i in range(10)], show_leaf_counts=True)
+        print(linkage_matrix)
+        ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(10)], show_leaf_counts=True)
+        print(ret)
+
+        plt.axes(ax[1])
+        center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
+        colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
+        plt.scatter(data[runi, :, 1, t], data[0, :, 3, t], s=100, c=colors)
+        for i in range(10):
+            plt.annotate(i, (data[runi, i, 1, t], data[0, i, 3, t] + 0.2))
+        print("x: ", data[runi, :, 1, t])
+        print("y: ", data[runi, :, 2, t])
+        print("z: ", data[runi, :, 3, t])
+        print("ori: ", data[runi, :, 4, t])
+        ori = data[runi, :, 4, t]
+        ms = 200
+        for ri in range(len(ori)):
+            x = data[runi, :, 1, t]
+            y = data[runi, :, 3, t]
+            angle = ori[ri]  # (-np.pi/2 - ori[ri])
+            # print(angle)
+            plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
+        plt.scatter(center_of_mass[0, 0, t], center_of_mass[0, 2, t], s=50)
+        plt.xlim(-5000, 5000)
+        plt.ylim(-5000, 5000)
 
         plt.draw()
         input()
@@ -160,32 +164,36 @@ for expi in range(len(EXPERIMENT_NAMES)):
     # plotting_tools.plot_mean_pol_over_runs(summary, data, stdcolor='#FF9848')
     #
     #
-    # plotting_tools.plot_mean_ploarization(summary, data)
+    #plotting_tools.plot_mean_ploarization(summary, data)
     # plotting_tools.plot_mean_iid(summary, data, changed_along=change_along, changed_along_alias=change_along_alias)
     # plotting_tools.plot_min_iid(summary, data, changed_along=change_along, changed_along_alias=change_along_alias)
 
+    # mean_pol = data_tools.calculate_mean_polarization(summary, data)
+    # plt.plot(mean_pol)
+    # plt.show()
+
     #### LAST STEPS
-    iid = data_tools.calculate_interindividual_distance(summary, data)
-    mean_iid = np.mean(np.mean(iid, axis=1), axis=1)
-    # plt.plot(mean_iid[0])
-
-    iid_ratios = []
-    for i in range(100):
-        pol_ratio = np.count_nonzero(mean_iid<i*35) / mean_iid.shape[1]
-        iid_ratios.append(pol_ratio)
-
-    polrats_over_exps.append(np.array(iid_ratios))
-    break
+    # iid = data_tools.calculate_interindividual_distance(summary, data)
+    # mean_iid = np.mean(np.mean(iid, axis=1), axis=1)
+    # # plt.plot(mean_iid[0])
+    #
+    # iid_ratios = []
+    # for i in range(100):
+    #     pol_ratio = np.count_nonzero(mean_iid<i*35) / mean_iid.shape[1]
+    #     iid_ratios.append(pol_ratio)
+    #
+    # polrats_over_exps.append(np.array(iid_ratios))
+    # break
 
 # plt.show()
 
 
-fig, ax = plt.subplots(1, 2, figsize=[10, 5], sharey=True)
-x = np.array([i*35 for i in range(100)])
+# fig, ax = plt.subplots(1, 2, figsize=[10, 5], sharey=True)
+# x = np.array([i*35 for i in range(100)])
 
-large = np.vstack((polrats_over_exps[0], polrats_over_exps[1]))
-mlarge = np.mean(large, axis=0)
-stdlarge = np.std(large, axis=0)
+# large = np.vstack((polrats_over_exps[0], polrats_over_exps[1]))
+# mlarge = np.mean(large, axis=0)
+# stdlarge = np.std(large, axis=0)
 
 # largebl = np.vstack((polrats_over_exps[6], polrats_over_exps[7]))
 # mlargebl = np.mean(largebl, axis=0)
@@ -199,10 +207,10 @@ stdlarge = np.std(large, axis=0)
 # msmallbl = np.mean(small, axis=0)
 # stdsmallbl = np.std(small, axis=0)
 
-plt.axes(ax[0])
-plt.title('Low $\\beta_0$')
+# plt.axes(ax[0])
+# plt.title('Low $\\beta_0$')
 #error_band = plt.fill_between(x, mlarge-stdlarge, mlarge+stdlarge, alpha=0.5, edgecolor="#ffbcd9", facecolor="#ffbcd9")
-plt.plot(x, mlarge, label="$R^{iid}_{thr-}$ with $L_{eq}^L$", color="#89bcff", linewidth="3")
+# plt.plot(x, mlarge, label="$R^{iid}_{thr-}$ with $L_{eq}^L$", color="#89bcff", linewidth="3")
 
 #error_band = plt.fill_between(x, msmall-stdsmall, msmall+stdsmall, alpha=0.5, edgecolor="#ffcc89", facecolor="#ffcc89")
 # plt.plot(x, msmall, label="$R^{iid}_{thr-}$ with $L_{eq}^S$", color="#ffcc89", linewidth="3")
@@ -214,11 +222,11 @@ plt.plot(x, mlarge, label="$R^{iid}_{thr-}$ with $L_{eq}^L$", color="#89bcff", l
 
 
 
-plt.xlabel('Distance Threshold [mm]')
-plt.ylabel('Relative Time Below Threshold $R^{iid}_{thr-}$')
+# plt.xlabel('Distance Threshold [mm]')
+# plt.ylabel('Relative Time Below Threshold $R^{iid}_{thr-}$')
 
-plt.axes(ax[1])
-plt.title('High $\\beta_0$')
+# plt.axes(ax[1])
+# plt.title('High $\\beta_0$')
 #error_band = plt.fill_between(x, mlargebl-stdlargebl, mlargebl+stdlargebl, alpha=0.5, edgecolor="#89bcff", facecolor="#89bcff")
 # plt.plot(x, mlargebl, label="$R^{iid}_{thr-}$ with $L_{eq}^L$", color="#89bcff", linewidth="3")
 
@@ -230,7 +238,7 @@ plt.title('High $\\beta_0$')
 # ax[1].axvline(741, 0, 1, label="$L_{eq}^S$", color="#ffcc89", linestyle="-.")
 # ax[1].axvline(150, 0, 1, label="BL", color="gray", linewidth="1")
 
-plt.xlabel('Distance Threshold [mm]')
-plt.legend()
+# plt.xlabel('Distance Threshold [mm]')
+# plt.legend()
 
 plt.show()
