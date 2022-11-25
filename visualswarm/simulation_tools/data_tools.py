@@ -201,9 +201,9 @@ def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
 
         for j, run_name in enumerate(runs):
             data[j, i, attributes.index('t'), :] = t
-            data[j, i, attributes.index('pos_x'), :] = positions[j][:t_len, 1]
-            data[j, i, attributes.index('pos_y'), :] = positions[j][:t_len, 2]
-            data[j, i, attributes.index('pos_z'), :] = positions[j][:t_len, 3]
+            data[j, i, attributes.index('pos_x'), :] = positions[j][:t_len, 1] * 1000  # in mm
+            data[j, i, attributes.index('pos_y'), :] = positions[j][:t_len, 2] * 1000  # in mm
+            data[j, i, attributes.index('pos_z'), :] = positions[j][:t_len, 3] * 1000  # in mm
             data[j, i, attributes.index('or'), :] = np.pi/2 - orientations[j][:t_len, 1]
 
 
