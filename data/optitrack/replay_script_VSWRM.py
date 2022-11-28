@@ -8,7 +8,7 @@ from visualswarm.simulation_tools import data_tools, plotting_tools
 import os
 import matplotlib.pyplot as plt
 
-data_path = "/mnt/DATA/mezey/Seafile/SwarmRobotics/VisualSwarm Simulation Data/TESTAFTERMERGE_Exploration_10bots"
+data_path = "/home/david/Desktop/database/OptiTrackCSVs"
 EXPERIMENT_NAMES = ["211_repetition3_tracking_data"]
 WALL_EXPERIMENT_NAME = "ArenaBorders"
 
@@ -22,7 +22,7 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
 
     if WALL_EXPERIMENT_NAME is not None:
         csv_path_walls = os.path.join(data_path, f"{WALL_EXPERIMENT_NAME}.csv")
-        data_tools.optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=False)
+        data_tools.optitrackcsv_to_VSWRM(csv_path_walls, skip_already_summed=True, dropna=False)
 
         summay_wall, data_wall = data_tools.read_summary_data(data_path, WALL_EXPERIMENT_NAME)
 
