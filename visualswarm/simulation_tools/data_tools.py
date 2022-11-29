@@ -62,6 +62,74 @@ def is_summarized(data_path, experiment_name):
         logger.info("Experiment not yet summarized")
         return False
 
+
+def distance_from_walls(coordinate, wall_coordinates):
+    """Measuring the closest distance of the current coordinates to the walls described with
+    a set of coordinates in numpy array wall_coordinates with shape (2, N). First dimension is x/y, second is the
+    coordinate number of the wall.
+    """
+    num_wall_points = wall_coordinates.shape[1]
+    distances = np.zeros(num_wall_points)
+
+    # calculate distances between current coordinate with all wall coordinate points
+    # for wci in range(num_wall_points):
+    #     distances[wci] = distance(coordinate, wall_coordinates[:, wci])
+
+    coordinates = np.zeros_like(wall_coordinates)
+    coordinates[0, :] = coordinate[0]
+    coordinates[1, :] = coordinate[1]
+    distances_vect = distance(coordinates, wall_coordinates)
+
+    # finding wall point to which the agent is closest
+    closestind = np.nanargmin(distances_vect)
+    closestcoord = wall_coordinates[:, closestind]
+    closestdist = distances_vect[closestind]
+
+    return closestdist, closestcoord, closestind
+
+def calculate_distances_from_walls(coordinates, wall_coordinates, save_path=None, force_recalculate=False):
+    """Measuring the mean closest distance of a set of coordinates to the walls described with
+    a set of coordinates in numpy array wall_coordinates with shape (2, N). First dimension is x/y, second is the
+    coordinate number of the wall."""
+    if save_path is not None and os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for agent-wall distances already exists! No recalculation was"
+              "requested, so data will be loaded from the npz file.")
+        file_data = np.load(save_path)
+        distances = file_data['agent_wall_distances']
+        coords = file_data['closest_wall_coordinates']
+
+    else:
+        num_runs = coordinates.shape[0]
+        num_agents = coordinates.shape[1]
+        num_t = coordinates.shape[-1]
+        distances = np.zeros((num_runs, num_agents, num_t))
+        coords = np.zeros((num_runs, num_agents, 2, num_t))
+
+        print("Calculating wall distances")
+        for runi in range(num_runs):
+            print(f"Run {runi}/{num_runs}:")
+            for agent_id in range(num_agents):
+                print(f"Agent {agent_id}/{num_agents}...")
+                for t in range(num_t):
+                    if t%100 == 0:
+                        print(f"{t/num_t*100}%", sep='', end='\r', flush=True)
+                    closestdist, closestcoord, _ = distance_from_walls(coordinates[runi, agent_id, :, t], wall_coordinates)
+                    distances[runi, agent_id, t] = closestdist
+                    coords[runi, agent_id, :, t] = closestcoord
+
+        # Saving calculated data
+        np.savez(save_path, agent_wall_distances=distances, closest_wall_coordinates=coords)
+
+    return distances, coords, np.mean(distances)
+
+
+def calculate_turning_rates(summary, data):
+    """Calculating turning rates from orientation values for a single robot"""
+    ori = data[:, :, 4, :]
+    dori = np.abs(np.diff(ori)) % 2*np.pi
+    dori[dori > 0.2] = 0
+    return dori
+
 def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
     """Reading an exported optitrack tracking data csv file into a VSWRM summary sata file that can be further used
     for data analysis and plotting with VSWRM
@@ -89,8 +157,9 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
 
     print("columns: ", df.columns)
 
-    data_holder_columns = [col for col in df.columns if col.startswith('X') or col.startswith('Y') or col.startswith('Z')]
-    num_robots = int(len(data_holder_columns) / 6) # for each robot 3 rotation and 3 position coordinate
+    data_holder_columns = [col for col in df.columns if
+                           col.startswith('X') or col.startswith('Y') or col.startswith('Z')]
+    num_robots = int(len(data_holder_columns) / 6)  # for each robot 3 rotation and 3 position coordinate
     print(f"Found {num_robots} robots data in csv file.")
     time = df['Time (Seconds)'].values
     print(time)
@@ -105,11 +174,12 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
 
     for robi in range(num_robots):
         startindex = int(robi * 6) + 2
-        orient_x = df.iloc[:, startindex + 0].values.astype('float') #x axis
-        orient_y = df.iloc[:, startindex + 1].values.astype('float') #y axis
-        orient_z = df.iloc[:, startindex + 2].values.astype('float') #z axis
-        orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler('yxz', degrees=False)[0] for i in range(len(orient_y))])
-        orient = - np.pi/2 - (orient + np.pi)
+        orient_x = df.iloc[:, startindex + 0].values.astype('float')  # x axis
+        orient_y = df.iloc[:, startindex + 1].values.astype('float')  # y axis
+        orient_z = df.iloc[:, startindex + 2].values.astype('float')  # z axis
+        orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler(
+            'yxz', degrees=False)[0] for i in range(len(orient_y))])
+        orient = - np.pi / 2 - (orient + np.pi)
         x_pos = df.iloc[:, startindex + 3].values.astype('float')
         y_pos = df.iloc[:, startindex + 4].values.astype('float')
         z_pos = df.iloc[:, startindex + 5].values.astype('float')
@@ -120,14 +190,12 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
         data[0, robi, attributes.index('pos_z'), :] = z_pos
         data[0, robi, attributes.index('or'), :] = orient
 
-
     experiment_summary = {'params': None,
                           'num_runs': 1,
                           'num_robots': num_robots,
                           'num_attributes': num_attributes,
                           'attributes': attributes,
                           'experiment_name': experiment_name}
-
 
     with open(os.path.join(data_path, f'{experiment_name}_summaryp.json'), 'w') as sump_f:
         json.dump(experiment_summary, sump_f, indent=4)
@@ -209,8 +277,7 @@ def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
             data[j, i, attributes.index('pos_x'), :] = positions[j][:t_len, 1] * 1000  # in mm
             data[j, i, attributes.index('pos_y'), :] = positions[j][:t_len, 2] * 1000  # in mm
             data[j, i, attributes.index('pos_z'), :] = positions[j][:t_len, 3] * 1000  # in mm
-            data[j, i, attributes.index('or'), :] = np.pi/2 - orientations[j][:t_len, 1]
-
+            data[j, i, attributes.index('or'), :] = np.pi / 2 - orientations[j][:t_len, 1]
 
     experiment_summary = {'params': param_dict,
                           'num_runs': num_runs,
@@ -229,6 +296,7 @@ def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
 def read_summary_data(data_path, experiment_name):
     with open(os.path.join(data_path, f'{experiment_name}_summaryp.json')) as sump_f:
         summary_dict = json.load(sump_f)
+        summary_dict['data_path'] = data_path
 
     sumd_f = os.path.join(data_path, f'{experiment_name}_summaryd.npy')
     data = np.load(sumd_f)
