@@ -34,5 +34,12 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
         wall_coordinates = None
 
     # replaying experiment
-    plotting_tools.plot_replay_run(summary, data, history_length=1000, wall_coordinates=wall_coordinates)
+    plotting_tools.plot_replay_run(summary, data,
+                                   history_length=1000,
+                                   wall_coordinates=wall_coordinates,
+                                   step_by_step=False,
+                                   t_start=9000,
+                                   t_step=30,
+                                   use_clastering=False,
+                                   mov_avg_w=30)
 
