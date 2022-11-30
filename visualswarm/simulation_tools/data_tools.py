@@ -123,12 +123,18 @@ def calculate_distances_from_walls(coordinates, wall_coordinates, save_path=None
     return distances, coords, np.mean(distances)
 
 
-def calculate_turning_rates(summary, data):
-    """Calculating turning rates from orientation values for a single robot"""
+def calculate_turning_rates(summary, data, turning_rate_trh=0.2):
+    """Calculating turning rates from orientation values for a single robot
+    Turning rate values larger than a physically possible threshold will be set to 0 in the data
+    as it is coming from tracking/measurement noise."""
     ori = data[:, :, 4, :]
-    dori = np.abs(np.diff(ori)) % 2*np.pi
-    dori[dori > 0.2] = 0
-    return dori
+    # calculating turning rates
+    tr = np.abs(np.diff(ori)) % (np.pi)
+    # removing physically impossible outliers
+    tr[tr > turning_rate_trh] = 0
+    return tr
+
+
 
 def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
     """Reading an exported optitrack tracking data csv file into a VSWRM summary sata file that can be further used
