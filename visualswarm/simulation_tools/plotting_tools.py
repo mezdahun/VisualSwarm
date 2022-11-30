@@ -72,7 +72,7 @@ def compute_serial_matrix(dist_mat, method="ward"):
 
 def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False,
                     x_min=-5000, x_max=5000, wall_coordinates=None, history_length=0, show_wall_distance=True,
-                    show_polarization=True, use_clastering=False, vis_window=1500, wall_vic_thr=200, mov_avg_w=60):
+                    show_polarization=True, use_clastering=False, vis_window=1500, wall_vic_thr=200, mov_avg_w=10):
     """Replaying experiment from summary and data in matplotlib plot"""
     if wall_coordinates is not None:
         x_min = np.nanmin(wall_coordinates[0, :]) - 100
@@ -94,12 +94,30 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
     num_subplots = 1
 
     # Calculating metrics
+    # COM velocity
+    com_vel = data_tools.population_velocity(summary, data)
+    # absolute velocities
+    abs_vel = np.abs(data_tools.calculate_velocity(summary, data))
+    # absolute and com velocity with moving average
+    m_abs_vel = np.zeros_like(abs_vel)
+    m_com_vel = np.zeros_like(com_vel)
+    for robi in range(num_robots):
+        m_abs_vel[runi, robi, int(mov_avg_w/2):-int(mov_avg_w/2)+1] = data_tools.moving_average(
+            abs_vel[runi, robi, :], mov_avg_w)
+    m_com_vel[runi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
+        com_vel[runi, :], mov_avg_w)
     # turning rates
     turning_rates = data_tools.calculate_turning_rates(summary, data)
     # moving average of turning rates
     ma_turning_rates = np.zeros_like(turning_rates)
     # inter_individual distances
     iidm = data_tools.calculate_interindividual_distance(summary, data)
+    # min and mean interindividual distances
+    iidm_nan = iidm.copy()
+    for t in range(iidm_nan.shape[-1]):
+        np.fill_diagonal(iidm_nan[runi, :, :, t], None)
+    min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
+    mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
 
     for robi in range(num_robots):
         ma_turning_rates[runi, robi, int(mov_avg_w/2):-int(mov_avg_w/2)+1] = data_tools.moving_average(turning_rates[runi, robi, :], mov_avg_w)
@@ -109,7 +127,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
         num_subplots += 1
 
     if show_polarization:
-        pol_matrix = data_tools.calculate_ploarization_matrix(summary, data)
+        pol_matrix = (data_tools.calculate_ploarization_matrix(summary, data) + 1) / 2
         mean_pol_vals = []
         for t in range(data.shape[-1]):
             mean_pol_vals.append(np.mean(np.triu(pol_matrix[runi, :, :, t], 1)))
@@ -121,12 +139,12 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                                                                                    wall_coordinates,
                                                                                    save_path=save_path,
                                                                                    force_recalculate=False)
-        print(t_end - t_start)
-        print(wall_distances.shape)
+
         # reflection times are calculated as those time points where the turning rate is high,
         # and the robot is either close to a wall or to another robot
-        wall_reflection_times = [t for t in range(t_start, t_end-1) if np.any(np.logical_and(wall_distances[runi, :, t] < wall_vic_thr, ma_turning_rates[runi, :, t] > 0.04))]
-        agent_reflection_times = [t for t in range(t_start, t_end-1) if np.any(np.logical_and(iidm[runi, :, :, t] < 0.12, ma_turning_rates[runi, :, t] > 0.04))]
+        wall_reflection_times = [t for t in range(t_start, t_end-1) if np.any(np.logical_and(wall_distances[runi, :, t] < wall_vic_thr, ma_turning_rates[runi, :, t] > 0.0225))]
+        # agent_reflection_times = [t for t in range(t_start, t_end-1) if min_iidm[0, t] < 140]
+        agent_reflection_times = [t for t in range(t_start, t_end-1) if np.any(np.logical_and(iidm[runi, :, :, t] < 0.12, ma_turning_rates[runi, :, t] > 0.0225))]
         agent_reflection_times = [t for t in agent_reflection_times if t not in wall_reflection_times]
         mean_wall_dist = np.mean(wall_distances[runi], axis=0)
         min_wall_dist = np.min(wall_distances[runi], axis=0)
@@ -224,11 +242,23 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             # plt.plot([k for k in range(t - vis_window, t + 5)], mean_wall_dist[t - vis_window:t + 5])
             # plt.ylim(0, 1000)
 
+            # plotting minimum interindividual distance
+            # ax2 = ax[plot_i].twinx()
+            # plt.plot([k for k in range(t - vis_window, t + 5)], min_iidm[0, t - vis_window:t + 5])
+            # plt.hlines(140, t - vis_window, t + 5)
+            # print(min_iidm[0, t])
+            # plt.ylim(0, 2000)
+
             # plotting turning rate
             ax2 = ax[plot_i].twinx()
             plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w-1))],
-                     ma_turning_rates[runi, :, t - vis_window: t + 5 - (mov_avg_w-1)].T)
-            plt.ylim(0, 1)
+                     ma_turning_rates[runi, 0, t - vis_window: t + 5 - (mov_avg_w-1)].T)
+
+            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w-1))],
+                     m_com_vel[runi, t - vis_window: t + 5 - (mov_avg_w-1)].T)
+            # plt.plot([k for k in range(t - vis_window, t + 5)], abs_vel[0, 0, t - vis_window:t + 5]+0.2, color="green")
+            # plt.ylim(0, 0.2)
+
             plot_i += 1
 
         plt.draw()
