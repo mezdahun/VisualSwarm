@@ -33,8 +33,10 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
                                    history_length=1000,
                                    wall_data_tuple=wall_data_tuple,
                                    step_by_step=False,
-                                   t_start=9000,
+                                   t_start=11000,
                                    t_step=30,
                                    use_clastering=False,
-                                   mov_avg_w=30)
+                                   mov_avg_w=60,
+                                   vis_window=3000,
+                                   force_recalculate=False)
 

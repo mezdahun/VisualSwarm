@@ -15,11 +15,12 @@ import numpy as np
 import math
 from scipy.cluster.hierarchy import linkage
 
-def draw_line(x,y,angle,length):
-  terminus_x = x + length * math.cos(angle)
-  terminus_y = y + length * math.sin(angle)
-  print([x, terminus_x],[y,terminus_y])
-  plt.plot([x, terminus_x],[y,terminus_y])
+
+def draw_line(x, y, angle, length):
+    terminus_x = x + length * math.cos(angle)
+    terminus_y = y + length * math.sin(angle)
+    print([x, terminus_x], [y, terminus_y])
+    plt.plot([x, terminus_x], [y, terminus_y])
 
 
 def seriation(Z, N, cur_index):
@@ -70,124 +71,162 @@ def compute_serial_matrix(dist_mat, method="ward"):
 
     return seriated_dist, res_order, res_linkage
 
+
 def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False,
                     x_min=-5000, x_max=5000, wall_data_tuple=None, history_length=0, show_wall_distance=True,
-                    show_polarization=True, use_clastering=False, vis_window=1500, wall_vic_thr=200, mov_avg_w=10):
+                    show_polarization=True, show_iid=True, show_COM_vel=True, use_clastering=False, vis_window=1500,
+                    wall_vic_thr=200, agent_dist_thr=275, mov_avg_w=10,
+                    force_recalculate=False, turn_thr=0.02, ):
     """Replaying experiment from summary and data in matplotlib plot"""
     if wall_data_tuple is not None:
         wall_summary, wall_data = wall_data_tuple
         wall_coordinates = wall_data[0, 0, [1, 3], :]
     else:
-        wall_coordinates=None
+        wall_coordinates = None
 
+    # Calculating arena borders
     if wall_coordinates is not None:
-        x_min = np.nanmin(wall_coordinates[0, :]) - 100
-        x_max = np.nanmax(wall_coordinates[0, :]) + 100
-        y_min = np.nanmin(wall_coordinates[1, :]) - 100
-        y_max = np.nanmax(wall_coordinates[1, :]) + 100
-        print(x_min, x_max, y_min, y_max)
+        x_min = np.nanmin(wall_coordinates[0, :]) - 200
+        x_max = np.nanmax(wall_coordinates[0, :]) + 200
+        y_min = np.nanmin(wall_coordinates[1, :]) - 200
+        y_max = np.nanmax(wall_coordinates[1, :]) + 200
     else:
         y_min = x_min
         y_max = x_max
 
+    # Mining data
     num_robots = data.shape[1]
+
+    if t_start is None:
+        t_start = 0
+
     if t_end is None:
         t_end = data.shape[-1]
+
     if t_step is None:
         t_step = 15
 
     plt.ion()
-    num_subplots = 1
+    num_subplots = 2
 
     # Calculating metrics
     # COM velocity
-    com_vel = data_tools.population_velocity(summary, data)
+    if show_COM_vel:
+        print("Calculating COM velocity")
+        com_vel = data_tools.population_velocity(summary, data, force_recalculate=force_recalculate)
+        m_com_vel = np.zeros_like(com_vel)
+        m_com_vel[runi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
+            com_vel[runi, :], mov_avg_w)
+        num_subplots += 1
+
     # absolute velocities
     abs_vel = np.abs(data_tools.calculate_velocity(summary, data))
     # absolute and com velocity with moving average
+    print("Moving average of absolute velocity!")
     m_abs_vel = np.zeros_like(abs_vel)
-    m_com_vel = np.zeros_like(com_vel)
     for robi in range(num_robots):
-        m_abs_vel[runi, robi, int(mov_avg_w/2):-int(mov_avg_w/2)+1] = data_tools.moving_average(
+        m_abs_vel[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
             abs_vel[runi, robi, :], mov_avg_w)
-    m_com_vel[runi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
-        com_vel[runi, :], mov_avg_w)
+
+
     # turning rates
-    turning_rates = data_tools.calculate_turning_rates(summary, data)
+    print("Calculate turning rates!")
+    turning_rates = data_tools.calculate_turning_rates(summary, data, force_recalculate=force_recalculate)
     # moving average of turning rates
     ma_turning_rates = np.zeros_like(turning_rates)
+    for robi in range(num_robots):
+        ma_turning_rates[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
+            turning_rates[runi, robi, :], mov_avg_w)
+
     # inter_individual distances
-    iidm = data_tools.calculate_interindividual_distance(summary, data)
+    print("Calculate IID")
+    iidm = data_tools.calculate_interindividual_distance(summary, data, force_recalculate=force_recalculate)
     # min and mean interindividual distances
     iidm_nan = iidm.copy()
     for t in range(iidm_nan.shape[-1]):
         np.fill_diagonal(iidm_nan[runi, :, :, t], None)
-    min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
-    mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
 
-    for robi in range(num_robots):
-        ma_turning_rates[runi, robi, int(mov_avg_w/2):-int(mov_avg_w/2)+1] = data_tools.moving_average(turning_rates[runi, robi, :], mov_avg_w)
+    if show_iid:
+        min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
+        mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
+        num_subplots += 2
 
     if use_clastering:
-        pm = data_tools.calculate_ploarization_matrix(summary, data)
+        pm = data_tools.calculate_ploarization_matrix(summary, data, force_recalculate=force_recalculate)
         num_subplots += 1
 
     if show_polarization:
-        pol_matrix = (data_tools.calculate_ploarization_matrix(summary, data) + 1) / 2
-        mean_pol_vals = []
-        for t in range(data.shape[-1]):
-            mean_pol_vals.append(np.mean(np.triu(pol_matrix[runi, :, :, t], 1)))
+        pm = data_tools.calculate_ploarization_matrix(summary, data, force_recalculate=force_recalculate)
+        mean_pol_vals = np.mean(np.mean(pm, axis=1), axis=1)
+        mean_pol_vals = mean_pol_vals[runi, :]
         num_subplots += 1
 
     if wall_coordinates is not None:
-        save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_walldata.npz")
         wall_distances, wall_coords_closest, _ = data_tools.calculate_distances_from_walls(summary, data,
                                                                                            wall_summary, wall_data,
-                                                                                           force_recalculate=False)
-
-        # reflection times are calculated as those time points where the turning rate is high,
-        # and the robot is either close to a wall or to another robot
-        wall_reflection_times = [t for t in range(t_start, t_end-1) if np.any(np.logical_and(wall_distances[runi, :, t] < wall_vic_thr, ma_turning_rates[runi, :, t] > 0.0225))]
-        # agent_reflection_times = [t for t in range(t_start, t_end-1) if min_iidm[0, t] < 140]
-        agent_reflection_times = [t for t in range(t_start, t_end-1) if np.any(np.logical_and(iidm[runi, :, :, t] < 0.12, ma_turning_rates[runi, :, t] > 0.0225))]
-        agent_reflection_times = [t for t in agent_reflection_times if t not in wall_reflection_times]
+                                                                                           force_recalculate=force_recalculate)
         mean_wall_dist = np.mean(wall_distances[runi], axis=0)
         min_wall_dist = np.min(wall_distances[runi], axis=0)
 
-    fig, ax = plt.subplots(1, num_subplots)
+        wall_refl_dict, ag_refl_dict = data_tools.mine_reflection_times(data, summary, wall_summary, wall_data,
+                                                                        ma_window=30, wall_dist_thr=wall_vic_thr,
+                                                                        agent_dist_thr=agent_dist_thr, turn_thr=turn_thr,
+                                                                        force_recalculate=force_recalculate)
+        wall_reflection_times = []
+        for _, v in wall_refl_dict[str(runi)].items():
+            wall_reflection_times.extend(v)
+
+        agent_reflection_times = []
+        for _, v in ag_refl_dict[str(runi)].items():
+            agent_reflection_times.extend(v)
+
+    plot_w = int(np.ceil(num_subplots/2))
+    plot_shape = (2, plot_w)
+
+    fig, ax = plt.subplots(plot_shape[0], plot_shape[1])
+    gs = ax[0, 1].get_gridspec()
+
+    # remove the underlying axes
+    for axi in ax[0:, 0]:
+        axi.remove()
+    axbig = fig.add_subplot(gs[0:, 0])
+
     for ti, t in enumerate(range(t_start, t_end, t_step)):
-        plot_i = 0
-        if use_clastering:
-            if num_robots > 1:
-                plt.axes(ax[plot_i])
-                niidm = (iidm[:, :, t] - np.min(iidm[:, :, t])) / (np.max(iidm[:, :, t]) - np.min(iidm[:, :, t]))
-                dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
-                # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
-                linkage_matrix = linkage(dist, "single")
-                ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(num_robots)], show_leaf_counts=True)
-                plot_i += 1
 
-        plt.axes(ax[plot_i])
-        center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
-        if num_robots > 1 and use_clastering:
-            colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
-        else:
-            colors = "blue"
+        plt.axes(axbig)
+        colors = "grey"
 
-        plt.scatter(data[runi, :, 1, t], data[runi, :, 3, t], s=100, c=colors)
-
-        for i in range(num_robots):
-            plt.annotate(i+1, (data[runi, i, 1, t], data[runi, i, 3, t] + 0.2))
-
+        # Showing agents
+        ms = 100
+        x = data[runi, :, 1, t]
+        y = data[runi, :, 3, t]
         ori = data[runi, :, 4, t]
-        ms = 200
-        for ri in range(len(ori)):
-            x = data[runi, :, 1, t]
-            y = data[runi, :, 3, t]
+        plt.scatter(x, y, s=ms, c=colors)
+
+        # Showing reflected agents
+        refid_w = []
+        refid_a = []
+
+        for k, v in wall_refl_dict[str(runi)].items():
+            if t in v:
+                refid_w.append(int(k))
+
+        for k, v in ag_refl_dict[str(runi)].items():
+            if t in v:
+                refid_a.append(int(k))
+
+        plt.scatter(x[refid_w], y[refid_w], s=ms, c="red")
+        plt.scatter(x[refid_a], y[refid_a], s=ms, c="blue")
+
+        for ri in range(num_robots):
+            plt.annotate(ri, (x[ri], y[ri] + 0.2))
             angle = ori[ri]
             plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
 
-        plt.scatter(center_of_mass[runi, 0, t], center_of_mass[runi, 2, t], s=50)
+        # Showing COM
+        center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
+        plt.scatter(center_of_mass[runi, 0, t], center_of_mass[runi, 2, t], s=int(ms / 2), color="green", label="COM")
+
 
         # Showing path history if requested
         if history_length > 0:
@@ -196,11 +235,12 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                     col = colors[robi]
                 else:
                     col = "blue"
-                plt.plot(data[runi, robi, 1, t-history_length:t:5], data[runi, robi, 3, t-history_length:t:5], '-', c=col)
+                plt.plot(data[runi, robi, 1, t - history_length:t:5], data[runi, robi, 3, t - history_length:t:5], '-',
+                         c=col)
 
         # Showing walls if coordinates are passed
         if wall_coordinates is not None:
-            plt.plot(wall_coordinates[0, :], wall_coordinates[1, :], '--', c="black")
+            plt.plot(wall_coordinates[0, :], wall_coordinates[1, :], '--', c="black", label="wall")
 
             # Showing distance between agents and walls
             robs_near_walls = []
@@ -210,63 +250,116 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                     yvals = [data[runi, robi, 3, t], wall_coords_closest[runi, robi, 1, t]]
 
                     plt.plot(xvals, yvals, linestyle="-.", color="grey")
-                    plt.text(np.mean(xvals), np.mean(yvals), f"{wall_distances[runi, robi, t]/10:.0f}cm", fontsize=10)
+                    plt.text(np.mean(xvals), np.mean(yvals), f"{wall_distances[runi, robi, t] / 10:.0f}cm", fontsize=8)
                     if wall_distances[runi, robi, t] < wall_vic_thr:
                         robs_near_walls.append(robi)
-
-            plt.scatter(data[runi, robs_near_walls, 1, t], data[runi, robs_near_walls, 3, t], s=50, c="red")
 
         plt.xlim(x_min, x_max)
         plt.ylim(y_min, y_max)
         plt.axis('scaled')
-        plot_i += 1
+        plt.legend()
+
+        plot_i = 2
+        if use_clastering:
+            if num_robots > 1:
+                plot_col = int(np.floor(plot_i/2))
+                plot_row = 0 if plot_i % 2 == 0 else 1
+                plt.axes(ax[plot_row, plot_col])
+                ax[plot_row, plot_col].get_shared_x_axes().join(ax[plot_row, plot_col], ax[0, 1])
+                niidm = (iidm[runi, :, :, t] - np.min(iidm[runi, :, :, t])) / (np.max(iidm[runi, :, :, t]) - np.min(iidm[runi, :, :, t]))
+                dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
+                # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
+                linkage_matrix = linkage(dist, "single")
+                ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(num_robots)],
+                                 show_leaf_counts=True)
+                colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
+                plot_i += 1
 
         if show_polarization:
-            plt.axes(ax[plot_i])
+            plot_col = int(np.floor(plot_i / 2))
+            plot_row = 0 if plot_i % 2 == 0 else 1
+            plt.axes(ax[plot_row, plot_col])
             try:
-                plt.plot([k for k in range(t-vis_window, t+5)], mean_pol_vals[t-vis_window:t+5])
+                plt.plot([k for k in range(t - vis_window, t + 5)], mean_pol_vals[t - vis_window:t + 5], color="black",
+                         label="Mean Pol.")
             except:
                 pass
             if wall_coordinates is not None:
-                wall_reflection_times_chunk = [tx for tx in wall_reflection_times if  t-vis_window < tx < t+5]
-                plt.scatter(wall_reflection_times_chunk, [0.8 for k in range(len(wall_reflection_times_chunk))],
-                            c="red")
-                plt.vlines(wall_reflection_times_chunk, -0.5, 0.8, color="red", alpha=0.1)
+                wall_reflection_times_chunk = [tx for tx in wall_reflection_times if t - vis_window < tx < t + 5]
+                plt.scatter(wall_reflection_times_chunk, [1 for k in range(len(wall_reflection_times_chunk))],
+                            c="red", label="wall refl.")
+                plt.vlines(wall_reflection_times_chunk, -1, 1, color="red", alpha=0.05)
 
-            plt.vlines(t, mean_pol_vals[t]-0.1, mean_pol_vals[t]+0.1)
+            plt.vlines(t, mean_pol_vals[t] - 0.1, mean_pol_vals[t] + 0.1)
             agent_reflection_times_chunk = [tx for tx in agent_reflection_times if t - vis_window < tx < t + 5]
-            plt.scatter(agent_reflection_times_chunk, [0.8 for k in range(len(agent_reflection_times_chunk))],
-                        c="red")
-            plt.vlines(agent_reflection_times_chunk, -0.5, 0.8, color="blue", alpha=0.1)
-
-
-            plt.ylim(-0.5, 0.8)
-
-            # # plotting mean agent_wall distance
-            # ax2 = ax[plot_i].twinx()
-            # plt.plot([k for k in range(t - vis_window, t + 5)], mean_wall_dist[t - vis_window:t + 5])
-            # plt.ylim(0, 1000)
-
-            # plotting minimum interindividual distance
-            # ax2 = ax[plot_i].twinx()
-            # plt.plot([k for k in range(t - vis_window, t + 5)], min_iidm[0, t - vis_window:t + 5])
-            # plt.hlines(140, t - vis_window, t + 5)
-            # print(min_iidm[0, t])
-            # plt.ylim(0, 2000)
+            plt.scatter(agent_reflection_times_chunk, [1 for k in range(len(agent_reflection_times_chunk))],
+                        c="blue", label="agent refl.")
+            plt.vlines(agent_reflection_times_chunk, -1, 1, color="blue", alpha=0.05)
+            plt.ylim(-1, 1)
+            plt.ylabel("Pol. $\\in$ [-1, 1]")
+            plt.legend(loc="upper left")
 
             # plotting turning rate
-            ax2 = ax[plot_i].twinx()
-            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w-1))],
-                     ma_turning_rates[runi, 0, t - vis_window: t + 5 - (mov_avg_w-1)].T)
+            ax2 = ax[plot_row, plot_col].twinx()
+            plt.axes(ax2)
+            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
+                     ma_turning_rates[runi, :, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="grey")
 
-            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w-1))],
-                     m_com_vel[runi, t - vis_window: t + 5 - (mov_avg_w-1)].T)
-            # plt.plot([k for k in range(t - vis_window, t + 5)], abs_vel[0, 0, t - vis_window:t + 5]+0.2, color="green")
-            # plt.ylim(0, 0.2)
+            plt.hlines(turn_thr, t - vis_window, t + 5, ls="--", color="grey", label="Turn r. thr.")
+            plt.ylim(0, 0.2)
+            plt.legend(loc="lower left")
+            plt.ylabel("Turning rate [rad/ts]")
+            plot_i += 1
+
+        if show_iid:
+            plot_col = int(np.floor(plot_i / 2))
+            plot_row = 0 if plot_i % 2 == 0 else 1
+            plt.axes(ax[plot_row, plot_col])
+            # # plotting mean agent_wall distance
+            plt.plot([k for k in range(t - vis_window, t + 5)], min_wall_dist[t - vis_window:t + 5], label="Min a.-w. dist.",
+                     color="red")
+            plt.ylabel("Min a.-w. dist. [mm]")
+            plt.hlines(wall_vic_thr, t - vis_window, t + 5, ls="--", color="red", label="A.-W. thr.")
+            plt.legend(loc="upper left")
+            plt.ylim(0, 600)
+
+            # plotting minimum interindividual distance
+            ax2 = ax[plot_row, plot_col].twinx()
+            plt.axes(ax2)
+            plt.plot([k for k in range(t - vis_window, t + 5)], min_iidm[0, t - vis_window:t + 5], label="Min I.I.D", color="blue")
+            plt.hlines(agent_dist_thr, t - vis_window, t + 5, ls="--", color="blue", label="IID thr.")
+            plt.ylabel("Min I.I.D [mm]")
+            plt.legend(loc="lower left")
+            plt.ylim(0, 600)
 
             plot_i += 1
 
+            plot_col = int(np.floor(plot_i / 2))
+            plot_row = 0 if plot_i % 2 == 0 else 1
+            plt.axes(ax[plot_row, plot_col])
+            # # plotting mean agent_wall distance
+            plt.plot([k for k in range(t - vis_window, t + 5)], mean_wall_dist[t - vis_window:t + 5],
+                     label="Mean a.-w. dist.",
+                     color="red")
+            plt.plot([k for k in range(t - vis_window, t + 5)], mean_iid[0, t - vis_window:t + 5], label="Mean I.I.D",
+                     color="blue")
+            plt.ylabel("Mean Distance [mm]")
+            plt.legend(loc="upper left")
+            plt.ylim(0, 2000)
+            plot_i += 1
+
+        if show_COM_vel:
+            plot_col = int(np.floor(plot_i / 2))
+            plot_row = 0 if plot_i % 2 == 0 else 1
+            plt.axes(ax[plot_row, plot_col])
+            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
+                     m_com_vel[runi, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="purple", label="COM vel.")
+            plt.legend(loc="upper left")
+            plt.ylabel("COM vel. [mm/ts]")
+            plot_i += 1
+
         plt.draw()
+        plt.subplots_adjust(wspace=0.35, hspace=0.1, left=0.05, right=0.95, top=0.95, bottom=0.05)
         if step_by_step:
             input()
         else:
@@ -275,6 +368,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             fig.canvas.flush_events()
             time.sleep(0.01)
         plt.clf()
+
 
 def plot_velocities(summary, data, changed_along=None, changed_along_alias=None):
     velocities = data_tools.calculate_velocity(summary, data)
@@ -298,9 +392,12 @@ def plot_velocities(summary, data, changed_along=None, changed_along_alias=None)
 
         if changed_along is not None:
             if changed_along_alias is None:
-                legend = [', '.join([f'{ca}={summary["params"][f"run{j+1}"][ca]}' for ca in changed_along]) for j in range(summary['num_runs'])]
+                legend = [', '.join([f'{ca}={summary["params"][f"run{j + 1}"][ca]}' for ca in changed_along]) for j in
+                          range(summary['num_runs'])]
             else:
-                legend = [', '.join([f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in range(len(changed_along))]) for j in
+                legend = [', '.join(
+                    [f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in
+                     range(len(changed_along))]) for j in
                           range(summary['num_runs'])]
             plt.legend(legend)
 
@@ -332,9 +429,12 @@ def plot_distances(summary, data, reference_point, changed_along=None, changed_a
 
         if changed_along is not None:
             if changed_along_alias is None:
-                legend = [', '.join([f'{ca}={summary["params"][f"run{j+1}"][ca]}' for ca in changed_along]) for j in range(summary['num_runs'])]
+                legend = [', '.join([f'{ca}={summary["params"][f"run{j + 1}"][ca]}' for ca in changed_along]) for j in
+                          range(summary['num_runs'])]
             else:
-                legend = [', '.join([f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in range(len(changed_along))]) for j in
+                legend = [', '.join(
+                    [f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in
+                     range(len(changed_along))]) for j in
                           range(summary['num_runs'])]
             plt.legend(legend)
 
@@ -346,7 +446,6 @@ def plot_distances(summary, data, reference_point, changed_along=None, changed_a
 
 
 def plot_orientation(summary, data, changed_along=None, changed_along_alias=None):
-
     fig, ax = plt.subplots(summary['num_robots'], 1, figsize=[10, 8])
 
     time = data[0, 0, 0, :]  # 1 step shorter because of diff
@@ -369,9 +468,12 @@ def plot_orientation(summary, data, changed_along=None, changed_along_alias=None
 
         if changed_along is not None:
             if changed_along_alias is None:
-                legend = [', '.join([f'{ca}={summary["params"][f"run{j+1}"][ca]}' for ca in changed_along]) for j in range(summary['num_runs'])]
+                legend = [', '.join([f'{ca}={summary["params"][f"run{j + 1}"][ca]}' for ca in changed_along]) for j in
+                          range(summary['num_runs'])]
             else:
-                legend = [', '.join([f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in range(len(changed_along))]) for j in
+                legend = [', '.join(
+                    [f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in
+                     range(len(changed_along))]) for j in
                           range(summary['num_runs'])]
             plt.legend(legend)
 
@@ -380,6 +482,7 @@ def plot_orientation(summary, data, changed_along=None, changed_along_alias=None
         plt.ylabel('orientation [rad]')
 
     plt.show()
+
 
 def plot_iid(summary, data, run_id):
     iid = data_tools.calculate_interindividual_distance(summary, data)
@@ -392,7 +495,7 @@ def plot_iid(summary, data, run_id):
             if summary['num_robots'] > 1:
                 plt.axes(ax[i, j])
             plt.plot(time, iid[run_id, i, j, :])
-            if i == summary['num_robots']-1:
+            if i == summary['num_robots'] - 1:
                 plt.xlabel('time [s]')
             if j == 0:
                 plt.ylabel('ii distance [m]')
@@ -401,16 +504,17 @@ def plot_iid(summary, data, run_id):
 
     plt.show()
 
+
 def plot_mean_ploarization(summary, data, changed_along=None, changed_along_alias=None):
     x_axis = []
     mean_pol = data_tools.calculate_mean_polarization(summary, data)
 
     if changed_along is not None:
         for i in range(summary['num_runs']):
-            x_axis.append(summary['params'][f'run{i+1}'][changed_along])
+            x_axis.append(summary['params'][f'run{i + 1}'][changed_along])
 
     else:
-        x_axis = [i+1 for i in range(summary['num_runs'])]
+        x_axis = [i + 1 for i in range(summary['num_runs'])]
 
     fig, ax = plt.subplots(1, 1, figsize=[10, 8])
     plt.plot(x_axis, mean_pol)
@@ -426,16 +530,17 @@ def plot_mean_ploarization(summary, data, changed_along=None, changed_along_alia
 
     plt.show()
 
+
 def plot_mean_iid(summary, data, changed_along=None, changed_along_alias=None):
     x_axis = []
     mean_iid = data_tools.calculate_mean_iid(summary, data)
 
     if changed_along is not None:
         for i in range(summary['num_runs']):
-            x_axis.append(summary['params'][f'run{i+1}'][changed_along])
+            x_axis.append(summary['params'][f'run{i + 1}'][changed_along])
 
     else:
-        x_axis = [i+1 for i in range(summary['num_runs'])]
+        x_axis = [i + 1 for i in range(summary['num_runs'])]
 
     fig, ax = plt.subplots(1, 1, figsize=[10, 8])
     plt.plot(x_axis, mean_iid)
@@ -451,16 +556,17 @@ def plot_mean_iid(summary, data, changed_along=None, changed_along_alias=None):
 
     plt.show()
 
+
 def plot_min_iid(summary, data, changed_along=None, changed_along_alias=None):
     x_axis = []
     min_iid = data_tools.calculate_min_iid(summary, data)
 
     if changed_along is not None:
         for i in range(summary['num_runs']):
-            x_axis.append(summary['params'][f'run{i+1}'][changed_along])
+            x_axis.append(summary['params'][f'run{i + 1}'][changed_along])
 
     else:
-        x_axis = [i+1 for i in range(summary['num_runs'])]
+        x_axis = [i + 1 for i in range(summary['num_runs'])]
 
     fig, ax = plt.subplots(1, 1, figsize=[10, 8])
     plt.plot(x_axis, min_iid)
@@ -475,6 +581,7 @@ def plot_min_iid(summary, data, changed_along=None, changed_along_alias=None):
         plt.ylabel('Min IID [m]')
 
     plt.show()
+
 
 def plot_mean_iid_over_runs(summary, data, stdcolor='#FF9848', ax=None, with_legend=None):
     iid = data_tools.calculate_interindividual_distance(summary, data)
@@ -506,7 +613,6 @@ def plot_mean_iid_over_runs(summary, data, stdcolor='#FF9848', ax=None, with_leg
                                                            "Standard Deviation over runs"])
 
 
-
 def plot_mean_pol_over_runs(summary, data, stdcolor='#FF9848', ax=None, with_legend=None):
     pol_m = data_tools.calculate_ploarization_matrix(summary, data)
 
@@ -522,7 +628,8 @@ def plot_mean_pol_over_runs(summary, data, stdcolor='#FF9848', ax=None, with_leg
         individ_line, = plt.plot(t, population_mean[i, :], ls="--", color="gray", linewidth="0.2")
 
     mean_line, = plt.plot(t, run_mean, color="black", linewidth="1.2")
-    error_band = plt.fill_between(t, run_mean-run_std, run_mean+run_std, alpha=0.5, edgecolor=stdcolor, facecolor=stdcolor)
+    error_band = plt.fill_between(t, run_mean - run_std, run_mean + run_std, alpha=0.5, edgecolor=stdcolor,
+                                  facecolor=stdcolor)
 
     if ax is None:
         plt.title("Population polarization (heading angle match)")
@@ -537,9 +644,9 @@ def plot_mean_pol_over_runs(summary, data, stdcolor='#FF9848', ax=None, with_leg
                                                            "Mean population polarization over runs",
                                                            "Standard Deviation over runs"])
 
+
 def plot_mean_pol_summary_perInit(paths, titles, colors, supertitle,
                                   xlabel="time [s]", ylabel="polariuzation [AU]$\\in$[0, 1]"):
-
     fig, axs = plt.subplots(len(paths), 1, figsize=[10, 8], sharex=True, sharey=True)
 
     for i in range(len(paths)):
@@ -552,9 +659,9 @@ def plot_mean_pol_summary_perInit(paths, titles, colors, supertitle,
     plt.suptitle(supertitle)
     plt.show()
 
+
 def plot_mean_pol_summary_perRegimeandInit(regime_dict, titles, colors, supertitle,
                                            xlabel="time [s]", ylabel="polarization [AU]$\\in$[0, 1]"):
-
     fig, axs = plt.subplots(len(regime_dict), 1, figsize=[10, 8], sharex=True, sharey=True)
 
     reg_i = 0
@@ -571,7 +678,6 @@ def plot_mean_pol_summary_perRegimeandInit(regime_dict, titles, colors, supertit
     plt.xlabel(xlabel)
     plt.suptitle(supertitle)
     plt.show()
-
 
 
 def plot_min_iid_over_runs(summary, data, stdcolor="#FF9848", ax=None, with_legend=None):
@@ -606,8 +712,8 @@ def plot_min_iid_over_runs(summary, data, stdcolor="#FF9848", ax=None, with_lege
                                                            "Mean of minimum i.i.ds over runs",
                                                            "Standard Deviation over runs"])
 
-def plot_min_iid_summary_perInit(paths, titles, colors, supertitle, xlabel="time [s]", ylabel="i-i.d. [m]"):
 
+def plot_min_iid_summary_perInit(paths, titles, colors, supertitle, xlabel="time [s]", ylabel="i-i.d. [m]"):
     fig, axs = plt.subplots(len(paths), 1, figsize=[10, 8], sharex=True, sharey=True)
 
     for i in range(len(paths)):
@@ -620,8 +726,9 @@ def plot_min_iid_summary_perInit(paths, titles, colors, supertitle, xlabel="time
     plt.suptitle(supertitle)
     plt.show()
 
-def plot_min_iid_summary_perRegimeandInit(regime_dict, titles, colors, supertitle, xlabel="time [s]", ylabel="i-i d. [m]"):
 
+def plot_min_iid_summary_perRegimeandInit(regime_dict, titles, colors, supertitle, xlabel="time [s]",
+                                          ylabel="i-i d. [m]"):
     fig, axs = plt.subplots(len(regime_dict), 1, figsize=[10, 8], sharex=True, sharey=True)
 
     reg_i = 0
@@ -638,7 +745,6 @@ def plot_min_iid_summary_perRegimeandInit(regime_dict, titles, colors, supertitl
     plt.xlabel(xlabel)
     plt.suptitle(supertitle)
     plt.show()
-
 
 
 def plot_mean_COMvel_over_runs(summary, data, stdcolor="#FF9848", ax=None, with_legend=None):
@@ -675,8 +781,8 @@ def plot_mean_COMvel_over_runs(summary, data, stdcolor="#FF9848", ax=None, with_
                                                            "Mean of COM velocity over runs",
                                                            "Standard Deviation over runs"])
 
-def plot_COMvelocity_summary_perInit(paths, titles, colors, supertitle, xlabel="time [s]", ylabel="v [m/s]"):
 
+def plot_COMvelocity_summary_perInit(paths, titles, colors, supertitle, xlabel="time [s]", ylabel="v [m/s]"):
     fig, axs = plt.subplots(len(paths), 1, figsize=[10, 8], sharex=True, sharey=True)
 
     for i in range(len(paths)):
@@ -689,8 +795,9 @@ def plot_COMvelocity_summary_perInit(paths, titles, colors, supertitle, xlabel="
     plt.suptitle(supertitle)
     plt.show()
 
-def plot_COMvelocity_summary_perRegimeandInit(regime_dict, titles, colors, supertitle, xlabel="time [s]", ylabel="v [m/s]"):
 
+def plot_COMvelocity_summary_perRegimeandInit(regime_dict, titles, colors, supertitle, xlabel="time [s]",
+                                              ylabel="v [m/s]"):
     fig, axs = plt.subplots(len(regime_dict), 1, figsize=[10, 8], sharex=True, sharey=True)
 
     reg_i = 0
@@ -731,7 +838,7 @@ def plot_reflection_effect_polarization(summary, data, ax=None):
 
         # plotting ploarization over runs
         N = 300
-        t_ma = t[int(N/2)-1:int(-N/2)]
+        t_ma = t[int(N / 2) - 1:int(-N / 2)]
         ma = data_tools.moving_average(population_mean[i, :], N)
         # moving_avg_line, = plt.plot(t_ma, ma, color="black", linewidth="1.5")
 
@@ -748,6 +855,7 @@ def plot_reflection_effect_polarization(summary, data, ax=None):
 
     if show_plot:
         plt.show()
+
 
 def plot_reflection_effect_COMvelocity(summary, data, ax=None):
     """Showing the effect of being reflected from walls in a single experiment with multiple runs"""
@@ -773,7 +881,7 @@ def plot_reflection_effect_COMvelocity(summary, data, ax=None):
         # plotting ploarization over runs
         # print('SHAPES')
         N = 300
-        t_ma = t[int(N/2)-1:int(-N/2)]
+        t_ma = t[int(N / 2) - 1:int(-N / 2)]
         ma = data_tools.moving_average(COMvelocity[i, cut_beginning:], N)
         # moving_avg_line, = plt.plot(t_ma, ma, color="black", linewidth="1.5")
 
@@ -794,6 +902,7 @@ def plot_reflection_effect_COMvelocity(summary, data, ax=None):
 
     if show_plot:
         plt.show()
+
 
 def plot_reflection_effect_meanIID(summary, data, ax=None):
     """Showing the effect of being reflected from walls in a single experiment with multiple runs"""
@@ -817,7 +926,7 @@ def plot_reflection_effect_meanIID(summary, data, ax=None):
 
         # plotting ploarization over runs
         N = 300
-        t_ma = t[int(N/2)-1:int(-N/2)]
+        t_ma = t[int(N / 2) - 1:int(-N / 2)]
         ma = data_tools.moving_average(population_mean[i, :], N)
         # moving_avg_line, = plt.plot(t_ma, ma, color="black", linewidth="1.5")
 
@@ -827,9 +936,9 @@ def plot_reflection_effect_meanIID(summary, data, ax=None):
         # if summary['num_runs'] > 1:
         for rob_i in range(summary['num_robots']):
             types = [elem[1] for elem in col_types[i][rob_i]]
-            colors = ['red' if type=="withRobot" else 'gray' for type in types]
-            col_times = [elem[0]/1000 for elem in col_types[i][rob_i]]
-            mask = [np.where(t==elem)[0][0] for elem in col_times]
+            colors = ['red' if type == "withRobot" else 'gray' for type in types]
+            col_times = [elem[0] / 1000 for elem in col_types[i][rob_i]]
+            mask = [np.where(t == elem)[0][0] for elem in col_times]
             plt.scatter(t[mask], population_mean[i, mask], color=colors)
 
     if show_plot:
@@ -865,6 +974,5 @@ def plot_reflection_effect_summary(summary, data):
         plt.xlabel("time [s]")
 
     plt.subplots_adjust(wspace=0.15, hspace=0.05)
-
 
     plt.show()
