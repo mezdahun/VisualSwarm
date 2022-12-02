@@ -71,9 +71,15 @@ def compute_serial_matrix(dist_mat, method="ward"):
     return seriated_dist, res_order, res_linkage
 
 def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False,
-                    x_min=-5000, x_max=5000, wall_coordinates=None, history_length=0, show_wall_distance=True,
+                    x_min=-5000, x_max=5000, wall_data_tuple=None, history_length=0, show_wall_distance=True,
                     show_polarization=True, use_clastering=False, vis_window=1500, wall_vic_thr=200, mov_avg_w=10):
     """Replaying experiment from summary and data in matplotlib plot"""
+    if wall_data_tuple is not None:
+        wall_summary, wall_data = wall_data_tuple
+        wall_coordinates = wall_data[0, 0, [1, 3], :]
+    else:
+        wall_coordinates=None
+
     if wall_coordinates is not None:
         x_min = np.nanmin(wall_coordinates[0, :]) - 100
         x_max = np.nanmax(wall_coordinates[0, :]) + 100
@@ -135,10 +141,9 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
 
     if wall_coordinates is not None:
         save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_walldata.npz")
-        wall_distances, wall_coords_closest, _ = data_tools.calculate_distances_from_walls(data[:, :, [1, 3], :],
-                                                                                   wall_coordinates,
-                                                                                   save_path=save_path,
-                                                                                   force_recalculate=False)
+        wall_distances, wall_coords_closest, _ = data_tools.calculate_distances_from_walls(summary, data,
+                                                                                           wall_summary, wall_data,
+                                                                                           force_recalculate=False)
 
         # reflection times are calculated as those time points where the turning rate is high,
         # and the robot is either close to a wall or to another robot

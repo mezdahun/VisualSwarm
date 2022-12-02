@@ -87,17 +87,20 @@ def distance_from_walls(coordinate, wall_coordinates):
 
     return closestdist, closestcoord, closestind
 
-def calculate_distances_from_walls(coordinates, wall_coordinates, save_path=None, force_recalculate=False):
+def calculate_distances_from_walls(summary, data, wall_summary, wall_data, force_recalculate=False):
     """Measuring the mean closest distance of a set of coordinates to the walls described with
     a set of coordinates in numpy array wall_coordinates with shape (2, N). First dimension is x/y, second is the
     coordinate number of the wall."""
-    if save_path is not None and os.path.isfile(save_path) and not force_recalculate:
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_walldata.npz")
+    wall_coordinates = wall_data[0, 0, [1, 3], :]
+    coordinates = data[:, :, [1, 3], :]
+
+    if os.path.isfile(save_path) and not force_recalculate:
         print("File in target path for agent-wall distances already exists! No recalculation was"
               "requested, so data will be loaded from the npz file.")
         file_data = np.load(save_path)
         distances = file_data['agent_wall_distances']
         coords = file_data['closest_wall_coordinates']
-
     else:
         num_runs = coordinates.shape[0]
         num_agents = coordinates.shape[1]

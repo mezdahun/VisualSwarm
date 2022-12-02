@@ -23,20 +23,15 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
     if WALL_EXPERIMENT_NAME is not None:
         csv_path_walls = os.path.join(data_path, f"{WALL_EXPERIMENT_NAME}.csv")
         data_tools.optitrackcsv_to_VSWRM(csv_path_walls, skip_already_summed=True, dropna=False)
-
         summay_wall, data_wall = data_tools.read_summary_data(data_path, WALL_EXPERIMENT_NAME)
-
-        print(data_wall.shape)
-        wall_coordinates = data_wall[0, 0, [1, 3], :]
-
+        wall_data_tuple = (summay_wall, data_wall)
     else:
-
-        wall_coordinates = None
+        wall_data_tuple = None
 
     # replaying experiment
     plotting_tools.plot_replay_run(summary, data,
                                    history_length=1000,
-                                   wall_coordinates=wall_coordinates,
+                                   wall_data_tuple=wall_data_tuple,
                                    step_by_step=False,
                                    t_start=9000,
                                    t_step=30,
