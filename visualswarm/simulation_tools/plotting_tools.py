@@ -175,10 +175,12 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
         wall_reflection_times = []
         for _, v in wall_refl_dict[str(runi)].items():
             wall_reflection_times.extend(v)
+        wall_reflection_times = list(set(wall_reflection_times))
 
         agent_reflection_times = []
         for _, v in ag_refl_dict[str(runi)].items():
             agent_reflection_times.extend(v)
+        agent_reflection_times = list(set(agent_reflection_times))
 
     plot_w = int(np.ceil(num_subplots/2))
     plot_shape = (2, plot_w)
