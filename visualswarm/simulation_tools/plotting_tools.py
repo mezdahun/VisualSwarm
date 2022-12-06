@@ -76,7 +76,8 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                     x_min=-5000, x_max=5000, wall_data_tuple=None, history_length=0, show_wall_distance=True,
                     show_polarization=True, show_iid=True, show_COM_vel=True, use_clastering=False, vis_window=1500,
                     wall_vic_thr=200, agent_dist_thr=275, mov_avg_w=10,
-                    force_recalculate=False, turn_thr=0.02, ):
+                    force_recalculate=False, turn_thr=0.02, return_fig=False,
+                    with_trajectory=True):
     """Replaying experiment from summary and data in matplotlib plot"""
     if wall_data_tuple is not None:
         wall_summary, wall_data = wall_data_tuple
@@ -107,168 +108,126 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
         t_step = 15
 
     plt.ion()
-    num_subplots = 2
+    if with_trajectory:
+        num_subplots = 2
+    else:
+        num_subplots = 0
 
-    # Calculating metrics
-    # COM velocity
+    # # Calculating metrics
+    # # COM velocity
     if show_COM_vel:
-        print("Calculating COM velocity")
-        com_vel = data_tools.population_velocity(summary, data, force_recalculate=force_recalculate)
-        m_com_vel = np.zeros_like(com_vel)
-        m_com_vel[runi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
-            com_vel[runi, :], mov_avg_w)
         num_subplots += 1
 
-    # absolute velocities
-    abs_vel = np.abs(data_tools.calculate_velocity(summary, data))
-    # absolute and com velocity with moving average
-    print("Moving average of absolute velocity!")
-    m_abs_vel = np.zeros_like(abs_vel)
-    for robi in range(num_robots):
-        m_abs_vel[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
-            abs_vel[runi, robi, :], mov_avg_w)
-
-
-    # turning rates
-    print("Calculate turning rates!")
-    turning_rates = data_tools.calculate_turning_rates(summary, data, force_recalculate=force_recalculate)
-    # moving average of turning rates
-    ma_turning_rates = np.zeros_like(turning_rates)
-    for robi in range(num_robots):
-        ma_turning_rates[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = data_tools.moving_average(
-            turning_rates[runi, robi, :], mov_avg_w)
-
-    # inter_individual distances
-    print("Calculate IID")
-    iidm = data_tools.calculate_interindividual_distance(summary, data, force_recalculate=force_recalculate)
-    # min and mean interindividual distances
-    iidm_nan = iidm.copy()
-    for t in range(iidm_nan.shape[-1]):
-        np.fill_diagonal(iidm_nan[runi, :, :, t], None)
-
     if show_iid:
-        min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
-        mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
         num_subplots += 2
 
     if use_clastering:
-        pm = data_tools.calculate_ploarization_matrix(summary, data, force_recalculate=force_recalculate)
         num_subplots += 1
 
     if show_polarization:
-        pm = data_tools.calculate_ploarization_matrix(summary, data, force_recalculate=force_recalculate)
-        mean_pol_vals = np.mean(np.mean(pm, axis=1), axis=1)
-        mean_pol_vals = mean_pol_vals[runi, :]
         num_subplots += 1
 
-    if wall_coordinates is not None:
-        wall_distances, wall_coords_closest, _ = data_tools.calculate_distances_from_walls(summary, data,
-                                                                                           wall_summary, wall_data,
-                                                                                           force_recalculate=force_recalculate)
-        mean_wall_dist = np.mean(wall_distances[runi], axis=0)
-        min_wall_dist = np.min(wall_distances[runi], axis=0)
+    com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
+        mean_wall_dist, min_wall_dist, wall_refl_dict, ag_refl_dict, wall_reflection_times, \
+        agent_reflection_times, wall_distances, wall_coords_closest \
+        = data_tools.return_summary_data(summary, data,
+                                         wall_data_tuple=wall_data_tuple, runi=runi,
+                                         mov_avg_w=mov_avg_w, wall_vic_thr=wall_vic_thr,
+                                         agent_dist_thr=agent_dist_thr, force_recalculate=force_recalculate,
+                                         turn_thr=turn_thr)
 
-        wall_refl_dict, ag_refl_dict = data_tools.mine_reflection_times(data, summary, wall_summary, wall_data,
-                                                                        ma_window=30, wall_dist_thr=wall_vic_thr,
-                                                                        agent_dist_thr=agent_dist_thr, turn_thr=turn_thr,
-                                                                        force_recalculate=force_recalculate)
-        wall_reflection_times = []
-        for _, v in wall_refl_dict[str(runi)].items():
-            wall_reflection_times.extend(v)
-        wall_reflection_times = list(set(wall_reflection_times))
-
-        agent_reflection_times = []
-        for _, v in ag_refl_dict[str(runi)].items():
-            agent_reflection_times.extend(v)
-        agent_reflection_times = list(set(agent_reflection_times))
-
-    plot_w = int(np.ceil(num_subplots/2))
+    plot_w = int(np.ceil(num_subplots / 2))
     plot_shape = (2, plot_w)
 
     fig, ax = plt.subplots(plot_shape[0], plot_shape[1])
-    gs = ax[0, 1].get_gridspec()
+    if with_trajectory:
+        gs = ax[0, 1].get_gridspec()
 
-    # remove the underlying axes
-    for axi in ax[0:, 0]:
-        axi.remove()
-    axbig = fig.add_subplot(gs[0:, 0])
+        # remove the underlying axes
+        for axi in ax[0:, 0]:
+            axi.remove()
+        axbig = fig.add_subplot(gs[0:, 0])
 
     for ti, t in enumerate(range(t_start, t_end, t_step)):
 
-        plt.axes(axbig)
-        colors = "grey"
-
-        # Showing agents
         ms = 100
-        x = data[runi, :, 1, t]
-        y = data[runi, :, 3, t]
-        ori = data[runi, :, 4, t]
-        plt.scatter(x, y, s=ms, c=colors)
+        if with_trajectory:
+            plt.axes(axbig)
+            colors = "grey"
 
-        # Showing reflected agents
-        refid_w = []
-        refid_a = []
+            # Showing agents
+            x = data[runi, :, 1, t]
+            y = data[runi, :, 3, t]
+            ori = data[runi, :, 4, t]
+            plt.scatter(x, y, s=ms, c=colors)
 
-        for k, v in wall_refl_dict[str(runi)].items():
-            if t in v:
-                refid_w.append(int(k))
+            # Showing reflected agents
+            refid_w = []
+            refid_a = []
 
-        for k, v in ag_refl_dict[str(runi)].items():
-            if t in v:
-                refid_a.append(int(k))
+            for k, v in wall_refl_dict[str(runi)].items():
+                if t in v:
+                    refid_w.append(int(k))
 
-        plt.scatter(x[refid_w], y[refid_w], s=ms, c="red")
-        plt.scatter(x[refid_a], y[refid_a], s=ms, c="blue")
+            for k, v in ag_refl_dict[str(runi)].items():
+                if t in v:
+                    refid_a.append(int(k))
 
-        for ri in range(num_robots):
-            plt.annotate(ri, (x[ri], y[ri] + 0.2))
-            angle = ori[ri]
-            plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
+            plt.scatter(x[refid_w], y[refid_w], s=ms, c="red")
+            plt.scatter(x[refid_a], y[refid_a], s=ms, c="blue")
 
-        # Showing COM
-        center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
-        plt.scatter(center_of_mass[runi, 0, t], center_of_mass[runi, 2, t], s=int(ms / 2), color="green", label="COM")
+            for ri in range(num_robots):
+                plt.annotate(ri, (x[ri], y[ri] + 0.2))
+                angle = ori[ri]
+                plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
 
+            # Showing COM
+            center_of_mass = np.mean(data[:, :, [1, 2, 3], :], axis=1)
+            plt.scatter(center_of_mass[runi, 0, t], center_of_mass[runi, 2, t], s=int(ms / 2), color="green",
+                        label="COM")
 
-        # Showing path history if requested
-        if history_length > 0:
-            for robi in range(num_robots):
-                if isinstance(colors, list):
-                    col = colors[robi]
-                else:
-                    col = "blue"
-                plt.plot(data[runi, robi, 1, t - history_length:t:5], data[runi, robi, 3, t - history_length:t:5], '-',
-                         c=col)
+            # Showing path history if requested
+            if history_length > 0:
+                for robi in range(num_robots):
+                    if isinstance(colors, list):
+                        col = colors[robi]
+                    else:
+                        col = "blue"
+                    plt.plot(data[runi, robi, 1, t - history_length:t:5], data[runi, robi, 3, t - history_length:t:5],
+                             '-',
+                             c=col)
 
-        # Showing walls if coordinates are passed
-        if wall_coordinates is not None:
-            plt.plot(wall_coordinates[0, :], wall_coordinates[1, :], '--', c="black", label="wall")
+            # Showing walls if coordinates are passed
+            if wall_coordinates is not None:
+                plt.plot(wall_coordinates[0, :], wall_coordinates[1, :], '--', c="black", label="wall")
 
-            # Showing distance between agents and walls
-            robs_near_walls = []
-            for robi in range(num_robots):
-                if show_wall_distance:
-                    xvals = [data[runi, robi, 1, t], wall_coords_closest[runi, robi, 0, t]]
-                    yvals = [data[runi, robi, 3, t], wall_coords_closest[runi, robi, 1, t]]
+                # Showing distance between agents and walls
+                robs_near_walls = []
+                for robi in range(num_robots):
+                    if show_wall_distance:
+                        xvals = [data[runi, robi, 1, t], wall_coords_closest[runi, robi, 0, t]]
+                        yvals = [data[runi, robi, 3, t], wall_coords_closest[runi, robi, 1, t]]
 
-                    plt.plot(xvals, yvals, linestyle="-.", color="grey")
-                    plt.text(np.mean(xvals), np.mean(yvals), f"{wall_distances[runi, robi, t] / 10:.0f}cm", fontsize=8)
-                    if wall_distances[runi, robi, t] < wall_vic_thr:
-                        robs_near_walls.append(robi)
+                        plt.plot(xvals, yvals, linestyle="-.", color="grey")
+                        plt.text(np.mean(xvals), np.mean(yvals), f"{wall_distances[runi, robi, t] / 10:.0f}cm",
+                                 fontsize=8)
+                        if wall_distances[runi, robi, t] < wall_vic_thr:
+                            robs_near_walls.append(robi)
 
-        plt.xlim(x_min, x_max)
-        plt.ylim(y_min, y_max)
-        plt.axis('scaled')
-        plt.legend()
+            plt.xlim(x_min, x_max)
+            plt.ylim(y_min, y_max)
+            plt.axis('scaled')
+            plt.legend()
 
-        plot_i = 2
+        plot_i = 2 if with_trajectory else 0
         if use_clastering:
             if num_robots > 1:
-                plot_col = int(np.floor(plot_i/2))
+                plot_col = int(np.floor(plot_i / 2))
                 plot_row = 0 if plot_i % 2 == 0 else 1
                 plt.axes(ax[plot_row, plot_col])
                 ax[plot_row, plot_col].get_shared_x_axes().join(ax[plot_row, plot_col], ax[0, 1])
-                niidm = (iidm[runi, :, :, t] - np.min(iidm[runi, :, :, t])) / (np.max(iidm[runi, :, :, t]) - np.min(iidm[runi, :, :, t]))
+                niidm = (iidm[runi, :, :, t] - np.min(iidm[runi, :, :, t])) / (
+                        np.max(iidm[runi, :, :, t]) - np.min(iidm[runi, :, :, t]))
                 dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
                 # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
                 linkage_matrix = linkage(dist, "single")
@@ -284,6 +243,8 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             try:
                 plt.plot([k for k in range(t - vis_window, t + 5)], mean_pol_vals[t - vis_window:t + 5], color="black",
                          label="Mean Pol.")
+                plt.plot([k for k in range(t - vis_window, t + 5)], ord[runi, t - vis_window:t + 5], color="blue",
+                         label="Mean Ord.")
             except:
                 pass
             if wall_coordinates is not None:
@@ -297,7 +258,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.scatter(agent_reflection_times_chunk, [1 for k in range(len(agent_reflection_times_chunk))],
                         c="blue", label="agent refl.")
             plt.vlines(agent_reflection_times_chunk, -1, 1, color="blue", alpha=0.05)
-            plt.ylim(-1, 1)
+            plt.ylim(0, 1.1)
             plt.ylabel("Pol. $\\in$ [-1, 1]")
             plt.legend(loc="upper left")
 
@@ -318,7 +279,8 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
             # # plotting mean agent_wall distance
-            plt.plot([k for k in range(t - vis_window, t + 5)], min_wall_dist[t - vis_window:t + 5], label="Min a.-w. dist.",
+            plt.plot([k for k in range(t - vis_window, t + 5)], min_wall_dist[t - vis_window:t + 5],
+                     label="Min a.-w. dist.",
                      color="red")
             plt.ylabel("Min a.-w. dist. [mm]")
             plt.hlines(wall_vic_thr, t - vis_window, t + 5, ls="--", color="red", label="A.-W. thr.")
@@ -328,7 +290,8 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             # plotting minimum interindividual distance
             ax2 = ax[plot_row, plot_col].twinx()
             plt.axes(ax2)
-            plt.plot([k for k in range(t - vis_window, t + 5)], min_iidm[0, t - vis_window:t + 5], label="Min I.I.D", color="blue")
+            plt.plot([k for k in range(t - vis_window, t + 5)], min_iidm[0, t - vis_window:t + 5], label="Min I.I.D",
+                     color="blue")
             plt.hlines(agent_dist_thr, t - vis_window, t + 5, ls="--", color="blue", label="IID thr.")
             plt.ylabel("Min I.I.D [mm]")
             plt.legend(loc="lower left")
@@ -360,16 +323,53 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.ylabel("COM vel. [mm/ts]")
             plot_i += 1
 
-        plt.draw()
-        plt.subplots_adjust(wspace=0.35, hspace=0.1, left=0.05, right=0.95, top=0.95, bottom=0.05)
-        if step_by_step:
-            input()
+        if not return_fig:
+            plt.draw()
+            plt.subplots_adjust(wspace=0.35, hspace=0.1, left=0.05, right=0.95, top=0.95, bottom=0.05)
+            if step_by_step:
+                input()
+            else:
+                fig.canvas.draw()
+                # to flush the GUI events
+                fig.canvas.flush_events()
+                time.sleep(0.01)
+
+            plt.clf()
         else:
-            fig.canvas.draw()
-            # to flush the GUI events
-            fig.canvas.flush_events()
-            time.sleep(0.01)
-        plt.clf()
+            return fig, ax
+
+def plot_summary_over_run(summary, data, runi=0, t_start=None, t_end=None, t_step=None, wall_data_tuple=None,
+                          history_length=0, show_polarization=True, show_iid=True, show_COM_vel=True, wall_vic_thr=200,
+                          agent_dist_thr=275, mov_avg_w=10, force_recalculate=False, turn_thr=0.02):
+    """Plotting the same metrics as in plot_replay but for the whole run"""
+    if t_start is None:
+        t_start = data.shape[-1] - (data.shape[-1] % 10) - 10
+    if t_end is None:
+        t_end = data.shape[-1] - (data.shape[-1] % 10) - 9
+    if t_step is None:
+        t_step = 1
+
+    fig, ax = plot_replay_run(summary, data, runi=runi,
+                              history_length=history_length,
+                              wall_data_tuple=wall_data_tuple,
+                              step_by_step=False,
+                              t_start=t_start,
+                              t_end=t_end,
+                              t_step=t_step,
+                              use_clastering=False,
+                              mov_avg_w=mov_avg_w,
+                              vis_window=t_start,
+                              force_recalculate=force_recalculate,
+                              show_polarization=show_polarization,
+                              show_iid=show_iid,
+                              show_COM_vel=show_COM_vel,
+                              turn_thr=turn_thr,
+                              wall_vic_thr=wall_vic_thr,
+                              return_fig=True,
+                              agent_dist_thr=agent_dist_thr,
+
+                              with_trajectory=False)
+    input()
 
 
 def plot_velocities(summary, data, changed_along=None, changed_along_alias=None):
@@ -400,7 +400,7 @@ def plot_velocities(summary, data, changed_along=None, changed_along_alias=None)
                 legend = [', '.join(
                     [f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in
                      range(len(changed_along))]) for j in
-                          range(summary['num_runs'])]
+                    range(summary['num_runs'])]
             plt.legend(legend)
 
         plt.title(f'Velocity of robot {i}')
@@ -437,7 +437,7 @@ def plot_distances(summary, data, reference_point, changed_along=None, changed_a
                 legend = [', '.join(
                     [f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in
                      range(len(changed_along))]) for j in
-                          range(summary['num_runs'])]
+                    range(summary['num_runs'])]
             plt.legend(legend)
 
         plt.title(f'Distance of robot {i} from point {reference_point}')
@@ -476,7 +476,7 @@ def plot_orientation(summary, data, changed_along=None, changed_along_alias=None
                 legend = [', '.join(
                     [f'{changed_along_alias[i]}={summary["params"][f"run{j + 1}"][changed_along[i]]}' for i in
                      range(len(changed_along))]) for j in
-                          range(summary['num_runs'])]
+                    range(summary['num_runs'])]
             plt.legend(legend)
 
         plt.title(f'Orientation of robot {i}')
