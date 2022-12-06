@@ -150,6 +150,146 @@ def calculate_turning_rates(summary, data, turning_rate_trh=0.2, force_recalcula
 
     return tr
 
+def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agent_refl_times, wall_refl_times, window_after=0,
+                                      window_before=0, force_recalculate=False):
+    """Calculating common metrics for time points where no collision was detected"""
+    num_t = polarization_m.shape[-1]
+
+    save_path = os.path.join(summary['data_path'],
+                             f"{summary['experiment_name']}_validts_wa{window_after}_wb{window_before}.npy")
+
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for valid time points already exists! No recalculation was"
+              "requested, so data will be loaded from the npy file.")
+        valid_ts = np.load(save_path)
+
+    else:
+        # Joining wall and agent reflections
+        all_refl_times = []
+        if agent_refl_times is None:
+            agent_refl_times = []
+        if wall_refl_times is None:
+            wall_refl_times = []
+        agent_refl_times.extend(wall_refl_times)
+        all_refl_times.extend(wall_refl_times)
+        all_refl_times.extend(agent_refl_times)
+
+        # Extending reflection timepoints before and after reflections
+        t_ext = [0]
+        for ti, t in enumerate(all_refl_times):
+            if t - window_before >= np.max(t_ext):
+                t_ext.extend([min(max(0, te), num_t) for te in range(t-window_before, t+window_after)])
+        all_refl_times.extend(t_ext)
+        all_refl_times = list(set(all_refl_times))
+
+        valid_ts = [t for t in range(0, num_t) if t not in all_refl_times]
+        np.save(save_path, valid_ts)
+
+    # filtering data
+    if agent_refl_times is not None:
+        polarization_m = polarization_m[runi, :, :, valid_ts]
+        iid_m = iid_m[runi, :, :, valid_ts]
+
+    iidm_nan = iid_m.copy()
+    for t in range(iidm_nan.shape[-1]):
+        np.fill_diagonal(iidm_nan[:, :, t], None)
+
+    min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
+    mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
+
+    mean_pol_vals = np.mean(np.mean(polarization_m, axis=1), axis=1)
+
+    mean_pol_vals_long = np.zeros(num_t)
+    mean_pol_vals_long[valid_ts] = mean_pol_vals
+
+    min_iidm_long = np.zeros(num_t)
+    min_iidm_long[valid_ts] = min_iidm
+    mean_iid_long = np.zeros(num_t)
+    mean_iid_long[valid_ts] = mean_iid
+
+    return valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long
+
+def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=10,
+                        wall_vic_thr=200, agent_dist_thr=275, force_recalculate=False, turn_thr=0.02):
+    if wall_data_tuple is not None:
+        wall_summary, wall_data = wall_data_tuple
+        wall_coordinates = wall_data[0, 0, [1, 3], :]
+    else:
+        wall_coordinates = None
+
+    num_robots = data.shape[1]
+    # COM velocity
+    print("Calculating COM velocity")
+    com_vel = population_velocity(summary, data, force_recalculate=force_recalculate)
+    m_com_vel = np.zeros_like(com_vel)
+    m_com_vel[runi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = moving_average(
+        com_vel[runi, :], mov_avg_w)
+
+    # absolute velocities
+    abs_vel = np.abs(calculate_velocity(summary, data))
+    # absolute and com velocity with moving average
+    print("Moving average of absolute velocity!")
+    m_abs_vel = np.zeros_like(abs_vel)
+    for robi in range(num_robots):
+        m_abs_vel[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = moving_average(
+            abs_vel[runi, robi, :], mov_avg_w)
+
+    # turning rates
+    print("Calculate turning rates!")
+    turning_rates = calculate_turning_rates(summary, data, force_recalculate=force_recalculate)
+    # moving average of turning rates
+    ma_turning_rates = np.zeros_like(turning_rates)
+    for robi in range(num_robots):
+        ma_turning_rates[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = moving_average(
+            turning_rates[runi, robi, :], mov_avg_w)
+
+
+    # inter_individual distances
+    print("Calculate IID")
+    iidm = calculate_interindividual_distance(summary, data, force_recalculate=force_recalculate)
+    # min and mean interindividual distances
+    iidm_nan = iidm.copy()
+    for t in range(iidm_nan.shape[-1]):
+        np.fill_diagonal(iidm_nan[runi, :, :, t], None)
+
+    min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
+    mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
+
+    pm = calculate_ploarization_matrix(summary, data, force_recalculate=force_recalculate)
+    mean_pol_vals = np.mean(np.mean(pm, axis=1), axis=1)
+    mean_pol_vals = mean_pol_vals[runi, :]
+
+    ord = calculate_order_parameter(summary, data, force_recalculate=force_recalculate)
+
+    if wall_coordinates is not None:
+        wall_distances, wall_coords_closest, _ = calculate_distances_from_walls(summary, data,
+                                                                                           wall_summary, wall_data,
+                                                                                           force_recalculate=force_recalculate)
+        mean_wall_dist = np.mean(wall_distances[runi], axis=0)
+        min_wall_dist = np.min(wall_distances[runi], axis=0)
+
+        wall_refl_dict, ag_refl_dict = mine_reflection_times(data, summary, wall_summary, wall_data,
+                                                                        ma_window=30, wall_dist_thr=wall_vic_thr,
+                                                                        agent_dist_thr=agent_dist_thr,
+                                                                        turn_thr=turn_thr,
+                                                                        force_recalculate=force_recalculate)
+        wall_reflection_times = []
+        for _, v in wall_refl_dict[str(runi)].items():
+            wall_reflection_times.extend(v)
+        wall_reflection_times = list(set(wall_reflection_times))
+
+        agent_reflection_times = []
+        for _, v in ag_refl_dict[str(runi)].items():
+            agent_reflection_times.extend(v)
+        agent_reflection_times = list(set(agent_reflection_times))
+
+    else:
+        mean_wall_dist = min_wall_dist = wall_refl_dict = ag_refl_dict = wall_reflection_times = agent_reflection_times \
+            = wall_distances = wall_coords_closest =None
+
+    return com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
+        mean_wall_dist, min_wall_dist, wall_refl_dict, ag_refl_dict, wall_reflection_times, agent_reflection_times, \
+        wall_distances, wall_coords_closest
 
 def mine_reflection_times(data, summary, wall_summary, wall_data,
                           ma_window=30, wall_dist_thr=200, agent_dist_thr=280, turn_thr=0.0225,
@@ -526,6 +666,39 @@ def calculate_mean_iid(summary, data, window_width=100):
 def calculate_reflection_times(summary, data):
     pass
 
+
+def calculate_order_parameter(summary, data, force_recalculate=False):
+    """Calculating matrix including order parameter values between 0 and 1 reflecting the
+    average match of the agents w.r.t. heaing angles, as the norm of the summed unit
+    vectors with direction of agent orientations"""
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_ord.npy")
+
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for order parameters already exists! No recalculation was "
+              "requested, so data will be loaded from the npy file.")
+        ord = np.load(save_path)
+
+    else:
+        or_idx = summary['attributes'].index('or')
+        orientations = data[:, :, or_idx, :]
+
+        unitvecs = np.zeros((summary['num_runs'], 2, summary['num_robots'], data.shape[-1]))
+
+        for runi in range(summary['num_runs']):
+            for robi in range(summary['num_robots']):
+                ori = orientations[runi, robi, :]
+                unitvecs[runi, 0, robi, :] = np.array([np.cos(ang) for ang in ori])
+                unitvecs[runi, 1, robi, :] = np.array([np.sin(ang) for ang in ori])
+
+        unitsum = np.sum(unitvecs, axis=2)
+        ord = np.zeros((summary['num_runs'], data.shape[-1]))
+        for runi in range(summary['num_runs']):
+            ord[runi, :] = np.array([np.linalg.norm([unitsum[runi, 0, t], unitsum[runi, 1, t]])/summary['num_robots'] for t in range(data.shape[-1])])
+
+        print(f"Saving order parameter matrix in npy file under {save_path}")
+        np.save(save_path, ord)
+
+    return ord
 
 def calculate_ploarization_matrix(summary, data, force_recalculate=False):
     """Calculating matrix including polariuzation values between 0 and 1 reflecting the
