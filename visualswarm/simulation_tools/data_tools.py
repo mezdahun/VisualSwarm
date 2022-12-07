@@ -177,12 +177,14 @@ def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agen
         # Extending reflection timepoints before and after reflections
         t_ext = [0]
         for ti, t in enumerate(all_refl_times):
-            if t - window_before >= np.max(t_ext):
-                t_ext.extend([min(max(0, te), num_t) for te in range(t-window_before, t+window_after)])
+            # if t - window_before >= np.max(t_ext):
+            t_ext.extend([min(max(0, te), num_t) for te in range(t-window_before, t+window_after)])
+            # print(t_ext)
         all_refl_times.extend(t_ext)
         all_refl_times = list(set(all_refl_times))
 
         valid_ts = [t for t in range(0, num_t) if t not in all_refl_times]
+        print(f"Len valid_ts after calc: {len(list(set(valid_ts)))}")
         np.save(save_path, valid_ts)
 
     # filtering data

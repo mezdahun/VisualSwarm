@@ -84,13 +84,13 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                               0,
                                                                                                               agent_reflection_times,
                                                                                                               wall_reflection_times,
-                                                                                                              window_after=2000,
+                                                                                                              window_after=600,
                                                                                                               window_before=0)
     print("Valid timepoints: ", len(valid_ts))
     valid_ts_r.append(valid_ts)
     mean_iids_r.append(mean_iid_long)
     mean_pols_r.append(mean_pol_vals_long)
-    valid_ts = valid_ts[-80000:-1:]
+    valid_ts = valid_ts[0:-1]
     comv_matrix_final[alphas.index(a), betas.index(b)] = np.mean(com_vel[0, valid_ts])
     comv_matrix_final_std[alphas.index(a), betas.index(b)] = np.std(com_vel[0, valid_ts])
     ord_matrix_final[alphas.index(a), betas.index(b)] = np.mean(ord[0, valid_ts])

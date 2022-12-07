@@ -77,7 +77,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                     show_polarization=True, show_iid=True, show_COM_vel=True, use_clastering=False, vis_window=1500,
                     wall_vic_thr=200, agent_dist_thr=275, mov_avg_w=10,
                     force_recalculate=False, turn_thr=0.02, return_fig=False,
-                    with_trajectory=True):
+                    with_trajectory=True, valid_ts=None):
     """Replaying experiment from summary and data in matplotlib plot"""
     if wall_data_tuple is not None:
         wall_summary, wall_data = wall_data_tuple
@@ -249,15 +249,22 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                 pass
             if wall_coordinates is not None:
                 wall_reflection_times_chunk = [tx for tx in wall_reflection_times if t - vis_window < tx < t + 5]
-                plt.scatter(wall_reflection_times_chunk, [1 for k in range(len(wall_reflection_times_chunk))],
-                            c="red", label="wall refl.")
-                plt.vlines(wall_reflection_times_chunk, -1, 1, color="red", alpha=0.05)
+                if valid_ts is None:
+                    plt.scatter(wall_reflection_times_chunk, [1 for k in range(len(wall_reflection_times_chunk))],
+                                c="red", label="wall refl.")
+                    plt.vlines(wall_reflection_times_chunk, -1, 1, color="red", alpha=0.05)
+                    agent_reflection_times_chunk = [tx for tx in agent_reflection_times if t - vis_window < tx < t + 5]
+                    plt.scatter(agent_reflection_times_chunk, [1 for k in range(len(agent_reflection_times_chunk))],
+                                c="blue", label="agent refl.")
+                    plt.vlines(agent_reflection_times_chunk, -1, 1, color="blue", alpha=0.05)
+                else:
+                    print(len(valid_ts))
+                    nonvalid_chunk = [tx for tx in range(t - vis_window, t + 5) if tx not in valid_ts]
+                    plt.scatter(nonvalid_chunk, [1 for k in range(len(nonvalid_chunk))],
+                                c="red", label="nonvalid t.")
+                    plt.vlines(nonvalid_chunk, -1, 1, color="red", alpha=0.05)
 
             plt.vlines(t, mean_pol_vals[t] - 0.1, mean_pol_vals[t] + 0.1)
-            agent_reflection_times_chunk = [tx for tx in agent_reflection_times if t - vis_window < tx < t + 5]
-            plt.scatter(agent_reflection_times_chunk, [1 for k in range(len(agent_reflection_times_chunk))],
-                        c="blue", label="agent refl.")
-            plt.vlines(agent_reflection_times_chunk, -1, 1, color="blue", alpha=0.05)
             plt.ylim(0, 1.1)
             plt.ylabel("Pol. $\\in$ [-1, 1]")
             plt.legend(loc="upper left")

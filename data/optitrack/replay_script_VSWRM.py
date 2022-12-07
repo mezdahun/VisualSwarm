@@ -28,6 +28,22 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
     else:
         wall_data_tuple = None
 
+    com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
+        mean_wall_dist, min_wall_dist, wall_refl_dict, ag_refl_dict, wall_reflection_times, \
+        agent_reflection_times, wall_distances, wall_coords_closest \
+        = data_tools.return_summary_data(summary, data,
+                                         wall_data_tuple=wall_data_tuple, runi=0,
+                                         mov_avg_w=30, force_recalculate=False)
+
+    valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long = data_tools.return_metrics_where_no_collision(
+        summary, pm, iidm,
+        0,
+        agent_reflection_times,
+        wall_reflection_times,
+        window_after=600,
+        window_before=0)
+
+    print(len(valid_ts))
     # replaying experiment
     plotting_tools.plot_replay_run(summary, data,
                                    history_length=1000,
@@ -38,5 +54,6 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
                                    use_clastering=False,
                                    mov_avg_w=60,
                                    vis_window=3000,
-                                   force_recalculate=False)
+                                   force_recalculate=False,
+                                   valid_ts=valid_ts)
 
