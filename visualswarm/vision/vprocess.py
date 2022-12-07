@@ -563,7 +563,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
-                        boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores)
+                        # removing overlapping boxes, keeping only the one with higher score
+                        boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.65)
 
                         print("Boxes: ", boxes)
                         print("Classes: ", classes)
@@ -702,7 +703,7 @@ def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55):
                             else:
                                 is_to_remove.append(j)
     is_to_keep = [i for i in range(len(scores)) if i not in list(set(is_to_remove))]
-    print(f"Removing {len(is_to_remove)} items due to overlap!")
+    logger.debug(f"Removing {len(is_to_remove)} items due to overlap!")
     return boxes[is_to_keep, :], classes[is_to_keep], scores[is_to_keep]
 
 def visualizer(visualization_stream, target_config_stream=None):
