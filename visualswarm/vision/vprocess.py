@@ -585,10 +585,10 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores,
                                                                               overlap_thr=vision.overlap_removal_thr)
 
-                        print("Boxes: ", boxes)
-                        print("Classes: ", classes)
-                        print("Scores: ", scores)
-                        print("Widths: ",
+                        print("newBoxes: ", boxes)
+                        print("newClasses: ", classes)
+                        print("newScores: ", scores)
+                        print("newWidths: ",
                               [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
                                range(boxes.shape[0])])
 
