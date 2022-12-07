@@ -568,7 +568,19 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         print("Boxes: ", boxes)
                         print("Classes: ", classes)
                         print("Scores: ", scores)
-                        print("Widths: ", [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in range(boxes.shape[0])])
+                        print("Widths: ",
+                              [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
+                               range(boxes.shape[0])])
+
+                        # Sorting lists according to maximum scores
+                        boxes = [b for _, b in sorted(zip(scores, boxes))]
+                        classes = [b for _, b in sorted(zip(classes, boxes))]
+                        scores = sorted(scores)
+
+                        print("Boxess: ", boxes)
+                        print("Classess: ", classes)
+                        print("Scoress: ", scores)
+                        print("Widthss: ", [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in range(boxes.shape[0])])
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
