@@ -579,11 +579,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         # Filtering data for largest scores
                         boxes, classes, scores = boxes[sorted_score_indices, :], classes[sorted_score_indices], scores[sorted_score_indices]
 
-                        # removing overlapping boxes, keeping only the one with higher score
-                        if vision.overlap_removal:
-                            boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores,
-                                                                              overlap_thr=vision.overlap_removal_thr)
-
                         if vision.focus_on_N_largest:
                             print(f"keeping only {vision.N_largest} largest boxes")
                             widths = []
@@ -601,7 +596,16 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                     widths.append(b_height)
                                 else:
                                     widths.append(b_width)
+                        else:
+                            widths = None
 
+                        # removing overlapping boxes, keeping only the one with higher score
+                        if vision.overlap_removal:
+                            boxes, classes, scores, widths = remove_overlapping_boxes(boxes, classes, scores,
+                                                                              overlap_thr=vision.overlap_removal_thr,
+                                                                              widths = widths)
+
+                        if vision.focus_on_N_largest:
                             sorted_width_indices = np.argsort(widths)[::-1]
                             sorted_width_indices = sorted_width_indices[
                                                    0:int(min(vision.N_largest, len(sorted_width_indices)))]
@@ -713,7 +717,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     except KeyboardInterrupt:
         pass
 
-def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55):
+def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55, widths=None):
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
     is_to_remove = []
@@ -729,13 +733,22 @@ def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55):
                             print(points_i)
                             print(points_j)
                             print("OVERLAP: ", overlap)
-                            if scores[i] < scores[j]:
-                                is_to_remove.append(i)
-                            else:
-                                is_to_remove.append(j)
+                            if widths is None:
+                                # if no widths are passed we keep box from overlapping pair with higher score
+                                if scores[i] < scores[j]:
+                                    is_to_remove.append(i)
+                                else:
+                                    is_to_remove.append(j)
+                            else:  # otherwise we keep the larger box
+                                if widths[i] < widths[j]:
+                                    is_to_remove.append(i)
+                                else:
+                                    is_to_remove.append(j)
     is_to_keep = [i for i in range(len(scores)) if i not in list(set(is_to_remove))]
     logger.debug(f"Removing {len(is_to_remove)} items due to overlap!")
-    return boxes[is_to_keep, :], classes[is_to_keep], scores[is_to_keep]
+    if widths is not None:
+        widths = widths[is_to_keep]
+    return boxes[is_to_keep, :], classes[is_to_keep], scores[is_to_keep], widths
 
 def visualizer(visualization_stream, target_config_stream=None):
     """
