@@ -67,7 +67,7 @@ overlap_removal_thr = 0.65
 
 # Take N largest projections
 focus_on_N_largest = True
-N_largest = 3
+N_largest = 5
 
 # Fisheye lens approximate horizontal correction
 # offsets: in pixel from left and right (with input resolution width 320px)
