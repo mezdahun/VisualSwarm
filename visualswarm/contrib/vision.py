@@ -66,7 +66,7 @@ overlap_removal = False
 overlap_removal_thr = 0.65
 
 # Take N largest projections
-focus_on_N_largest = False
+focus_on_N_largest = True
 N_largest = 3
 
 # Fisheye lens approximate horizontal correction

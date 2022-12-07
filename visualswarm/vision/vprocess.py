@@ -581,16 +581,21 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                         # removing overlapping boxes, keeping only the one with higher score
                         if vision.overlap_removal:
-                            print("removing overlaps")
                             boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores,
                                                                               overlap_thr=vision.overlap_removal_thr)
 
-                        print("newBoxes: ", boxes)
-                        print("newClasses: ", classes)
-                        print("newScores: ", scores)
-                        print("newWidths: ",
-                              [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
-                               range(boxes.shape[0])])
+                        if vision.focus_on_N_largest:
+                            print(f"keeping only {vision.N_largest} largest boxes")
+                            widths = [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
+                               range(boxes.shape[0])]
+
+                            sorted_width_indices = np.argsort(widths)[::-1]
+                            sorted_width_indices = sorted_width_indices[
+                                                   0:int(min(vision.N_largest, len(sorted_width_indices)))]
+
+                            # Filtering data for N largest widths
+                            boxes, classes, scores = boxes[sorted_width_indices, :], classes[sorted_width_indices], \
+                            scores[sorted_width_indices]
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
