@@ -689,15 +689,16 @@ def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55):
         for j in range(len(scores)):
             points_i = [p for p in range(int(max(0, (boxes[i, 1] * imW))), int(min(imW, (boxes[i, 3] * imW))))]
             points_j = [p for p in range(int(max(0, (boxes[j, 1] * imW))), int(min(imW, (boxes[j, 3] * imW))))]
-            overlap = 1 - (len(list(set(points_i)-set(points_j))) / len(points_j))
-            if overlap_thr < overlap < 1:
-                print(points_i)
-                print(points_j)
-                print("OVERLAP: ", overlap)
-                if scores[i] < scores[j]:
-                    is_to_remove.append(i)
-                else:
-                    is_to_remove.append(j)
+            if len(set(points_j).intersection(set(points_i))) > 0:
+                overlap = len(set(points_j).intersection(set(points_i))) / len(points_j)
+                if overlap_thr < overlap < 1:
+                    print(points_i)
+                    print(points_j)
+                    print("OVERLAP: ", overlap)
+                    if scores[i] < scores[j]:
+                        is_to_remove.append(i)
+                    else:
+                        is_to_remove.append(j)
     is_to_keep = [i for i in range(len(scores)) if i not in list(set(is_to_remove))]
     print(f"Removing {len(is_to_remove)} items due to overlap!")
     return boxes[is_to_keep, :], classes[is_to_keep], scores[is_to_keep]
