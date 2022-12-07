@@ -616,8 +616,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             sorted_width_indices = sorted_width_indices[
                                                    0:int(min(vision.N_largest, len(sorted_width_indices)))]
                             corr_sorted_width_indices = []
-                            for maxw in sorted_width_indices:
-                                corr_sorted_width_indices.extend(np.flatnonzero(widths == maxw))
+                            for maxwi in sorted_width_indices:
+                                corr_sorted_width_indices.extend(np.flatnonzero(widths == widths[maxwi]))
                             print("orig:", widths[sorted_width_indices])
                             print("corrig:", widths[corr_sorted_width_indices])
 
