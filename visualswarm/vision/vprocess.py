@@ -596,6 +596,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                     widths.append(b_height)
                                 else:
                                     widths.append(b_width)
+                            widths = np.array(widths)
                         else:
                             widths = None
 
