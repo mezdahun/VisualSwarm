@@ -586,8 +586,21 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                         if vision.focus_on_N_largest:
                             print(f"keeping only {vision.N_largest} largest boxes")
-                            widths = [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
-                               range(boxes.shape[0])]
+                            widths = []
+                            for i in range(boxes.shape[0]):
+                                ymin = int(max(0, (boxes[i, 0] * imH)))
+                                ymax = int(min(imH, (boxes[i, 2] * imH)))
+                                xmin_orig = int(max(0, (boxes[i, 1] * imW)))
+                                xmax_orig = int(min(imW, (boxes[i, 3] * imW)))
+                                b_width = xmax_orig - xmin_orig
+                                b_height = ymax - ymin
+
+                                # extending partial detections on perphery assuming cubic bodies
+                                # if the height is large, the object is closer
+                                if xmin_orig or xmax_orig >= imW - 2:
+                                    widths.append(b_height)
+                                else:
+                                    widths.append(b_width)
 
                             sorted_width_indices = np.argsort(widths)[::-1]
                             sorted_width_indices = sorted_width_indices[
