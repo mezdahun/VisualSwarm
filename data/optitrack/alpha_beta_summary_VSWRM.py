@@ -22,6 +22,8 @@ print(EXPERIMENT_NAMES)
 WALL_EXPERIMENT_NAME = "../ArenaBorders_02122022"
 indices = [en.split("E2B")[1] for en in EXPERIMENT_NAMES]
 
+comv_matrix_final = np.zeros((len(alphas), len(betas)))
+comv_matrix_final_std = np.zeros((len(alphas), len(betas)))
 ord_matrix_final = np.zeros((len(alphas), len(betas)))
 ord_matrix_final_std = np.zeros((len(alphas), len(betas)))
 pol_matrix_final = np.zeros((len(alphas), len(betas)))
@@ -82,13 +84,15 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                               0,
                                                                                                               agent_reflection_times,
                                                                                                               wall_reflection_times,
-                                                                                                              window_after=600,
+                                                                                                              window_after=2000,
                                                                                                               window_before=0)
     print("Valid timepoints: ", len(valid_ts))
     valid_ts_r.append(valid_ts)
     mean_iids_r.append(mean_iid_long)
     mean_pols_r.append(mean_pol_vals_long)
-    #valid_ts = valid_ts[-80000::]
+    valid_ts = valid_ts[-80000:-1:]
+    comv_matrix_final[alphas.index(a), betas.index(b)] = np.mean(com_vel[0, valid_ts])
+    comv_matrix_final_std[alphas.index(a), betas.index(b)] = np.std(com_vel[0, valid_ts])
     ord_matrix_final[alphas.index(a), betas.index(b)] = np.mean(ord[0, valid_ts])
     ord_matrix_final_std[alphas.index(a), betas.index(b)] = np.std(ord[0, valid_ts])
     pol_matrix_final[alphas.index(a), betas.index(b)] = np.mean(mean_pol_vals_long[valid_ts])
@@ -105,19 +109,40 @@ for i in range(len(valid_ts_r)):
     mean_pol_vals_long = mean_pols_r[i]
     summed_mean_pol_vals.append(np.mean(mean_pol_vals_long[valid_ts]))
 
-fig, ax = plt.subplots(1, 2)
+# fig, ax = plt.subplots(1, 2)
+# plt.axes(ax[0])
+# plt.imshow(pol_matrix_final.T, vmin=0, vmax=0.8)
+# plt.title("Mean polarization (w/o collisions)")
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.yticks([i for i in range(len(betas))], betas)
+# plt.axes(ax[1])
+# plt.imshow(pol_matrix_final_std.T, vmin=0, vmax=0.8)
+# plt.title("STD (over t) polarization (w/o collisions)")
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.yticks([i for i in range(len(betas))], betas)
+
+fig, ax = plt.subplots(1, 3)
 plt.axes(ax[0])
-plt.imshow(pol_matrix_final.T, vmin=0, vmax=0.8)
-plt.title("Mean polarization (w/o collisions)")
+plt.imshow(comv_matrix_final.T)
+plt.title("COM velocity (w/o collisions)")
 plt.xticks([i for i in range(len(alphas))], alphas)
 plt.yticks([i for i in range(len(betas))], betas)
 plt.axes(ax[1])
-plt.imshow(pol_matrix_final_std.T, vmin=0, vmax=0.8)
-plt.title("STD (over t) polarization (w/o collisions)")
+plt.imshow(comv_matrix_final_std.T)
+plt.title("STD (over t) COM velocity (w/o collisions)")
 plt.xticks([i for i in range(len(alphas))], alphas)
 plt.yticks([i for i in range(len(betas))], betas)
+plt.axes(ax[2])
+for i in range(len(alphas)):
+    plt.plot(comv_matrix_final[i, :], label=f"$\\alpha_0$={alphas[i]}")
+    plt.fill_between([i for i in range(len(alphas))], comv_matrix_final[i, :]-comv_matrix_final_std[i, :],
+                      comv_matrix_final[i, :]+comv_matrix_final_std[i, :], alpha=0.5)
+plt.xticks([i for i in range(len(betas))], betas)
+plt.xlabel("$\\beta_0$")
+plt.ylabel("velocity (mm/s)")
+plt.legend()
 
-fig, ax = plt.subplots(1, 2)
+fig, ax = plt.subplots(1, 3)
 plt.axes(ax[0])
 plt.imshow(ord_matrix_final.T, vmin=0, vmax=1)
 plt.title("Mean order (w/o collisions)")
@@ -128,30 +153,39 @@ plt.imshow(ord_matrix_final_std.T, vmin=0, vmax=1)
 plt.title("STD (over t) order (w/o collisions)")
 plt.xticks([i for i in range(len(alphas))], alphas)
 plt.yticks([i for i in range(len(betas))], betas)
-
-
-fig, ax = plt.subplots(1, 2)
-plt.axes(ax[0])
-plt.imshow(iid_matrix_final.T)
-plt.title("Mean IID (w/o collisions)")
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(len(betas))], betas)
-plt.axes(ax[1])
-plt.imshow(iid_matrix_final_std.T)
-plt.title("STD (over t) IID (w/o collisions)")
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(len(betas))], betas)
-
-fig, ax = plt.subplots(2, 1)
-plt.axes(ax[0])
-plt.imshow(coll_times[0, :, :].T)
-plt.title("Wall refl. times")
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(len(betas))], betas)
-plt.axes(ax[1])
-plt.imshow(coll_times[1, :, :].T)
-plt.title("Agent refl. times")
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(len(betas))], betas)
+plt.axes(ax[2])
+for i in range(len(alphas)):
+    plt.plot(ord_matrix_final[i, :], label=f"$\\alpha_0$={alphas[i]}")
+    plt.fill_between([i for i in range(len(alphas))], ord_matrix_final[i, :]-ord_matrix_final_std[i, :],
+                      ord_matrix_final[i, :]+ord_matrix_final_std[i, :], alpha=0.5)
+plt.xticks([i for i in range(len(betas))], betas)
+plt.xlabel("$\\beta_0$")
+plt.ylabel("order [au]")
+plt.legend()
+#
+#
+# fig, ax = plt.subplots(1, 2)
+# plt.axes(ax[0])
+# plt.imshow(iid_matrix_final.T)
+# plt.title("Mean IID (w/o collisions)")
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.yticks([i for i in range(len(betas))], betas)
+# plt.axes(ax[1])
+# plt.imshow(iid_matrix_final_std.T)
+# plt.title("STD (over t) IID (w/o collisions)")
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.yticks([i for i in range(len(betas))], betas)
+#
+# fig, ax = plt.subplots(2, 1)
+# plt.axes(ax[0])
+# plt.imshow(coll_times[0, :, :].T)
+# plt.title("Wall refl. times")
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.yticks([i for i in range(len(betas))], betas)
+# plt.axes(ax[1])
+# plt.imshow(coll_times[1, :, :].T)
+# plt.title("Agent refl. times")
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.yticks([i for i in range(len(betas))], betas)
 
 plt.show()
