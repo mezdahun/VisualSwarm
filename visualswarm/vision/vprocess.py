@@ -580,6 +580,11 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         boxes, classes, scores = boxes[sorted_score_indices, :], classes[sorted_score_indices], scores[sorted_score_indices]
                         print(f"Original length: {len(scores)}")
 
+                        valid_scores = np.flatnonzero(scores > min_conf_threshold_class_0)
+                        boxes, classes, scores = boxes[valid_scores, :], classes[valid_scores], scores[
+                            valid_scores]
+                        print(f"After conf. thr.: {len(scores)}")
+
                         if vision.focus_on_N_largest:
                             print(f"keeping only {vision.N_largest} largest boxes")
                             widths = []
