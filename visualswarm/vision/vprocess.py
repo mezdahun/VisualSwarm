@@ -620,6 +620,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                 corr_sorted_width_indices.extend(np.flatnonzero(widths == widths[maxwi]))
                             print("orig:", widths[sorted_width_indices])
                             print("corrig:", widths[corr_sorted_width_indices])
+                            sorted_width_indices = corr_sorted_width_indices
 
                             # Filtering data for N largest widths
                             boxes, classes, scores, widths = boxes[sorted_width_indices, :], classes[sorted_width_indices], \
