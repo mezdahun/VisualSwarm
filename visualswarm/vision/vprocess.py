@@ -564,14 +564,16 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scores = scale * (scores - zero_point)
 
                         # removing overlapping boxes, keeping only the one with higher score
-                        boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.65)
+                        if vision.overlap_removal:
+                            boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores,
+                                                                              overlap_thr=vision.overlap_removal_thr)
 
-                        print("Boxes: ", boxes)
-                        print("Classes: ", classes)
-                        print("Scores: ", scores)
-                        print("Widths: ",
-                              [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
-                               range(boxes.shape[0])])
+                        # print("Boxes: ", boxes)
+                        # print("Classes: ", classes)
+                        # print("Scores: ", scores)
+                        # print("Widths: ",
+                        #       [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
+                        #        range(boxes.shape[0])])
 
                         # Sorting lists according to maximum scores
                         sorted_score_indices = np.argsort(scores)[::-1]

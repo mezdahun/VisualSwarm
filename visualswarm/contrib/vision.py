@@ -61,6 +61,10 @@ W_MARGIN = 1  # 10
 PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
 PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
 
+# CNN processing parameters
+overlap_removal = False
+overlap_removal_thr = 0.65
+
 # Fisheye lens approximate horizontal correction
 # offsets: in pixel from left and right (with input resolution width 320px)
 orig_img_width = 320  # we should get it from contrib.camera but can stay like this for now
