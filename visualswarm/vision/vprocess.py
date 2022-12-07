@@ -681,7 +681,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     except KeyboardInterrupt:
         pass
 
-def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.8):
+def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55):
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
     is_to_remove = []
