@@ -634,6 +634,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             print(f"After second overlap removal: {len(scores)}")
                             print(boxes)
 
+                    print(f"Final scores: {scores}")
+
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
                     logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
