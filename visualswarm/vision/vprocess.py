@@ -681,7 +681,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     except KeyboardInterrupt:
         pass
 
-def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.9):
+def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.8):
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
     is_to_remove = []
@@ -697,6 +697,7 @@ def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.9):
                     print("OVERLAP: ", overlap)
                     is_to_remove.append(i)
     is_to_keep = [i for i in range(len(scores)) if i not in is_to_remove]
+    print(f"Removing {len(is_to_remove)} items due to overlap!")
     return boxes[is_to_keep, :], classes[is_to_keep], scores[is_to_keep]
 
 def visualizer(visualization_stream, target_config_stream=None):
