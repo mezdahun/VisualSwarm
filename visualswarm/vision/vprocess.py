@@ -578,15 +578,15 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                         # Filtering data for largest scores
                         boxes, classes, scores = boxes[sorted_score_indices, :], classes[sorted_score_indices], scores[sorted_score_indices]
-                        print(f"Original length: {len(scores)}")
+                        # print(f"Original length: {len(scores)}")
 
                         valid_scores = np.flatnonzero(scores > min_conf_threshold_class_0)
                         boxes, classes, scores = boxes[valid_scores, :], classes[valid_scores], scores[
                             valid_scores]
-                        print(f"After conf. thr.: {len(scores)}")
+                        # print(f"After conf. thr.: {len(scores)}")
 
                         if vision.focus_on_N_largest:
-                            print(f"keeping only {vision.N_largest} largest boxes")
+                            # print(f"keeping only {vision.N_largest} largest boxes")
                             widths = []
                             for i in range(boxes.shape[0]):
                                 ymin = int(max(0, (boxes[i, 0] * imH)))
@@ -605,16 +605,16 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             widths = np.array(widths)
                         else:
                             widths = None
-                        print(widths)
+                        # print(widths)
 
                         # removing overlapping boxes, keeping only the one with higher score
                         if vision.overlap_removal:
                             boxes, classes, scores, widths = remove_overlapping_boxes(boxes, classes, scores,
                                                                               overlap_thr=vision.overlap_removal_thr,
                                                                               widths = widths)
-                            print(f"After overlap removal: {len(scores)}")
-                            print(widths)
-                            print(boxes)
+                            # print(f"After overlap removal: {len(scores)}")
+                            # print(widths)
+                            # print(boxes)
 
                         if vision.focus_on_N_largest:
                             sorted_width_indices = np.argsort(widths)[::-1]
@@ -623,23 +623,23 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             corr_sorted_width_indices = []
                             for maxwi in sorted_width_indices:
                                 corr_sorted_width_indices.extend(np.flatnonzero(widths == widths[maxwi]))
-                            print("orig:", widths[sorted_width_indices])
-                            print("corrig:", widths[corr_sorted_width_indices])
+                            # print("orig:", widths[sorted_width_indices])
+                            # print("corrig:", widths[corr_sorted_width_indices])
                             sorted_width_indices = corr_sorted_width_indices
 
                             # Filtering data for N largest widths
                             boxes, classes, scores, widths = boxes[sorted_width_indices, :], classes[sorted_width_indices], \
                             scores[sorted_width_indices], widths[sorted_width_indices]
-                            print(f"After width sorting: {len(scores)}")
-                            print(widths)
-                            print(boxes)
+                            # print(f"After width sorting: {len(scores)}")
+                            # print(widths)
+                            # print(boxes)
 
                             boxes, classes, scores, _ = remove_overlapping_boxes(boxes, classes, scores,
                                                                                  overlap_thr=vision.overlap_removal_thr)
-                            print(f"After second overlap removal: {len(scores)}")
-                            print(boxes)
+                            # print(f"After second overlap removal: {len(scores)}")
+                            # print(boxes)
 
-                    print(f"Final scores: {scores}")
+                    logger.debug(f"Final scores: {scores}")
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
