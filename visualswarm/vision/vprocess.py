@@ -609,17 +609,24 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                                                               widths = widths)
                             print(f"After overlap removal: {len(scores)}")
                             print(widths)
+                            print(boxes)
 
                         if vision.focus_on_N_largest:
                             sorted_width_indices = np.argsort(widths)[::-1]
                             sorted_width_indices = sorted_width_indices[
                                                    0:int(min(vision.N_largest, len(sorted_width_indices)))]
+                            corr_sorted_width_indices = []
+                            for maxw in sorted_width_indices:
+                                corr_sorted_width_indices.extend(np.flatnonzero(widths == maxw))
+                            print("orig:", widths[sorted_width_indices])
+                            print("corrig:", widths[corr_sorted_width_indices])
 
                             # Filtering data for N largest widths
                             boxes, classes, scores, widths = boxes[sorted_width_indices, :], classes[sorted_width_indices], \
                             scores[sorted_width_indices], widths[sorted_width_indices]
                             print(f"After width sorting: {len(scores)}")
                             print(widths)
+                            print(boxes)
 
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
