@@ -62,8 +62,8 @@ PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
 PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
 
 # CNN processing parameters
-overlap_removal = False
-overlap_removal_thr = 0.65
+overlap_removal = True
+overlap_removal_thr = 0.6
 
 # Take N largest projections
 focus_on_N_largest = True
