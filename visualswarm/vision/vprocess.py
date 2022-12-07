@@ -575,6 +575,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         # Sorting lists according to maximum scores
                         sorted_score_indices = np.argsort(scores)[::-1]
 
+                        # Limiting to maximum detections
+                        sorted_score_indices = sorted_score_indices[0:int(min(max_num_detection_class_0, len(sorted_score_indices)))]
+
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
                     logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
@@ -585,11 +588,10 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     blurred = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
 
 
-                    num_detections_class_0 = 0
-                    num_detections_class_1 = 0
+                    # num_detections_class_0 = 0
+                    # num_detections_class_1 = 0
                     for i in sorted_score_indices:
                         if (scores[i] > min_conf_threshold_class_1) and (scores[i] <= 1.0):
-                            print("S_", scores[i])
                             # Get bounding box coordinates and draw box
                             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
                             ymin = int(max(0, (boxes[i, 0] * imH)))
@@ -615,30 +617,29 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # shoes
                             if np.rint(classes[i]) == 0:
                                 if scores[i] > min_conf_threshold_class_0:
-                                    if num_detections_class_0 < max_num_detection_class_0:
-                                        box_color = (10, 255, 0)
-                                        # set to -255 for double class detection
-                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
-                                        num_detections_class_0 += 1
-                                        cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                                        frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
-                                                                cv2.FONT_HERSHEY_SIMPLEX,
-                                                                0.5, (255, 0, 0), 1, cv2.LINE_AA)
-                            elif np.rint(classes[i]) == 1:
-                                if num_detections_class_1 < max_num_detection_class_1:
-                                    box_color = (255, 10, 0)
+                                    box_color = (10, 255, 0)
+                                    # set to -255 for double class detection
                                     blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
-                                    num_detections_class_1 += 1
+                                    # num_detections_class_0 += 1
                                     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                                    frame_rgb = cv2.putText(frame_rgb, f'B{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                    frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
                                                             cv2.FONT_HERSHEY_SIMPLEX,
                                                             0.5, (255, 0, 0), 1, cv2.LINE_AA)
-                            else:
-                                box_color = (0, 10, 255)
-                                cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                                frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
-                                                        cv2.FONT_HERSHEY_SIMPLEX,
-                                                        0.5, (255, 0, 0), 1, cv2.LINE_AA)
+                            # elif np.rint(classes[i]) == 1:
+                            #     if num_detections_class_1 < max_num_detection_class_1:
+                            #         box_color = (255, 10, 0)
+                            #         blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                            #         num_detections_class_1 += 1
+                            #         cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                            #         frame_rgb = cv2.putText(frame_rgb, f'B{int(scores[i] * 100)}', (xmin_orig, ymin),
+                            #                                 cv2.FONT_HERSHEY_SIMPLEX,
+                            #                                 0.5, (255, 0, 0), 1, cv2.LINE_AA)
+                            # else:
+                            #     box_color = (0, 10, 255)
+                            #     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                            #     frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
+                            #                             cv2.FONT_HERSHEY_SIMPLEX,
+                            #                             0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
                     t3 = datetime.utcnow()
                     logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
