@@ -430,7 +430,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
     # change confidence threshold fro robots
     min_conf_threshold_class_0 = 0.25
-    max_num_detection_class_0 = 10
+    max_num_detection_class_0 = 9
 
     # min_conf_threshold_class_1 = 0.25
     # max_num_detection_class_1 = 10
@@ -563,12 +563,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         scale, zero_point = output_details[0]['quantization']
                         scores = scale * (scores - zero_point)
 
-                        # removing overlapping boxes, keeping only the one with higher score
-                        if vision.overlap_removal:
-                            print("removing overlaps")
-                            boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores,
-                                                                              overlap_thr=vision.overlap_removal_thr)
-
                         print("Boxes: ", boxes)
                         print("Classes: ", classes)
                         print("Scores: ", scores)
@@ -582,6 +576,22 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         # Limiting to maximum detections
                         sorted_score_indices = sorted_score_indices[0:int(min(max_num_detection_class_0, len(sorted_score_indices)))]
 
+                        # Filtering data for largest scores
+                        boxes, classes, scores = boxes[sorted_score_indices, :], classes[sorted_score_indices], scores[sorted_score_indices]
+
+                        # removing overlapping boxes, keeping only the one with higher score
+                        if vision.overlap_removal:
+                            print("removing overlaps")
+                            boxes, classes, scores = remove_overlapping_boxes(boxes, classes, scores,
+                                                                              overlap_thr=vision.overlap_removal_thr)
+
+                        print("Boxes: ", boxes)
+                        print("Classes: ", classes)
+                        print("Scores: ", scores)
+                        print("Widths: ",
+                              [int(min(imW, (boxes[i, 3] * imW))) - int(max(0, (boxes[i, 1] * imW))) for i in
+                               range(boxes.shape[0])])
+
                     t2 = datetime.utcnow()
                     delta = (t2 - t1).total_seconds()
                     logger.debug(f"Inference time: {delta}, rate={1 / delta}")  #
@@ -594,7 +604,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # num_detections_class_0 = 0
                     # num_detections_class_1 = 0
-                    for i in sorted_score_indices:
+                    for i in range(len(scores)):
                         if (scores[i] > min_conf_threshold_class_0) and (scores[i] <= 1.0):
                             # Get bounding box coordinates and draw box
                             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
