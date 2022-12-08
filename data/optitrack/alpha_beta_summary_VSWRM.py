@@ -86,6 +86,9 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                               wall_reflection_times,
                                                                                                               window_after=600,
                                                                                                               window_before=0)
+
+    valid_ts_iid = data_tools.return_validts_iid(summary, iidm, 0, iid_of_interest=500, tolerance=250)
+
     print("Valid timepoints: ", len(valid_ts))
     valid_ts_r.append(valid_ts)
     mean_iids_r.append(mean_iid_long)

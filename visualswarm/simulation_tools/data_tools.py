@@ -150,6 +150,15 @@ def calculate_turning_rates(summary, data, turning_rate_trh=0.2, force_recalcula
 
     return tr
 
+def return_validts_iid(mean_iid, iid_of_interest=500, tolerance=250):
+    """Returning those time points where the mean iid of the swarm falls around an iid_of_interest and within tolerance.
+    iidm is a run specific iid matrix, i.e. has shape [num_robots, num_robots, time] and not
+    [num_runs, num_robots, num_robots, time]"""
+    return np.where(np.logical_and(mean_iid >= iid_of_interest - tolerance,
+                                   mean_iid <= iid_of_interest + tolerance))[0]
+
+
+
 def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agent_refl_times, wall_refl_times, window_after=0,
                                       window_before=0, force_recalculate=False):
     """Calculating common metrics for time points where no collision was detected"""

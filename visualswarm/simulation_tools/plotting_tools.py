@@ -77,7 +77,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                     show_polarization=True, show_iid=True, show_COM_vel=True, use_clastering=False, vis_window=1500,
                     wall_vic_thr=200, agent_dist_thr=275, mov_avg_w=10,
                     force_recalculate=False, turn_thr=0.02, return_fig=False,
-                    with_trajectory=True, valid_ts=None):
+                    with_trajectory=True, valid_ts=None, iid_of_interest=1250, iid_tolerance=250):
     """Replaying experiment from summary and data in matplotlib plot"""
     if wall_data_tuple is not None:
         wall_summary, wall_data = wall_data_tuple
@@ -135,6 +135,11 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                                          mov_avg_w=mov_avg_w, wall_vic_thr=wall_vic_thr,
                                          agent_dist_thr=agent_dist_thr, force_recalculate=force_recalculate,
                                          turn_thr=turn_thr)
+
+    valid_ts_iid = data_tools.return_validts_iid(mean_iid[runi], iid_of_interest=iid_of_interest,
+                                                 tolerance=iid_tolerance)
+    print(np.where(np.logical_and(mean_iid[0] >= 1500, mean_iid[0]<= 2000))[0])
+    print(valid_ts_iid)
 
     plot_w = int(np.ceil(num_subplots / 2))
     plot_shape = (2, plot_w)
@@ -305,7 +310,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.ylim(0, 600)
 
             plot_i += 1
-
+            non_valid_iid_ts = [k for k in range(t - vis_window, t + 5) if k not in valid_ts_iid]
             plot_col = int(np.floor(plot_i / 2))
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
@@ -315,9 +320,13 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                      color="red")
             plt.plot([k for k in range(t - vis_window, t + 5)], mean_iid[0, t - vis_window:t + 5], label="Mean I.I.D",
                      color="blue")
+            plt.hlines(iid_of_interest, t - vis_window, t + 5, color="grey", label="IID of interest")
+            plt.hlines(iid_of_interest-iid_tolerance, t - vis_window, t + 5, ls="--", color="grey")
+            plt.hlines(iid_of_interest+iid_tolerance, t - vis_window, t + 5, ls="--", color="grey")
+            plt.vlines(non_valid_iid_ts, 0, 3000, color="grey", alpha=0.05)
             plt.ylabel("Mean Distance [mm]")
             plt.legend(loc="upper left")
-            plt.ylim(0, 2000)
+            plt.ylim(0, 3000)
             plot_i += 1
 
         if show_COM_vel:
