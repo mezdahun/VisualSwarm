@@ -69,6 +69,9 @@ overlap_removal_thr = 0.4
 focus_on_N_largest = False
 N_largest = 2
 
+# Taking blobs one-by-one
+divided_projection_field = False
+
 # Fisheye lens approximate horizontal correction
 # offsets: in pixel from left and right (with input resolution width 320px)
 orig_img_width = 320  # we should get it from contrib.camera but can stay like this for now

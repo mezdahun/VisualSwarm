@@ -52,8 +52,12 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         # prev_sign = 0
 
         (projection_field, capture_timestamp, projection_field_c2) = VPF_stream.get()
-        phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
-                          len(projection_field))
+        if not visualswarm.contrib.vision.divided_projection_field:
+            phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
+                              len(projection_field))
+        else:
+            phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
+                              projection_field.shape[-1])
 
         ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
         EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
@@ -81,14 +85,28 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
             ## TODO: Find out what causes weird turning behavior
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
-            dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-            if np.mean(projection_field_c2) > 0:
-                dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
-                                                                    V0=80, ALP0=150, BET0=8,
-                                                                    ALP1=0.00165, BET1=0.00175)
+            if not visualswarm.contrib.vision.divided_projection_field:
+                dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
+                # if np.mean(projection_field_c2) > 0:
+                #     dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
+                #                                                         V0=80, ALP0=150, BET0=8,
+                #                                                         ALP1=0.00165, BET1=0.00175)
+                # else:
+                # dvc2 = 0
+                # dpsic2 = 0
             else:
-                dvc2 = 0
-                dpsic2 = 0
+                dvs = []
+                dpsis = []
+                dv_orig, dpsi_orig = statevarcomp.compute_state_variables(v, phi, np.max(projection_field, axis=-1))
+                for i in range(projection_field.shape[-1]):
+                    dvi, dpsii = statevarcomp.compute_state_variables(v, phi, projection_field[:, i])
+                    dvs.append(dvi)
+                    dpsis.append(dpsii)
+                dv = np.mean(dvs)
+                dpsi = np.mean(dpsis)
+                print(f"According to original algorithm: dv={dv_orig}, dpsi={dpsi_orig}")
+                print(f"With Improved edge overlay (mean): dv={dv}, dpsi={dpsi}")
+                print(f"With Improved edge overlay (sum): dv={np.sum(dvs)}, dpsi={np.sum(dpsis)}")
 
             if v > 0:
                 v = min(v, 300)
@@ -102,15 +120,15 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             elif dpsi < 0:
                 dpsi = max(dpsi, -1)
 
-            if dpsic2 > 0:
-                dpsic2 = min(dpsic2, 1)
-            elif dpsic2 < 0:
-                dpsic2 = max(dpsic2, -1)
+            # if dpsic2 > 0:
+            #     dpsic2 = min(dpsic2, 1)
+            # elif dpsic2 < 0:
+            #     dpsic2 = max(dpsic2, -1)
 
             dpsi = float(dpsi)
-            dpsic2 = float(dpsic2)
+            # dpsic2 = float(dpsic2)
 
-            dpsi = dpsi + 2 * dpsic2
+            # dpsi = dpsi + 2 * dpsic2
             # if dpsi_before is None:
             #     dpsi_before = dpsi
             # delta_dpsi = dpsi - dpsi_before
@@ -136,7 +154,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 add_psi = 0.1
 
             if is_initialized:
-                v += (dv + dvc2) * dt
+                v += dv * dt  # (dv + dvc2) * dt
                 dpsi
             else:
                 is_initialized = True

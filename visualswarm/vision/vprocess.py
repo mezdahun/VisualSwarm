@@ -649,10 +649,11 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # shape[0] 200
                     # shape[1] 320
                     blurred = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
+                    if vision.divided_projection_field:
+                        # creating an individual projection field per each blob
+                        logger.debug("Divided retina per blob is requested")
+                        blurred_divided = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0], len(scores)])
 
-
-                    # num_detections_class_0 = 0
-                    # num_detections_class_1 = 0
                     for i in range(len(scores)):
                         if (scores[i] > min_conf_threshold_class_0) and (scores[i] <= 1.0):
                             # Get bounding box coordinates and draw box
@@ -683,6 +684,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                     box_color = (10, 255, 0)
                                     # set to -255 for double class detection
                                     blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                    if vision.divided_projection_field:
+                                        blurred_divided[ymin:ymax, xmin_extend:xmax_extend, i] = 255
                                     # num_detections_class_0 += 1
                                     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
                                     frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
@@ -709,7 +712,10 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # Forwarding result to VPF extraction
                     logger.debug(f'Queue length{raw_vision_stream.qsize()}')
-                    high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+                    if not vision.divided_projection_field:
+                        high_level_vision_stream.put((img, blurred, frame_id, capture_timestamp))
+                    else:
+                        high_level_vision_stream.put((img, blurred_divided, frame_id, capture_timestamp))
                     t4 = datetime.utcnow()
                     logger.debug(f'Transferring time: {(t4 - t3).total_seconds()}')
 
@@ -723,7 +729,11 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
-                        visualization_stream.put((frame_rgb, cv2.resize(blurred, (img.shape[1], img.shape[0])), frame_id))
+                        if not vision.divided_projection_field:
+                            visualization_stream.put((frame_rgb, cv2.resize(blurred, (img.shape[1], img.shape[0])), frame_id))
+                        else:
+                            visualization_stream.put(
+                                (frame_rgb, cv2.resize(np.max(blurred, axis=-1), (img.shape[1], img.shape[0])), frame_id))
 
                     # To test infinite loops
                     if env.EXIT_CONDITION:
@@ -967,8 +977,13 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
         while True:
             (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
             # logger.info(high_level_vision_stream.qsize())
-            cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
-                                 visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
+            if not vision.divided_projection_field:
+                cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
+                                     visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
+            else:
+                cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
+                                     visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN,
+                                     :]
             projection_field_class_1 = np.max(cropped_image, axis=0)
             projection_field_class_0 = np.min(cropped_image, axis=0)
 
@@ -985,17 +1000,24 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             # projection_field_class_1[projection_field_class_1 >= filter_limit] = 255
 
             projection_field_class_1 = projection_field_class_1 / 255
-            projection_field_class_0 = projection_field_class_0 / -255
+            # projection_field_class_0 = projection_field_class_0 / -255
 
             # edge of detection boxes will influence blob edges for us, we need to corrigate
-            if projection_field_class_0[0] == 0 and np.abs(projection_field_class_0[1]) > 0:
-                projection_field_class_0[0] = projection_field_class_0[1]
-            if projection_field_class_0[-1] == 0 and np.abs(projection_field_class_0[-2]) > 0:
-                projection_field_class_0[-1] = projection_field_class_0[-2]
-            if projection_field_class_1[0] == 0 and np.abs(projection_field_class_1[1]) > 0:
-                projection_field_class_1[0] = projection_field_class_1[1]
-            if projection_field_class_1[-1] == 0 and np.abs(projection_field_class_1[-2]) > 0:
-                projection_field_class_1[-1] = projection_field_class_1[-2]
+            # if projection_field_class_0[0] == 0 and np.abs(projection_field_class_0[1]) > 0:
+            #     projection_field_class_0[0] = projection_field_class_0[1]
+            # if projection_field_class_0[-1] == 0 and np.abs(projection_field_class_0[-2]) > 0:
+            #     projection_field_class_0[-1] = projection_field_class_0[-2]
+            if not vision.divided_projection_field:
+                if projection_field_class_1[0] == 0 and np.abs(projection_field_class_1[1]) > 0:
+                    projection_field_class_1[0] = projection_field_class_1[1]
+                if projection_field_class_1[-1] == 0 and np.abs(projection_field_class_1[-2]) > 0:
+                    projection_field_class_1[-1] = projection_field_class_1[-2]
+            else:
+                for i in range(projection_field_class_1.shape[-1]):
+                    if projection_field_class_1[0, i] == 0 and np.abs(projection_field_class_1[1, i]) > 0:
+                        projection_field_class_1[0, i] = projection_field_class_1[1, i]
+                    if projection_field_class_1[-1, i] == 0 and np.abs(projection_field_class_1[-2, i]) > 0:
+                        projection_field_class_1[-1, i] = projection_field_class_1[-2, i]
 
             if vision.USE_VPF_FISHEYE_CORRECTION:
                 projection_field_class_1 = center_fisheye_circle(projection_field_class_1, ROBOT_NAME)
@@ -1005,7 +1027,10 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
             if monitoring.SAVE_PROJECTION_FIELD and not simulation.ENABLE_SIMULATION:
                 # Saving projection field data to InfluxDB to visualize with Grafana
-                proj_field_vis = projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR]
+                if not vision.divided_projection_field:
+                    proj_field_vis = projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR]
+                else:
+                    proj_field_vis = np.max(projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR, :], axis=-1)
 
                 # take a timestamp for this measurement
                 time = datetime.datetime.utcnow()
