@@ -150,6 +150,12 @@ def calculate_turning_rates(summary, data, turning_rate_trh=0.2, force_recalcula
 
     return tr
 
+
+def return_validts_pol(mean_pol, pol_thr=0.8):
+    """Returning those time points where the mean polarization of the swarm falls above a threshold"""
+    return np.where(mean_pol >= pol_thr)[0]
+
+
 def return_validts_iid(mean_iid, iid_of_interest=500, tolerance=250):
     """Returning those time points where the mean iid of the swarm falls around an iid_of_interest and within tolerance.
     iidm is a run specific iid matrix, i.e. has shape [num_robots, num_robots, time] and not

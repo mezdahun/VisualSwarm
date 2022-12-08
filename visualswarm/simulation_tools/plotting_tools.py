@@ -138,8 +138,6 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
 
     valid_ts_iid = data_tools.return_validts_iid(mean_iid[runi], iid_of_interest=iid_of_interest,
                                                  tolerance=iid_tolerance)
-    print(np.where(np.logical_and(mean_iid[0] >= 1500, mean_iid[0]<= 2000))[0])
-    print(valid_ts_iid)
 
     plot_w = int(np.ceil(num_subplots / 2))
     plot_shape = (2, plot_w)

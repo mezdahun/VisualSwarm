@@ -22,6 +22,8 @@ print(EXPERIMENT_NAMES)
 WALL_EXPERIMENT_NAME = "../ArenaBorders_02122022"
 indices = [en.split("E2B")[1] for en in EXPERIMENT_NAMES]
 
+time_above_pol = np.zeros((len(alphas), len(betas)))
+time_in_iid_tolerance = np.zeros((len(alphas), len(betas)))
 comv_matrix_final = np.zeros((len(alphas), len(betas)))
 comv_matrix_final_std = np.zeros((len(alphas), len(betas)))
 ord_matrix_final = np.zeros((len(alphas), len(betas)))
@@ -84,16 +86,31 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                               0,
                                                                                                               agent_reflection_times,
                                                                                                               wall_reflection_times,
-                                                                                                              window_after=600,
+                                                                                                              window_after=300,
                                                                                                               window_before=0)
 
-    valid_ts_iid = data_tools.return_validts_iid(summary, iidm, 0, iid_of_interest=500, tolerance=250)
+    valid_ts_iid = data_tools.return_validts_iid(mean_iid[0], iid_of_interest=1200,
+                                                 tolerance=100)
 
-    print("Valid timepoints: ", len(valid_ts))
+    time_w = 20  # in minutes
+    valid_ts_pol = data_tools.return_validts_pol(mean_pol_vals, pol_thr=0.8)
+    valid_ts_pol = valid_ts_pol[valid_ts_pol>num_t-(time_w*60*60)]
+    valid_ts_pol = [t for t in valid_ts_pol if t in valid_ts]
+
+    valid_ts_iid = valid_ts_iid[valid_ts_iid>num_t-(time_w*60*60)]
+    valid_ts_iid = [t for t in valid_ts_iid if t in valid_ts]
+
+    valid_ts_last_chunk = valid_ts[valid_ts>num_t-(time_w*60*60)]
+
+
+    print("All valid timepoints: ", len(valid_ts))
+    print(f"Valid timepoints in last {time_w} minutes: ", len(valid_ts_last_chunk))
     valid_ts_r.append(valid_ts)
     mean_iids_r.append(mean_iid_long)
     mean_pols_r.append(mean_pol_vals_long)
     valid_ts = valid_ts[0:-1]
+    time_above_pol[alphas.index(a), betas.index(b)] = len(valid_ts_pol) / len(valid_ts_last_chunk)
+    time_in_iid_tolerance[alphas.index(a), betas.index(b)] = len(valid_ts_iid) / len(valid_ts_last_chunk)
     comv_matrix_final[alphas.index(a), betas.index(b)] = np.mean(com_vel[0, valid_ts])
     comv_matrix_final_std[alphas.index(a), betas.index(b)] = np.std(com_vel[0, valid_ts])
     ord_matrix_final[alphas.index(a), betas.index(b)] = np.mean(ord[0, valid_ts])
@@ -123,6 +140,34 @@ for i in range(len(valid_ts_r)):
 # plt.title("STD (over t) polarization (w/o collisions)")
 # plt.xticks([i for i in range(len(alphas))], alphas)
 # plt.yticks([i for i in range(len(betas))], betas)
+
+fig, ax = plt.subplots(1, 2)
+plt.axes(ax[0])
+plt.imshow(time_in_iid_tolerance.T*100)
+plt.title("Time in good IID ")
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.yticks([i for i in range(len(betas))], betas)
+plt.axes(ax[1])
+for i in range(len(alphas)):
+    plt.plot(time_in_iid_tolerance[i, :]*100, label=f"$\\alpha_0$={alphas[i]}")
+plt.xticks([i for i in range(len(betas))], betas)
+plt.xlabel("$\\beta_0$")
+plt.ylabel("time ratio [%]")
+plt.legend()
+
+fig, ax = plt.subplots(1, 2)
+plt.axes(ax[0])
+plt.imshow(time_above_pol.T*100)
+plt.title("Time above 0.8 Pol ")
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.yticks([i for i in range(len(betas))], betas)
+plt.axes(ax[1])
+for i in range(len(alphas)):
+    plt.plot(time_above_pol[i, :]*100, label=f"$\\alpha_0$={alphas[i]}")
+plt.xticks([i for i in range(len(betas))], betas)
+plt.xlabel("$\\beta_0$")
+plt.ylabel("time ratio [%]")
+plt.legend()
 
 fig, ax = plt.subplots(1, 3)
 plt.axes(ax[0])
