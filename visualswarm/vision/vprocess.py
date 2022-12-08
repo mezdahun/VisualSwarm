@@ -652,10 +652,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     if vision.divided_projection_field:
                         # creating an individual projection field per each blob
                         logger.debug("Divided retina per blob is requested")
-                        print(len(scores))
-                        print(max(1, len(scores)))
                         blurred_divided = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0], max(1, len(scores))])
-                        print(blurred_divided.shape)
 
                     for i in range(len(scores)):
                         if (scores[i] > min_conf_threshold_class_0) and (scores[i] <= 1.0):
@@ -673,6 +670,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                             b_width = xmax_orig - xmin_orig
                             b_height = ymax - ymin
+                            b_area = b_width * b_height
+                            print(f"Box area: {b_area}px")
 
                             # extending partial detections on perphery assuming cubic bodies
                             # if the height is large, the object is closer
@@ -688,7 +687,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                     # set to -255 for double class detection
                                     blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
                                     if vision.divided_projection_field:
-                                        print(i, blurred_divided.shape)
                                         blurred_divided[ymin:ymax, xmin_extend:xmax_extend, i] = 255
                                     # num_detections_class_0 += 1
                                     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
