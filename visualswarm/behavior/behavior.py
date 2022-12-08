@@ -86,6 +86,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             ## TODO: Find out what causes weird turning behavior
             #v = 0 # only to measure equilibrium distance. set v0 to zero too
             if not visualswarm.contrib.vision.divided_projection_field:
+                logger.error(f"{projection_field.shape}, {phi.shape}")
                 dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
                 # if np.mean(projection_field_c2) > 0:
                 #     dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
@@ -97,7 +98,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             else:
                 dvs = []
                 dpsis = []
-                logger.error(f"{projection_field.shape}")
+                logger.error(f"{projection_field.shape}, {phi.shape}")
                 dv_orig, dpsi_orig = statevarcomp.compute_state_variables(v, phi, np.max(projection_field, axis=0))
                 for i in range(projection_field.shape[-1]):
                     dvi, dpsii = statevarcomp.compute_state_variables(v, phi, projection_field[:, i])
