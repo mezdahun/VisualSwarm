@@ -98,8 +98,9 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             else:
                 dvs = []
                 dpsis = []
-                logger.error(f"{projection_field.shape}, {phi.shape}")
-                dv_orig, dpsi_orig = statevarcomp.compute_state_variables(v, phi, np.max(projection_field, axis=0))
+                projection_field_orig = np.max(projection_field, axis=-1)
+                logger.error(f"{projection_field_orig.shape}, {phi.shape}")
+                dv_orig, dpsi_orig = statevarcomp.compute_state_variables(v, phi, projection_field_orig)
                 for i in range(projection_field.shape[-1]):
                     dvi, dpsii = statevarcomp.compute_state_variables(v, phi, projection_field[:, i])
                     dvs.append(dvi)
