@@ -733,7 +733,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             visualization_stream.put((frame_rgb, cv2.resize(blurred, (img.shape[1], img.shape[0])), frame_id))
                         else:
                             visualization_stream.put(
-                                (frame_rgb, cv2.resize(np.max(blurred, axis=-1), (img.shape[1], img.shape[0])), frame_id))
+                                (frame_rgb, cv2.resize(np.max(np.max(blurred_divided, axis=1), axis=0), (img.shape[1], img.shape[0])), frame_id))
 
                     # To test infinite loops
                     if env.EXIT_CONDITION:
@@ -976,7 +976,6 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
         proj_f_stack = None
         while True:
             (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
-            logger.error(f"{mask.shape}")
             # logger.info(high_level_vision_stream.qsize())
             if not vision.divided_projection_field:
                 cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
@@ -1031,7 +1030,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
                 if not vision.divided_projection_field:
                     proj_field_vis = projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR]
                 else:
-                    proj_field_vis = np.max(projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR, :], axis=-1)
+                    proj_field_vis = np.max(projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR, :], axis=0)
 
                 # take a timestamp for this measurement
                 time = datetime.datetime.utcnow()
