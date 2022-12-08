@@ -93,7 +93,7 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                  tolerance=100)
 
     time_w = 20  # in minutes
-    valid_ts_pol = data_tools.return_validts_pol(mean_pol_vals, pol_thr=0.8)
+    valid_ts_pol = data_tools.return_validts_pol(mean_pol_vals, pol_thr=0.5)
     valid_ts_pol = valid_ts_pol[valid_ts_pol>num_t-(time_w*60*60)]
     valid_ts_pol = [t for t in valid_ts_pol if t in valid_ts]
 
