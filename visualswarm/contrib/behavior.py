@@ -66,7 +66,7 @@ BET2 = behave_params_dict.get('BET2', 0)
 KAP = behave_params_dict.get('KAP', 1)
 
 # Making an agent turn in a single circle
-MOVE_IN_CIRCLE = False  # bool(int(float(os.getenv('MOVE_IN_CIRCLE', '0'))))
+MOVE_IN_CIRCLE = bool(int(float(os.getenv('MOVE_IN_CIRCLE', '0'))))
 
 def get_params():
     params = {"GAM": GAM,

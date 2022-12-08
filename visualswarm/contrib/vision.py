@@ -62,15 +62,15 @@ PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
 PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
 
 # CNN processing parameters
-overlap_removal = False  # bool(int(float(os.getenv('OVERLAP_REMOVAL', '0'))))
+overlap_removal = bool(int(float(os.getenv('OVERLAP_REMOVAL', '0'))))
 overlap_removal_thr = 0.5
 
 # Take N largest projections
-focus_on_N_largest = False  # bool(int(float(os.getenv('FOCUS_N_NEAREST', '0'))))
+focus_on_N_largest = bool(int(float(os.getenv('FOCUS_N_NEAREST', '0'))))
 N_largest = int(float(os.getenv('FOCUS_N_NEAREST', '4')))
 
 # Taking blobs one-by-one
-divided_projection_field = False  # bool(int(float(os.getenv('MULTI_RETINA', '0'))))
+divided_projection_field = bool(int(float(os.getenv('MULTI_RETINA', '0'))))
 
 # Fisheye lens approximate horizontal correction
 # offsets: in pixel from left and right (with input resolution width 320px)
