@@ -733,7 +733,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             visualization_stream.put((frame_rgb, cv2.resize(blurred, (img.shape[1], img.shape[0])), frame_id))
                         else:
                             visualization_stream.put(
-                                (frame_rgb, cv2.resize(np.max(np.max(blurred_divided, axis=1), axis=0), (img.shape[1], img.shape[0])), frame_id))
+                                (frame_rgb, cv2.resize(np.max(blurred_divided, axis=-1), (img.shape[1], img.shape[0])), frame_id))
 
                     # To test infinite loops
                     if env.EXIT_CONDITION:
