@@ -1030,7 +1030,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
                 if not vision.divided_projection_field:
                     proj_field_vis = projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR]
                 else:
-                    proj_field_vis = np.max(projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR, :], axis=0)
+                    proj_field_vis = np.max(projection_field_class_1[0:-1:monitoring.DOWNGRADING_FACTOR, :], axis=-1)
 
                 # take a timestamp for this measurement
                 time = datetime.datetime.utcnow()

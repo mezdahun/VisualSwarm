@@ -70,7 +70,7 @@ focus_on_N_largest = False
 N_largest = 2
 
 # Taking blobs one-by-one
-divided_projection_field = False
+divided_projection_field = True
 
 # Fisheye lens approximate horizontal correction
 # offsets: in pixel from left and right (with input resolution width 320px)

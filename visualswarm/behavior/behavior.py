@@ -57,7 +57,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                               len(projection_field))
         else:
             phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
-                              projection_field.shape[-1])
+                              projection_field.shape[0])
 
         ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
         EXP_ID = os.getenv('EXP_ID', 'expXXXXXX')
