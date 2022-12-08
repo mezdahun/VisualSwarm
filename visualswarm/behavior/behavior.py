@@ -108,6 +108,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 dv = np.mean(dvs)
                 dpsi = np.mean(dpsis)
                 print(f"According to original algorithm: dv={dv_orig}, dpsi={dpsi_orig}")
+                print(dvs, dpsis)
                 print(f"With Improved edge overlay (mean): dv={dv}, dpsi={dpsi}")
                 print(f"With Improved edge overlay (sum): dv={np.sum(dvs)}, dpsi={np.sum(dpsis)}")
 
