@@ -652,7 +652,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     if vision.divided_projection_field:
                         # creating an individual projection field per each blob
                         logger.debug("Divided retina per blob is requested")
-                        blurred_divided = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0], len(scores)])
+                        blurred_divided = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0], min(1, len(scores))])
 
                     for i in range(len(scores)):
                         if (scores[i] > min_conf_threshold_class_0) and (scores[i] <= 1.0):
