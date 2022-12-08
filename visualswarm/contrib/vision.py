@@ -67,7 +67,7 @@ overlap_removal_thr = 0.5
 
 # Take N largest projections
 focus_on_N_largest = bool(int(float(os.getenv('FOCUS_N_NEAREST', '0'))))
-N_largest = int(float(os.getenv('FOCUS_N_NEAREST', '4')))
+N_largest = int(float(os.getenv('N_NEAREST', '4')))
 
 # Taking blobs one-by-one
 divided_projection_field = bool(int(float(os.getenv('MULTI_RETINA', '0'))))
