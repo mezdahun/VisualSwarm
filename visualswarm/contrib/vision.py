@@ -66,8 +66,8 @@ overlap_removal = True
 overlap_removal_thr = 0.5
 
 # Take N largest projections
-focus_on_N_largest = False
-N_largest = 2
+focus_on_N_largest = True
+N_largest = 4
 
 # Taking blobs one-by-one
 divided_projection_field = True
