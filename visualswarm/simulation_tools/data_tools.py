@@ -151,6 +151,17 @@ def calculate_turning_rates(summary, data, turning_rate_trh=0.2, force_recalcula
     return tr
 
 
+def filter_high_velocity_points(valid_ts, abs_vel_m, runi, vel_thr=0.6):
+    """Filtering extreme velocity timepoints from data as this results from wrong tracking"""
+    valid_ts_new = [t for t in valid_ts if np.all(abs_vel_m[runi, :, t-1]<=vel_thr)]
+    return valid_ts_new
+
+
+def filter_high_turningrate_points(valid_ts, turning_rates, runi, tr_thr=0.2):
+    """Filtering extreme velocity timepoints from data as this results from wrong tracking"""
+    valid_ts_new = [t for t in valid_ts if np.all(turning_rates[runi, :, t-1]<=tr_thr)]
+    return valid_ts_new
+
 def return_validts_pol(mean_pol, pol_thr=0.8):
     """Returning those time points where the mean polarization of the swarm falls above a threshold"""
     return np.where(mean_pol >= pol_thr)[0]

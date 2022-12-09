@@ -333,6 +333,8 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.axes(ax[plot_row, plot_col])
             plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
                      m_com_vel[runi, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="purple", label="COM vel.")
+            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
+                     m_abs_vel[runi, :, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="green", label="agent abs vel.")
             plt.legend(loc="upper left")
             plt.ylabel("COM vel. [mm/ts]")
             plot_i += 1
