@@ -12,17 +12,21 @@ import glob
 
 data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
 EXPERIMENT_NAMES = []
-alpha_base = "E21"  # when changing alpha
+alpha_base = "E22"  # when changing alpha
 alphas = [0, 20, 120, 180, 320]
 beta_base = "E22"  # when changing beta
 betas = [0.001, 0.1, 1]
-num_runs = 3
+num_runs = 2
+runs = [0, 2]
 alpha_pattern = os.path.join(data_path, f"{alpha_base}*.csv")
 EXPERIMENT_NAMES = [pat.split("/")[-1] for pat in list(glob.glob(alpha_pattern))]
 EXPERIMENT_NAMES = [pat.split(".")[0] for pat in EXPERIMENT_NAMES]
 
 WALL_EXPERIMENT_NAME = "../ArenaBorders"
 
+polrats_over_exps = np.zeros((len(alphas), num_runs, 100))
+polrats_over_exps_hist = np.zeros((len(alphas), num_runs, 10))
+iidrats_over_exps = np.zeros((len(alphas), num_runs, 300))
 valid_ts_matrix_final = np.zeros((len(alphas), num_runs))
 abs_vel_m_final = np.zeros((len(alphas), num_runs))
 abs_vel_m_final_std = np.zeros((len(alphas), num_runs))
@@ -48,7 +52,8 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
     ri = int(EXPERIMENT_NAME.split("r")[1].split(".")[0]) - 1
     a = int(EXPERIMENT_NAME[3]) - 1
 
-    if a < len(alphas):
+    if a < len(alphas) and ri in runs:
+        ri = runs.index(ri)
         # if data is freshly created first summarize it into multidimensional array
         csv_path = os.path.join(data_path, f"{EXPERIMENT_NAME}.csv")
         data_tools.optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True)
@@ -92,6 +97,7 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                              wall_data_tuple=wall_data_tuple, runi=0,
                                              mov_avg_w=30, force_recalculate=False)
 
+        # Calculating timepoints where no reflection occured in 150 steps (150/30=5seconds)
         valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long = data_tools.return_metrics_where_no_collision(summary, pm, iidm,
                                                                                                                   0,
                                                                                                                   agent_reflection_times,
@@ -99,14 +105,44 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                                   window_after=150,
                                                                                                                   window_before=0)
         print("before ", len(valid_ts))
+        # Filtering datapoints where agents are impossibly fast
         valid_ts = data_tools.filter_high_velocity_points(valid_ts, abs_vel, 0, vel_thr=150)
         print("after high vel", len(valid_ts))
+        # Filtering datapoints where agents turning impossibly fast
         valid_ts = data_tools.filter_high_turningrate_points(valid_ts, ma_turning_rates, 0, tr_thr=0.02)
         print("after high tr", len(valid_ts))
 
+        # Calculating polarization time ratios
+        pol_ratios = []
+        mean_ord_vals = ord[0, :]
+        for i in range(100):
+            # pol_ratio = np.count_nonzero(mean_pol_vals[valid_ts]>i*0.01) / (len(valid_ts))
+            pol_ratio = np.count_nonzero(mean_ord_vals[valid_ts] > i * 0.01) / (len(valid_ts))
+            pol_ratios.append(pol_ratio)
+        polrats_over_exps[a, ri, :] = np.array(pol_ratios)
+
+        # Calculating polarization time ratios histogram
+        pol_ratios_h = []
+        mean_ord_vals = ord[0, :]
+        for i in range(9):
+            # pol_ratio = np.count_nonzero(mean_pol_vals[valid_ts]>i*0.01) / (len(valid_ts))
+            pol_ratio = np.count_nonzero( np.logical_and(i* 0.1 < mean_ord_vals[valid_ts], mean_ord_vals[valid_ts] < (i+1)*0.1)) / (len(valid_ts))
+            pol_ratios_h.append(pol_ratio)
+        polrats_over_exps_hist[a, ri, :-1] = np.array(pol_ratios_h)
+
+        # Calculating iid time ratios
+        iid_ratios = []
+        mean_iid_vals = min_iidm[0, :]
+        for i in range(0, 3000, 10):
+            # pol_ratio = np.count_nonzero(mean_pol_vals[valid_ts]>i*0.01) / (len(valid_ts))
+            iid_ratio = np.count_nonzero(mean_iid_vals[valid_ts] < i ) / (len(valid_ts))
+            iid_ratios.append(iid_ratio)
+        iidrats_over_exps[a, ri, :] = np.array(iid_ratios)
+
+
         valid_ts_iid = data_tools.return_validts_iid(mean_iid[0], iid_of_interest=1400,
                                                      tolerance=25)
-
+        #
         time_w = 15  # in minutes
         valid_ts_pol = data_tools.return_validts_pol(mean_pol_vals, pol_thr=0.5)
         valid_ts_pol = valid_ts_pol[valid_ts_pol>num_t-(time_w*60*60)]
@@ -288,5 +324,45 @@ plt.xticks([i for i in range(len(alphas))], alphas)
 plt.xlabel("$\\alpha_0$")
 plt.ylabel("Turning rate [mm/ts]")
 plt.legend()
+
+plt.figure()
+polrats_over_exps_mean = np.mean(polrats_over_exps, axis=1)
+polrats_over_exps_std = np.std(polrats_over_exps, axis=1)
+for a, alp in enumerate(alphas):
+    plt.plot(polrats_over_exps_mean[a, :], label=f"$\\alpha_0$={alp}")
+    plt.fill_between([i for i in range(0, 100)], polrats_over_exps_mean[a, :]-polrats_over_exps_std[a, :],
+                      polrats_over_exps_mean[a, :]+polrats_over_exps_std[a, :], alpha=0.5)
+plt.xlabel("Order thr. [AU]")
+plt.xticks([i for i in range(0, 100, 10)], [i*0.1 for i in range(0, 100, 10)])
+plt.ylabel("Time ratio spent above thr.")
+plt.title("Time spent above order thr.")
+plt.legend()
+
+plt.figure()
+polrats_over_exps_mean = np.mean(polrats_over_exps_hist, axis=1)
+polrats_over_exps_std = np.std(polrats_over_exps_hist, axis=1)
+for a, alp in enumerate(alphas):
+    plt.plot(polrats_over_exps_mean[a, :], label=f"$\\alpha_0$={alp}")
+    plt.fill_between([i for i in range(0, 10)], polrats_over_exps_mean[a, :]-polrats_over_exps_std[a, :],
+                      polrats_over_exps_mean[a, :]+polrats_over_exps_std[a, :], alpha=0.5)
+plt.xlabel("Order thr. [AU]")
+# plt.xticks([i for i in range(0, 100, 10)], [i*0.1 for i in range(0, 99, 10)])
+plt.ylabel("Time ratio spent above thr.")
+plt.title("Time spent above order thr.")
+plt.legend()
+
+plt.figure()
+iidrats_over_exps_mean = np.mean(iidrats_over_exps, axis=1)
+iidrats_over_exps_std = np.std(iidrats_over_exps, axis=1)
+for a, alp in enumerate(alphas):
+    plt.plot(iidrats_over_exps_mean[a, :], label=f"$\\alpha_0$={alp}")
+    plt.fill_between([i for i in range(0, 300)], iidrats_over_exps_mean[a, :]-iidrats_over_exps_std[a, :],
+                      iidrats_over_exps_mean[a, :]+iidrats_over_exps_std[a, :], alpha=0.5)
+plt.xlabel("IID thr. [mm]")
+# plt.xticks([i for i in range(0, 3000, 250)])
+plt.ylabel("Time ratio spent below thr.")
+plt.title("Time spent below iid thr.")
+plt.legend()
+
 
 plt.show()
