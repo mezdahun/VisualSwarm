@@ -12,21 +12,25 @@ import glob
 
 data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
 EXPERIMENT_NAMES = []
-alpha_base = "E22"  # when changing alpha
-alphas = [0, 20, 120, 180, 320]
-beta_base = "E22"  # when changing beta
-betas = [0.001, 0.1, 1]
-num_runs = 2
-runs = [0, 2]
+show_change = "beta"  # or beta
+if show_change == "alpha":
+    alpha_base = "E21"  # when changing alpha
+    alphas = [0, 20, 120, 180, 320]
+else:
+    alpha_base = "E22"  # when changing beta
+    alphas = [0.001, 0.1, 1, 6, 14]
+num_runs = 3
+runs = [0, 1, 2]
 alpha_pattern = os.path.join(data_path, f"{alpha_base}*.csv")
 EXPERIMENT_NAMES = [pat.split("/")[-1] for pat in list(glob.glob(alpha_pattern))]
 EXPERIMENT_NAMES = [pat.split(".")[0] for pat in EXPERIMENT_NAMES]
 
 WALL_EXPERIMENT_NAME = "../ArenaBorders"
 
+pol_over_wall_dist = np.zeros((len(alphas), num_runs, 400, 2))
 polrats_over_exps = np.zeros((len(alphas), num_runs, 100))
-polrats_over_exps_hist = np.zeros((len(alphas), num_runs, 10))
-iidrats_over_exps = np.zeros((len(alphas), num_runs, 300))
+polrats_over_exps_hist = np.zeros((len(alphas), num_runs, 100))
+iidrats_over_exps = np.zeros((len(alphas), num_runs, 60))
 valid_ts_matrix_final = np.zeros((len(alphas), num_runs))
 abs_vel_m_final = np.zeros((len(alphas), num_runs))
 abs_vel_m_final_std = np.zeros((len(alphas), num_runs))
@@ -45,8 +49,8 @@ iid_matrix_final_std = np.zeros((len(alphas), num_runs))
 coll_times = np.zeros((2, len(alphas), num_runs))
 
 valid_ts_r, min_iids_r, mean_iids_r, mean_pols_r = [], [], [], []
-
 # only alphas
+# fig, ax = plt.subplots(len(alphas), num_runs)
 for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
     print(f"Processing file {EXPERIMENT_NAME}")
     ri = int(EXPERIMENT_NAME.split("r")[1].split(".")[0]) - 1
@@ -102,7 +106,7 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                                   0,
                                                                                                                   agent_reflection_times,
                                                                                                                   wall_reflection_times,
-                                                                                                                  window_after=150,
+                                                                                                                  window_after=500,
                                                                                                                   window_before=0)
         print("before ", len(valid_ts))
         # Filtering datapoints where agents are impossibly fast
@@ -111,6 +115,16 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         # Filtering datapoints where agents turning impossibly fast
         valid_ts = data_tools.filter_high_turningrate_points(valid_ts, ma_turning_rates, 0, tr_thr=0.02)
         print("after high tr", len(valid_ts))
+
+        time_w = 50  # in minutes
+        if isinstance(valid_ts, list):
+            valid_ts = np.array(valid_ts)
+        valid_ts_last_chunk = valid_ts[valid_ts>num_t-(time_w*30*60)]
+        valid_ts = valid_ts_last_chunk[0:-1]
+        #
+        # # Histogram of I.I.D matrix
+        # plt.axes(ax[a, ri])
+        # plt.hist(mean_pol_vals[valid_ts], bins=30)
 
         # Calculating polarization time ratios
         pol_ratios = []
@@ -124,36 +138,34 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         # Calculating polarization time ratios histogram
         pol_ratios_h = []
         mean_ord_vals = ord[0, :]
-        for i in range(9):
+        for i in range(99):
             # pol_ratio = np.count_nonzero(mean_pol_vals[valid_ts]>i*0.01) / (len(valid_ts))
-            pol_ratio = np.count_nonzero( np.logical_and(i* 0.1 < mean_ord_vals[valid_ts], mean_ord_vals[valid_ts] < (i+1)*0.1)) / (len(valid_ts))
+            pol_ratio = np.count_nonzero( np.logical_and(i* 0.01 < mean_ord_vals[valid_ts], mean_ord_vals[valid_ts] < (i+1)*0.01)) / (len(valid_ts))
             pol_ratios_h.append(pol_ratio)
         polrats_over_exps_hist[a, ri, :-1] = np.array(pol_ratios_h)
 
         # Calculating iid time ratios
         iid_ratios = []
         mean_iid_vals = min_iidm[0, :]
-        for i in range(0, 3000, 10):
+        for i in range(0, 600, 10):
             # pol_ratio = np.count_nonzero(mean_pol_vals[valid_ts]>i*0.01) / (len(valid_ts))
             iid_ratio = np.count_nonzero(mean_iid_vals[valid_ts] < i ) / (len(valid_ts))
             iid_ratios.append(iid_ratio)
         iidrats_over_exps[a, ri, :] = np.array(iid_ratios)
 
 
-        valid_ts_iid = data_tools.return_validts_iid(mean_iid[0], iid_of_interest=1400,
-                                                     tolerance=25)
+        # valid_ts_iid = data_tools.return_validts_iid(mean_iid[0], iid_of_interest=1400,
+        #                                              tolerance=25)
+        # #
+
+        # valid_ts_pol = data_tools.return_validts_pol(mean_pol_vals, pol_thr=0.5)
+        # valid_ts_pol = valid_ts_pol[valid_ts_pol>num_t-(time_w*60*60)]
+        # valid_ts_pol = [t for t in valid_ts_pol if t in valid_ts]
         #
-        time_w = 15  # in minutes
-        valid_ts_pol = data_tools.return_validts_pol(mean_pol_vals, pol_thr=0.5)
-        valid_ts_pol = valid_ts_pol[valid_ts_pol>num_t-(time_w*60*60)]
-        valid_ts_pol = [t for t in valid_ts_pol if t in valid_ts]
+        # valid_ts_iid = valid_ts_iid[valid_ts_iid>num_t-(time_w*60*60)]
+        # valid_ts_iid = [t for t in valid_ts_iid if t in valid_ts]
 
-        valid_ts_iid = valid_ts_iid[valid_ts_iid>num_t-(time_w*60*60)]
-        valid_ts_iid = [t for t in valid_ts_iid if t in valid_ts]
 
-        if isinstance(valid_ts, list):
-            valid_ts = np.array(valid_ts)
-        valid_ts_last_chunk = valid_ts[valid_ts>num_t-(time_w*60*60)]
 
 
         print("All valid timepoints: ", len(valid_ts))
@@ -161,10 +173,19 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         valid_ts_r.append(valid_ts)
         mean_iids_r.append(mean_iid_long)
         mean_pols_r.append(mean_pol_vals_long)
-        valid_ts = valid_ts[0:-1]
         valid_ts_matrix_final[a, ri] = len(valid_ts)
-        time_above_pol[a, ri] = len(valid_ts_pol) / len(valid_ts_last_chunk)
-        time_in_iid_tolerance[a, ri] = len(valid_ts_iid) / len(valid_ts_last_chunk)
+
+        #time_above_pol[a, ri] = len(valid_ts_pol) / len(valid_ts_last_chunk)
+        #time_in_iid_tolerance[a, ri] = len(valid_ts_iid) / len(valid_ts_last_chunk)
+
+        for i in range(399):
+            bin_len = 5
+            temp_pols = mean_pol_vals[np.logical_and(min_wall_dist >= i*bin_len, min_wall_dist < (i+1)*bin_len)]
+            mean_pol_over_wd = np.mean(temp_pols)
+            std_pol_over_wd = np.std(temp_pols)
+            pol_over_wall_dist[a, ri, i, 0] = mean_pol_over_wd
+            pol_over_wall_dist[a, ri, i, 1] = std_pol_over_wd
+
         comv_matrix_final[a, ri] = np.mean(com_vel[0, valid_ts])
         comv_matrix_final_std[a, ri] = np.std(com_vel[0, valid_ts])
         ord_matrix_final[a, ri] = np.mean(ord[0, valid_ts])
@@ -173,12 +194,12 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         pol_matrix_final_std[a, ri] = np.std(mean_pol_vals_long[valid_ts])
         iid_matrix_final[a, ri] = np.mean(mean_iid_long[valid_ts])
         iid_matrix_final_std[a, ri] = np.std(mean_iid_long[valid_ts])
-        coll_times[0, a, ri] = len(wall_reflection_times)
-        coll_times[1, a, ri] = len(agent_reflection_times)
-        abs_vel_m_final[a, ri] = abs_vel.mean(axis=-1)[0].mean()
-        abs_vel_m_final_std[a, ri] = abs_vel.mean(axis=-1)[0].std()
-        turn_rate_m_final[a, ri] = turning_rates.mean(axis=-1)[0].mean()
-        turn_rate_final_std[a, ri] = turning_rates.mean(axis=-1)[0].std()
+        coll_times[0, a, ri] = len(wall_reflection_times)/num_t
+        coll_times[1, a, ri] = len(agent_reflection_times)/num_t
+        abs_vel_m_final[a, ri] = abs_vel[..., valid_ts].mean(axis=-1)[0].mean()
+        abs_vel_m_final_std[a, ri] = abs_vel[..., valid_ts].mean(axis=-1)[0].std()
+        turn_rate_m_final[a, ri] = turning_rates[..., valid_ts].mean(axis=-1)[0].mean()
+        turn_rate_final_std[a, ri] = turning_rates[..., valid_ts].mean(axis=-1)[0].std()
         print(f"alpha={alphas[a]}, ri={ri}, ord={ord_matrix_final[a, ri]}")
 
 summed_mean_pol_vals = []
@@ -187,41 +208,44 @@ for i in range(len(valid_ts_r)):
     mean_pol_vals_long = mean_pols_r[i]
     summed_mean_pol_vals.append(np.mean(mean_pol_vals_long[valid_ts]))
 
-mean_time_in_iid_tolerance = time_in_iid_tolerance.mean(axis=1)
-std_time_in_iid_tolerance = time_in_iid_tolerance.std(axis=1)
-fig, ax = plt.subplots(1, 2)
-plt.axes(ax[0])
-plt.imshow(time_in_iid_tolerance.T*100)
-plt.title("Time in good IID ")
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(ri)])
-plt.axes(ax[1])
-plt.plot(mean_time_in_iid_tolerance)
-plt.fill_between([i for i in range(len(alphas))], mean_time_in_iid_tolerance-std_time_in_iid_tolerance,
-                  mean_time_in_iid_tolerance+std_time_in_iid_tolerance, alpha=0.5)
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
-plt.ylabel("time ratio [%]")
-plt.legend()
+## mean_time_in_iid_tolerance = time_in_iid_tolerance.mean(axis=1)
+## std_time_in_iid_tolerance = time_in_iid_tolerance.std(axis=1)
+## fig, ax = plt.subplots(1, 2)
+## plt.axes(ax[0])
+## plt.imshow(time_in_iid_tolerance.T*100)
+## plt.title("Time in good IID ")
+## plt.xticks([i for i in range(len(alphas))], alphas)
+## plt.yticks([i for i in range(ri)])
+## plt.axes(ax[1])
+## plt.plot(mean_time_in_iid_tolerance)
+## plt.fill_between([i for i in range(len(alphas))], mean_time_in_iid_tolerance-std_time_in_iid_tolerance,
+##                   mean_time_in_iid_tolerance+std_time_in_iid_tolerance, alpha=0.5)
+## plt.xticks([i for i in range(len(alphas))], alphas)
+## plt.xlabel("$\\alpha_0$")
+## plt.ylabel("time ratio [%]")
+## plt.legend()
+##
+##
+## mean_time_above_pol = time_above_pol.mean(axis=1)
+## std_time_above_pol= time_above_pol.std(axis=1)
+## fig, ax = plt.subplots(1, 2)
+## plt.axes(ax[0])
+## plt.imshow(time_above_pol.T*100)
+## plt.title("Time above pol. thr. ")
+## plt.xticks([i for i in range(len(alphas))], alphas)
+## plt.yticks([i for i in range(ri)])
+## plt.axes(ax[1])
+## plt.plot(mean_time_above_pol)
+## plt.fill_between([i for i in range(len(alphas))], mean_time_above_pol-std_time_above_pol,
+##                   mean_time_above_pol+std_time_above_pol, alpha=0.5)
+## plt.xticks([i for i in range(len(alphas))], alphas)
+## plt.xlabel(f"${show_change}_0$")
+## plt.ylabel("time ratio [%]")
+## plt.legend()
 
-
-mean_time_above_pol = time_above_pol.mean(axis=1)
-std_time_above_pol= time_above_pol.std(axis=1)
-fig, ax = plt.subplots(1, 2)
-plt.axes(ax[0])
-plt.imshow(time_above_pol.T*100)
-plt.title("Time above pol. thr. ")
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(ri)])
-plt.axes(ax[1])
-plt.plot(mean_time_above_pol)
-plt.fill_between([i for i in range(len(alphas))], mean_time_above_pol-std_time_above_pol,
-                  mean_time_above_pol+std_time_above_pol, alpha=0.5)
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
-plt.ylabel("time ratio [%]")
-plt.legend()
-
+# plt.figure()
+# for ai, alpha in enumerate(alphas):
+#     plt.plot(pol_over_wall_dist[ai, :, :, 0].mean(axis=0))
 
 mean_ord = ord_matrix_final.mean(axis=1)
 std_ord = ord_matrix_final_std.mean(axis=1)
@@ -231,12 +255,14 @@ plt.imshow(ord_matrix_final.T)
 plt.title("Mean order ")
 plt.xticks([i for i in range(len(alphas))], alphas)
 plt.yticks([i for i in range(ri)])
+plt.xlabel(f"${show_change}_0$")
+plt.ylabel(f"runs")
 plt.axes(ax[1])
 plt.plot(mean_ord)
 plt.fill_between([i for i in range(len(alphas))], mean_ord-std_ord,
-                  mean_ord+std_ord, alpha=0.5)
+                  mean_ord+std_ord, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
+plt.xlabel(f"${show_change}_0$")
 plt.ylabel("order [AU]")
 plt.legend()
 
@@ -245,15 +271,17 @@ std_iid = iid_matrix_final_std.mean(axis=1)
 fig, ax = plt.subplots(1, 2)
 plt.axes(ax[0])
 plt.imshow(iid_matrix_final.T)
-plt.title("Mean IID ")
+plt.title("Mean IID")
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(ri)])
+plt.yticks([i for i in range(num_runs)])
+plt.ylabel("runs")
+plt.xlabel(f"${show_change}_0$")
 plt.axes(ax[1])
 plt.plot(mean_iid)
 plt.fill_between([i for i in range(len(alphas))], mean_iid-std_iid,
-                  mean_iid+std_iid, alpha=0.5)
+                  mean_iid+std_iid, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
+plt.xlabel(f"${show_change}_0$")
 plt.ylabel("mean IID [mm]")
 plt.legend()
 
@@ -264,13 +292,15 @@ plt.axes(ax[0])
 plt.imshow(abs_vel_m_final.T)
 plt.title("Mean (over agents and time) absolute velocity \n std over agents")
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(ri)])
+plt.yticks([i for i in range(num_runs)])
+plt.ylabel("runs")
+plt.xlabel(f"${show_change}_0$")
 plt.axes(ax[1])
 plt.plot(mean_av)
 plt.fill_between([i for i in range(len(alphas))], mean_av-std_av,
-                  mean_av+std_av, alpha=0.5)
+                  mean_av+std_av, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
+plt.xlabel(f"${show_change}_0$")
 plt.ylabel("velocity [mm/ts]")
 plt.legend()
 
@@ -278,16 +308,18 @@ mean_com = comv_matrix_final.mean(axis=1)
 std_com = comv_matrix_final_std.mean(axis=1)
 fig, ax = plt.subplots(1, 2)
 plt.axes(ax[0])
-plt.imshow(iid_matrix_final.T)
+plt.imshow(comv_matrix_final.T)
 plt.title("Mean COM velocity ")
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(ri)])
+plt.yticks([i for i in range(num_runs)])
+plt.ylabel("runs")
+plt.xlabel(f"${show_change}_0$")
 plt.axes(ax[1])
 plt.plot(mean_com)
 plt.fill_between([i for i in range(len(alphas))], mean_com-std_com,
-                  mean_com+std_com, alpha=0.5)
+                  mean_com+std_com, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
+plt.xlabel(f"${show_change}_0$")
 plt.ylabel("mean COM vel [mm/ts]")
 plt.legend()
 
@@ -298,13 +330,15 @@ plt.axes(ax[0])
 plt.imshow(iid_matrix_final.T)
 plt.title("Agent-agent collision times")
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(ri)])
+plt.yticks([i for i in range(num_runs)])
+plt.ylabel("runs")
+plt.xlabel(f"${show_change}_0$")
 plt.axes(ax[1])
 plt.plot(mean_aac)
 plt.fill_between([i for i in range(len(alphas))], mean_aac-std_aac,
-                  mean_aac+std_aac, alpha=0.5)
+                  mean_aac+std_aac, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
+plt.xlabel(f"${show_change}_0$")
 plt.ylabel("#")
 
 
@@ -315,13 +349,15 @@ plt.axes(ax[0])
 plt.imshow(turn_rate_m_final.T)
 plt.title("Mean (over agents and time) turning rates")
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(ri)])
+plt.yticks([i for i in range(num_runs)])
+plt.ylabel("runs")
+plt.xlabel(f"${show_change}_0$")
 plt.axes(ax[1])
 plt.plot(mean_tr)
 plt.fill_between([i for i in range(len(alphas))], mean_tr-std_tr,
-                  mean_tr+std_tr, alpha=0.5)
+                  mean_tr+std_tr, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel("$\\alpha_0$")
+plt.xlabel(f"${show_change}_0$")
 plt.ylabel("Turning rate [mm/ts]")
 plt.legend()
 
@@ -329,9 +365,9 @@ plt.figure()
 polrats_over_exps_mean = np.mean(polrats_over_exps, axis=1)
 polrats_over_exps_std = np.std(polrats_over_exps, axis=1)
 for a, alp in enumerate(alphas):
-    plt.plot(polrats_over_exps_mean[a, :], label=f"$\\alpha_0$={alp}")
+    plt.plot(polrats_over_exps_mean[a, :], label=f"${show_change}_0$={alp}")
     plt.fill_between([i for i in range(0, 100)], polrats_over_exps_mean[a, :]-polrats_over_exps_std[a, :],
-                      polrats_over_exps_mean[a, :]+polrats_over_exps_std[a, :], alpha=0.5)
+                      polrats_over_exps_mean[a, :]+polrats_over_exps_std[a, :], alpha=0.2)
 plt.xlabel("Order thr. [AU]")
 plt.xticks([i for i in range(0, 100, 10)], [i*0.1 for i in range(0, 100, 10)])
 plt.ylabel("Time ratio spent above thr.")
@@ -342,22 +378,22 @@ plt.figure()
 polrats_over_exps_mean = np.mean(polrats_over_exps_hist, axis=1)
 polrats_over_exps_std = np.std(polrats_over_exps_hist, axis=1)
 for a, alp in enumerate(alphas):
-    plt.plot(polrats_over_exps_mean[a, :], label=f"$\\alpha_0$={alp}")
-    plt.fill_between([i for i in range(0, 10)], polrats_over_exps_mean[a, :]-polrats_over_exps_std[a, :],
-                      polrats_over_exps_mean[a, :]+polrats_over_exps_std[a, :], alpha=0.5)
+    plt.plot(polrats_over_exps_mean[a, :], label=f"${show_change}_0$={alp}")
+    plt.fill_between([i for i in range(0, 100)], polrats_over_exps_mean[a, :]-polrats_over_exps_std[a, :],
+                      polrats_over_exps_mean[a, :]+polrats_over_exps_std[a, :], alpha=0.2)
 plt.xlabel("Order thr. [AU]")
 # plt.xticks([i for i in range(0, 100, 10)], [i*0.1 for i in range(0, 99, 10)])
-plt.ylabel("Time ratio spent above thr.")
-plt.title("Time spent above order thr.")
+plt.ylabel("Time ratio spent at order level")
+plt.title("Histogram / time spent at order")
 plt.legend()
 
 plt.figure()
 iidrats_over_exps_mean = np.mean(iidrats_over_exps, axis=1)
 iidrats_over_exps_std = np.std(iidrats_over_exps, axis=1)
 for a, alp in enumerate(alphas):
-    plt.plot(iidrats_over_exps_mean[a, :], label=f"$\\alpha_0$={alp}")
-    plt.fill_between([i for i in range(0, 300)], iidrats_over_exps_mean[a, :]-iidrats_over_exps_std[a, :],
-                      iidrats_over_exps_mean[a, :]+iidrats_over_exps_std[a, :], alpha=0.5)
+    plt.plot(iidrats_over_exps_mean[a, :], label=f"${show_change}_0$={alp}")
+    plt.fill_between([i for i in range(0, 60)], iidrats_over_exps_mean[a, :]-iidrats_over_exps_std[a, :],
+                      iidrats_over_exps_mean[a, :]+iidrats_over_exps_std[a, :], alpha=0.2)
 plt.xlabel("IID thr. [mm]")
 # plt.xticks([i for i in range(0, 3000, 250)])
 plt.ylabel("Time ratio spent below thr.")
@@ -366,3 +402,4 @@ plt.legend()
 
 
 plt.show()
+input()
