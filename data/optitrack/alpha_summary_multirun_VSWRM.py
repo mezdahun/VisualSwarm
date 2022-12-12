@@ -27,6 +27,9 @@ EXPERIMENT_NAMES = [pat.split(".")[0] for pat in EXPERIMENT_NAMES]
 
 WALL_EXPERIMENT_NAME = "../ArenaBorders"
 
+num_clus_matrix = np.zeros((len(alphas), num_runs))
+acc_matrix_final = np.zeros((len(alphas), num_runs))
+acc_matrix_final_std = np.zeros_like(acc_matrix_final)
 pol_over_wall_dist = np.zeros((len(alphas), num_runs, 400, 2))
 polrats_over_exps = np.zeros((len(alphas), num_runs, 100))
 polrats_over_exps_hist = np.zeros((len(alphas), num_runs, 100))
@@ -108,6 +111,10 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                                   wall_reflection_times,
                                                                                                                   window_after=500,
                                                                                                                   window_before=0)
+
+        cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=valid_ts, runi=0)
+        num_clus_matrix[a, ri] = np.array(np.mean(cluster_dict["num_subgroups"]))
+
         print("before ", len(valid_ts))
         # Filtering datapoints where agents are impossibly fast
         valid_ts = data_tools.filter_high_velocity_points(valid_ts, abs_vel, 0, vel_thr=150)
@@ -124,7 +131,12 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         #
         # # Histogram of I.I.D matrix
         # plt.axes(ax[a, ri])
-        # plt.hist(mean_pol_vals[valid_ts], bins=30)
+        # plt.hist(mean_pol_vals[valid_ts], bins=30
+
+        # Calculating acceleration values
+        print(abs_vel.shape)
+        acc = np.diff(abs_vel[0, : , :], axis=-1)
+        abs_acc = np.abs(acc)
 
         # Calculating polarization time ratios
         pol_ratios = []
@@ -186,6 +198,8 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
             pol_over_wall_dist[a, ri, i, 0] = mean_pol_over_wd
             pol_over_wall_dist[a, ri, i, 1] = std_pol_over_wd
 
+        acc_matrix_final[a, ri] = np.mean(abs_acc)
+        acc_matrix_final_std[a, ri] = np.std(abs_acc)
         comv_matrix_final[a, ri] = np.mean(com_vel[0, valid_ts])
         comv_matrix_final_std[a, ri] = np.std(com_vel[0, valid_ts])
         ord_matrix_final[a, ri] = np.mean(ord[0, valid_ts])
@@ -247,6 +261,31 @@ for i in range(len(valid_ts_r)):
 # for ai, alpha in enumerate(alphas):
 #     plt.plot(pol_over_wall_dist[ai, :, :, 0].mean(axis=0))
 
+
+plt.figure()
+plt.imshow(num_clus_matrix.T)
+
+mean_clus = num_clus_matrix.mean(axis=1)
+std_clus = num_clus_matrix.std(axis=1)
+fig, ax = plt.subplots(1, 2)
+plt.axes(ax[0])
+plt.imshow(num_clus_matrix.T)
+plt.title("Mean number of subgroups")
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.yticks([i for i in range(ri)])
+plt.xlabel(f"${show_change}_0$")
+plt.ylabel(f"runs")
+plt.axes(ax[1])
+plt.plot(mean_clus)
+plt.fill_between([i for i in range(len(alphas))], mean_clus-std_clus,
+                  mean_clus+std_clus, alpha=0.2)
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.xlabel(f"${show_change}_0$")
+plt.ylabel("#")
+plt.legend()
+
+
+
 mean_ord = ord_matrix_final.mean(axis=1)
 std_ord = ord_matrix_final_std.mean(axis=1)
 fig, ax = plt.subplots(1, 2)
@@ -299,6 +338,25 @@ plt.axes(ax[1])
 plt.plot(mean_av)
 plt.fill_between([i for i in range(len(alphas))], mean_av-std_av,
                   mean_av+std_av, alpha=0.2)
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.xlabel(f"${show_change}_0$")
+plt.ylabel("velocity [mm/ts]")
+plt.legend()
+
+mean_acc = acc_matrix_final.mean(axis=1)
+std_acc = acc_matrix_final_std.mean(axis=1)
+fig, ax = plt.subplots(1, 2)
+plt.axes(ax[0])
+plt.imshow(acc_matrix_final.T)
+plt.title("Mean (over agents and time) absolute acceleration \n std over agents")
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.yticks([i for i in range(num_runs)])
+plt.ylabel("runs")
+plt.xlabel(f"${show_change}_0$")
+plt.axes(ax[1])
+plt.plot(std_acc)
+plt.fill_between([i for i in range(len(alphas))], std_acc-std_acc,
+                  std_acc+std_acc, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
 plt.xlabel(f"${show_change}_0$")
 plt.ylabel("velocity [mm/ts]")

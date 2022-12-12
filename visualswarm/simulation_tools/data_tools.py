@@ -8,6 +8,9 @@ import json
 import numpy as np
 import logging
 import pandas as pd
+from scipy.spatial.distance import pdist, squareform
+from fastcluster import linkage
+from scipy.cluster.hierarchy import dendrogram
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -693,6 +696,94 @@ def calculate_mean_iid(summary, data, window_width=100):
 
 def calculate_reflection_times(summary, data):
     pass
+
+
+def seriation(Z, N, cur_index):
+    '''
+        input:
+            - Z is a hierarchical tree (dendrogram)
+            - N is the number of points given to the clustering process
+            - cur_index is the position in the tree for the recursive traversal
+        output:
+            - order implied by the hierarchical tree Z
+
+        seriation computes the order implied by a hierarchical tree (dendrogram)
+    '''
+    if cur_index < N:
+        return [cur_index]
+    else:
+        left = int(Z[cur_index - N, 0])
+        right = int(Z[cur_index - N, 1])
+        return (seriation(Z, N, left) + seriation(Z, N, right))
+
+
+def compute_serial_matrix(dist_mat, method="ward"):
+    '''
+        input:
+            - dist_mat is a distance matrix
+            - method = ["ward","single","average","complete"]
+        output:
+            - seriated_dist is the input dist_mat,
+              but with re-ordered rows and columns
+              according to the seriation, i.e. the
+              order implied by the hierarchical tree
+            - res_order is the order implied by
+              the hierarhical tree
+            - res_linkage is the hierarhical tree (dendrogram)
+
+        compute_serial_matrix transforms a distance matrix into
+        a sorted distance matrix according to the order implied
+        by the hierarchical tree (dendrogram)
+    '''
+    N = len(dist_mat)
+    flat_dist_mat = squareform(dist_mat)
+    res_linkage = linkage(flat_dist_mat, method=method, preserve_input=True)
+    res_order = seriation(res_linkage, N, N + N - 2)
+    seriated_dist = np.zeros((N, N))
+    a, b = np.triu_indices(N, k=1)
+    seriated_dist[a, b] = dist_mat[[res_order[i] for i in a], [res_order[j] for j in b]]
+    seriated_dist[b, a] = seriated_dist[a, b]
+
+    return seriated_dist, res_order, res_linkage
+
+def subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=False):
+    """Using hierarhical clustering according to iid and pm scores to get number of subgroups"""
+
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_clustering.json")
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("Files in target path for clustering already exists! No recalculation was"
+              "requested, so data will be loaded from the json files.")
+        with open(save_path, 'r') as fwa:
+            clustering_dict = json.load(fwa)
+        loaded_validts = clustering_dict['valid_ts']
+        loaded_validts = [int(t) for t in loaded_validts]
+        if loaded_validts != valid_ts.tolist():
+            print("Loaded json file for clustering but valid timepoints don't match with the one requested. Recalculating!")
+            clustering_dict = subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=True)
+            return clustering_dict
+        else:
+            return clustering_dict
+    else:
+        clustering_dict = {}
+        num_robots = pm.shape[1]
+        clustering_dict['num_subgroups'] = []
+        clustering_dict['valid_ts'] = valid_ts.tolist()
+        for t in valid_ts:
+            niidm = (iidm[runi, :, :, t] - np.min(iidm[runi, :, :, t])) / (
+                    np.max(iidm[runi, :, :, t]) - np.min(iidm[runi, :, :, t]))
+            dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
+            # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
+            linkage_matrix = linkage(dist, "single")
+            ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(num_robots)],
+                             show_leaf_counts=True, no_plot=True)
+            clustering_dict['num_subgroups'].append(len(list(set(ret['color_list']))))
+
+        print(f"Saving clustering data...")
+        print(clustering_dict)
+        with open(save_path, 'w', encoding='utf-8') as fwa:
+            json.dump(clustering_dict, fwa, ensure_ascii=False, indent=4)
+
+        return clustering_dict
 
 
 def calculate_order_parameter(summary, data, force_recalculate=False):

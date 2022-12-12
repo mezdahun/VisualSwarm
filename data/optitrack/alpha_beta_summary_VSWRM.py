@@ -22,6 +22,8 @@ print(EXPERIMENT_NAMES)
 WALL_EXPERIMENT_NAME = "../ArenaBorders_02122022"
 indices = [en.split("E2B")[1] for en in EXPERIMENT_NAMES]
 
+num_clus_matrix = np.zeros((len(alphas), len(betas)))
+num_clus_matrix_std = np.zeros((len(alphas), len(betas)))
 polrats_over_exps = np.zeros((len(alphas), len(betas), 100))
 time_above_pol = np.zeros((len(alphas), len(betas)))
 time_in_iid_tolerance = np.zeros((len(alphas), len(betas)))
@@ -87,13 +89,13 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                               0,
                                                                                                               agent_reflection_times,
                                                                                                               wall_reflection_times,
-                                                                                                              window_after=600,
+                                                                                                              window_after=300,
                                                                                                               window_before=0)
 
     # valid_ts_iid = data_tools.return_validts_iid(mean_iid[0], iid_of_interest=1200,
     #                                              tolerance=100)
 
-    time_w = 60  # in minutes
+    time_w = 30  # in minutes
 
     # valid_ts_pol = data_tools.return_validts_pol(mean_pol_vals, pol_thr=0.5)
     # valid_ts_pol = valid_ts_pol[valid_ts_pol>num_t-(time_w*60*30)]
@@ -107,6 +109,9 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         time_lim = 0
     print("Time lim: ", time_lim)
     valid_ts_last_chunk = [t for t in valid_ts if t > time_lim]
+
+    cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=np.array(valid_ts_last_chunk), runi=0)
+
 
     # Calculating polarization time ratios
     pol_ratios = []
@@ -126,6 +131,8 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
     valid_ts = valid_ts_last_chunk[0:-1]
     # time_above_pol[alphas.index(a), betas.index(b)] = len(valid_ts_pol) / len(valid_ts_last_chunk)
     # time_in_iid_tolerance[alphas.index(a), betas.index(b)] = len(valid_ts_iid) / len(valid_ts_last_chunk)
+    num_clus_matrix[alphas.index(a), betas.index(b)] = np.array(np.mean(cluster_dict["num_subgroups"]))
+    num_clus_matrix_std[alphas.index(a), betas.index(b)] = np.array(np.std(cluster_dict["num_subgroups"]))
     comv_matrix_final[alphas.index(a), betas.index(b)] = np.mean(com_vel[0, valid_ts])
     comv_matrix_final_std[alphas.index(a), betas.index(b)] = np.std(com_vel[0, valid_ts])
     ord_matrix_final[alphas.index(a), betas.index(b)] = np.mean(ord[0, valid_ts])
@@ -205,6 +212,37 @@ plt.ylabel("Time ratio spent above thr.")
 plt.title("Time spent above order thr.")
 
 
+fig, ax = plt.subplots(1, 4)
+plt.axes(ax[0])
+plt.imshow(num_clus_matrix.T)
+plt.title("Number of subgroups")
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.yticks([i for i in range(len(betas))], betas)
+plt.axes(ax[1])
+plt.imshow(num_clus_matrix_std.T)
+plt.title("STD (over t) # subgroups")
+plt.xticks([i for i in range(len(alphas))], alphas)
+plt.yticks([i for i in range(len(betas))], betas)
+plt.axes(ax[2])
+for i in range(len(alphas)):
+    plt.plot(num_clus_matrix[i, :], label=f"$\\alpha_0$={alphas[i]}")
+    plt.fill_between([i for i in range(len(alphas))], num_clus_matrix[i, :]-num_clus_matrix_std[i, :],
+                      num_clus_matrix[i, :]+num_clus_matrix_std[i, :], alpha=0.2)
+plt.xticks([i for i in range(len(betas))], betas)
+plt.xlabel("$\\beta_0$")
+plt.ylabel("mean # subgroups")
+plt.legend()
+plt.axes(ax[3])
+for i in range(len(betas)):
+    plt.plot(num_clus_matrix[:, i], label=f"$\\beta_0$={betas[i]}")
+    plt.fill_between([i for i in range(len(betas))], num_clus_matrix[:, i]-num_clus_matrix_std[:, i],
+                      num_clus_matrix[:, i]+num_clus_matrix_std[:, i], alpha=0.2)
+plt.xticks([i for i in range(len(betas))], betas)
+plt.xlabel("$\\alpha_0$")
+plt.ylabel("mean # subgroups")
+plt.legend()
+
+
 fig, ax = plt.subplots(1, 3)
 plt.axes(ax[0])
 plt.imshow(comv_matrix_final.T)
@@ -226,7 +264,7 @@ plt.xlabel("$\\beta_0$")
 plt.ylabel("velocity (mm/s)")
 plt.legend()
 
-fig, ax = plt.subplots(1, 3)
+fig, ax = plt.subplots(1, 4)
 plt.axes(ax[0])
 plt.imshow(ord_matrix_final.T, vmin=0, vmax=1)
 plt.title("Mean order (w/o collisions)")
@@ -244,6 +282,15 @@ for i in range(len(alphas)):
                       ord_matrix_final[i, :]+ord_matrix_final_std[i, :], alpha=0.5)
 plt.xticks([i for i in range(len(betas))], betas)
 plt.xlabel("$\\beta_0$")
+plt.ylabel("order [au]")
+plt.legend()
+plt.axes(ax[3])
+for i in range(len(betas)):
+    plt.plot(ord_matrix_final[:, i], label=f"$\\beta_0$={betas[i]}")
+    plt.fill_between([i for i in range(len(betas))], ord_matrix_final[:, i]-ord_matrix_final_std[:, i],
+                      ord_matrix_final[:, i]+ord_matrix_final_std[:, i], alpha=0.2)
+plt.xticks([i for i in range(len(betas))], betas)
+plt.xlabel("$\\alpha_0$")
 plt.ylabel("order [au]")
 plt.legend()
 #
