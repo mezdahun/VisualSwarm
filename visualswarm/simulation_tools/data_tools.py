@@ -651,6 +651,23 @@ def calculate_distance(summary, data, from_point):
 
     return distances
 
+def calculate_avg_metric_after_wall_refl(metric_m, wall_refl, time_windows):
+    """Calculating teh typical metric shape (as in mean metric) after reflection times with
+    standard deviation. time windows is a list of window before, and after"""
+    snips = None
+    num_t = metric_m.shape[-1]
+    num_snips = 0
+    for t in wall_refl:
+        if t+time_windows[1] < num_t and t-time_windows[0] > 0:
+            snippet = metric_m[t-time_windows[0]:t+time_windows[1]]
+            snippet = (snippet - np.min(snippet)) / (np.max(snippet) - np.min(snippet))
+            if snips is None:
+                snips = snippet
+            else:
+                snips = np.vstack((snips, snippet))
+    return np.mean(snips, axis=0), np.std(snips, axis=0)
+
+
 
 def calculate_interindividual_distance(summary, data, force_recalculate=False):
     save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_iid.npy")
@@ -748,7 +765,8 @@ def compute_serial_matrix(dist_mat, method="ward"):
 
 def subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=False):
     """Using hierarhical clustering according to iid and pm scores to get number of subgroups"""
-
+    if isinstance(valid_ts, list):
+        valid_ts = np.array(valid_ts)
     save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_clustering.json")
     if os.path.isfile(save_path) and not force_recalculate:
         print("Files in target path for clustering already exists! No recalculation was"
