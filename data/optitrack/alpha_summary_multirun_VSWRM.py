@@ -12,21 +12,25 @@ import glob
 
 data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
 EXPERIMENT_NAMES = []
-show_change = "beta"  # or beta
+show_change = "alpha"  # or beta
 if show_change == "alpha":
     alpha_base = "E21"  # when changing alpha
-    alphas = [0, 20, 120, 180, 320]
+    alphas = [0, 20, 120, 180]
 else:
     alpha_base = "E22"  # when changing beta
     alphas = [0.001, 0.1, 1, 6, 14]
-num_runs = 3
-runs = [0, 1, 2]
+num_runs = 4
+runs = [0, 1, 2, 3]
 alpha_pattern = os.path.join(data_path, f"{alpha_base}*.csv")
 EXPERIMENT_NAMES = [pat.split("/")[-1] for pat in list(glob.glob(alpha_pattern))]
 EXPERIMENT_NAMES = [pat.split(".")[0] for pat in EXPERIMENT_NAMES]
 
-WALL_EXPERIMENT_NAME = "../ArenaBorders"
+WALL_EXPERIMENT_NAME = "ArenaBorders"
 
+wall_ord_tw = [200, 800]
+wall_iid_tw = [200, 1200]
+mean_ord_after_wall_m = np.zeros((2, len(alphas), num_runs, np.sum(wall_ord_tw)))
+mean_iid_after_wall_m = np.zeros((2, len(alphas), num_runs, np.sum(wall_iid_tw)))
 num_clus_matrix = np.zeros((len(alphas), num_runs))
 acc_matrix_final = np.zeros((len(alphas), num_runs))
 acc_matrix_final_std = np.zeros_like(acc_matrix_final)
@@ -56,11 +60,11 @@ valid_ts_r, min_iids_r, mean_iids_r, mean_pols_r = [], [], [], []
 # fig, ax = plt.subplots(len(alphas), num_runs)
 for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
     print(f"Processing file {EXPERIMENT_NAME}")
-    ri = int(EXPERIMENT_NAME.split("r")[1].split(".")[0]) - 1
+    ri_orig = int(EXPERIMENT_NAME.split("r")[1].split(".")[0]) - 1
     a = int(EXPERIMENT_NAME[3]) - 1
 
-    if a < len(alphas) and ri in runs:
-        ri = runs.index(ri)
+    if a < len(alphas) and ri_orig in runs:
+        ri = runs.index(ri_orig)
         # if data is freshly created first summarize it into multidimensional array
         csv_path = os.path.join(data_path, f"{EXPERIMENT_NAME}.csv")
         data_tools.optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True)
@@ -69,9 +73,10 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         summary, data = data_tools.read_summary_data(data_path, EXPERIMENT_NAME)
 
         if WALL_EXPERIMENT_NAME is not None:
-            csv_path_walls = os.path.join(data_path, f"{WALL_EXPERIMENT_NAME}.csv")
+            csv_path_walls = os.path.join(data_path, f"{WALL_EXPERIMENT_NAME}_r{ri_orig+1}.csv")
+            print(f"Using wall file: ", csv_path_walls)
             data_tools.optitrackcsv_to_VSWRM(csv_path_walls, skip_already_summed=True, dropna=False)
-            summay_wall, data_wall = data_tools.read_summary_data(data_path, WALL_EXPERIMENT_NAME)
+            summay_wall, data_wall = data_tools.read_summary_data(data_path, WALL_EXPERIMENT_NAME+f"_r{ri_orig+1}")
             wall_data_tuple = (summay_wall, data_wall)
         else:
             wall_data_tuple = None
@@ -110,10 +115,17 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                                   agent_reflection_times,
                                                                                                                   wall_reflection_times,
                                                                                                                   window_after=500,
-                                                                                                                  window_before=0)
+                                                                                                                  window_before=0,
+                                                                                                                  force_recalculate=False)
 
         cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=valid_ts, runi=0)
         num_clus_matrix[a, ri] = np.array(np.mean(cluster_dict["num_subgroups"]))
+
+        mean_ord_after_wall_m[0, a, ri, :], mean_ord_after_wall_m[1, a, ri, :] = data_tools.calculate_avg_metric_after_wall_refl(ord[0, :], wall_reflection_times, wall_ord_tw)
+        mean_iid_after_wall_m[0, a, ri, :], mean_iid_after_wall_m[1, a, ri,
+                                            :] = data_tools.calculate_avg_metric_after_wall_refl(mean_iid[0, :],
+                                                                                                 wall_reflection_times,
+                                                                                                 wall_iid_tw)
 
         print("before ", len(valid_ts))
         # Filtering datapoints where agents are impossibly fast
@@ -123,7 +135,7 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         valid_ts = data_tools.filter_high_turningrate_points(valid_ts, ma_turning_rates, 0, tr_thr=0.02)
         print("after high tr", len(valid_ts))
 
-        time_w = 50  # in minutes
+        time_w = 15  # in minutes
         if isinstance(valid_ts, list):
             valid_ts = np.array(valid_ts)
         valid_ts_last_chunk = valid_ts[valid_ts>num_t-(time_w*30*60)]
@@ -261,9 +273,43 @@ for i in range(len(valid_ts_r)):
 # for ai, alpha in enumerate(alphas):
 #     plt.plot(pol_over_wall_dist[ai, :, :, 0].mean(axis=0))
 
+fig, ax = plt.subplots(1, len(alphas), sharey=True)
+mean_mean_ord_after_wall_m = np.mean(mean_ord_after_wall_m, axis=2)
+std_mean_ord_after_wall_m = np.std(mean_ord_after_wall_m, axis=2)
+plt.suptitle("Typical Order profile after wall reflection")
+for a in range(len(alphas)):
+    plt.axes(ax[a])
+    plt.title(f"${show_change}_0$={alphas[a]}, r={ri}")
+    plt.plot(mean_mean_ord_after_wall_m[0, a, :])
+    plt.fill_between([i for i in range(np.sum(wall_ord_tw))], mean_mean_ord_after_wall_m[0, a, :] - std_mean_ord_after_wall_m[0, a, :],
+                     mean_mean_ord_after_wall_m[0, a, :] + std_mean_ord_after_wall_m[0, a, :], alpha=0.2)
+    plt.vlines(wall_ord_tw[0], np.min(mean_mean_ord_after_wall_m[0, a, :] - std_mean_ord_after_wall_m[0, a, :]),
+               np.max(mean_mean_ord_after_wall_m[0, a, :] + std_mean_ord_after_wall_m[0, a, :]), colors="red")
+    plt.xlabel("dt [ts]")
+    plt.xticks([i for i in range(0, np.sum(wall_ord_tw), 100)], [i for i in range(-wall_ord_tw[0], wall_ord_tw[1], 100)])
+    plt.ylabel("order [AU]")
 
-plt.figure()
-plt.imshow(num_clus_matrix.T)
+fig, ax = plt.subplots(1, len(alphas), sharey=True)
+mean_mean_iid_after_wall_m = np.mean(mean_iid_after_wall_m, axis=2)
+std_mean_iid_after_wall_m = np.std(mean_iid_after_wall_m, axis=2)
+plt.suptitle("Typical I.I.D. profile after wall reflection")
+for a in range(len(alphas)):
+    plt.axes(ax[a])
+    plt.title(f"${show_change}_0$={alphas[a]}, r={ri}")
+    plt.plot(mean_mean_iid_after_wall_m[0, a, :])
+    plt.fill_between([i for i in range(np.sum(wall_iid_tw))],
+                     mean_mean_iid_after_wall_m[0, a, :] - std_mean_iid_after_wall_m[0, a, :],
+                     mean_mean_iid_after_wall_m[0, a, :] + std_mean_iid_after_wall_m[0, a, :], alpha=0.2)
+    plt.vlines(wall_iid_tw[0], np.min(mean_mean_iid_after_wall_m[0, a, :] - std_mean_iid_after_wall_m[0, a, :]),
+               np.max(mean_mean_iid_after_wall_m[0, a, :] + std_mean_iid_after_wall_m[0, a, :]), colors="red")
+    plt.xlabel("dt [ts]")
+    plt.xticks([i for i in range(0, np.sum(wall_iid_tw), 100)],
+               [i for i in range(-wall_iid_tw[0], wall_iid_tw[1], 100)])
+    plt.ylabel("I.I.D [mm]")
+
+
+# plt.figure()
+# plt.imshow(num_clus_matrix.T)
 
 mean_clus = num_clus_matrix.mean(axis=1)
 std_clus = num_clus_matrix.std(axis=1)
