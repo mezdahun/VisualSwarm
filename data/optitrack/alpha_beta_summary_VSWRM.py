@@ -22,6 +22,10 @@ print(EXPERIMENT_NAMES)
 WALL_EXPERIMENT_NAME = "../ArenaBorders_02122022"
 indices = [en.split("E2B")[1] for en in EXPERIMENT_NAMES]
 
+wall_ord_tw = [100, 1500]
+wall_iid_tw = [100, 1500]
+mean_ord_after_wall_m = np.zeros((2, len(alphas), len(betas), np.sum(wall_ord_tw)))
+mean_iid_after_wall_m = np.zeros((2, len(alphas), len(betas), np.sum(wall_iid_tw)))
 num_clus_matrix = np.zeros((len(alphas), len(betas)))
 num_clus_matrix_std = np.zeros((len(alphas), len(betas)))
 polrats_over_exps = np.zeros((len(alphas), len(betas), 100))
@@ -91,6 +95,15 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                               wall_reflection_times,
                                                                                                               window_after=300,
                                                                                                               window_before=0)
+
+    mean_ord_after_wall_m[0, alphas.index(a), betas.index(b), :], mean_ord_after_wall_m[1, alphas.index(a), betas.index(b),
+                                        :] = data_tools.calculate_avg_metric_after_wall_refl(ord[0, :],
+                                                                                             wall_reflection_times,
+                                                                                             wall_ord_tw)
+    mean_iid_after_wall_m[0, alphas.index(a), betas.index(b), :], mean_iid_after_wall_m[1, alphas.index(a), betas.index(b),
+                                        :] = data_tools.calculate_avg_metric_after_wall_refl(mean_iid[0, :],
+                                                                                             wall_reflection_times,
+                                                                                             wall_iid_tw)
 
     # valid_ts_iid = data_tools.return_validts_iid(mean_iid[0], iid_of_interest=1200,
     #                                              tolerance=100)
@@ -190,6 +203,24 @@ for i in range(len(valid_ts_r)):
 # plt.xlabel("$\\beta_0$")
 # plt.ylabel("time ratio [%]")
 # plt.legend()
+fig, ax = plt.subplots(len(alphas), len(betas))
+# mean_mean_ord_after_wall_m = np.mean(mean_ord_after_wall_m, axis=2)
+# std_mean_ord_after_wall_m = np.std(mean_ord_after_wall_m, axis=2)
+plt.suptitle("Typical Order profile after wall reflection")
+for a in range(len(alphas)):
+    for b in range(len(betas)):
+        plt.axes(ax[a, b])
+        plt.title(f"$alpa_0$={alphas[a]}, $beta_0$={betas[b]}")
+        plt.plot(mean_ord_after_wall_m[0, a, b, :])
+        # plt.fill_between([i for i in range(np.sum(wall_ord_tw))], mean_mean_ord_after_wall_m[0, a, :] - std_mean_ord_after_wall_m[0, a, :],
+        #                  mean_mean_ord_after_wall_m[0, a, :] + std_mean_ord_after_wall_m[0, a, :], alpha=0.2)
+        plt.vlines(wall_ord_tw[0], np.min(mean_ord_after_wall_m[0, a, b, :]),
+                   np.max(mean_ord_after_wall_m[0, a, b, :]), colors="red")
+        plt.xlabel("dt [ts]")
+        plt.xticks([i for i in range(0, np.sum(wall_ord_tw), 100)], [i for i in range(-wall_ord_tw[0], wall_ord_tw[1], 100)])
+        plt.ylabel("order [AU]")
+
+
 
 fig, ax = plt.subplots(2, 3)
 polrats_over_exps_mean = np.mean(polrats_over_exps, axis=1)

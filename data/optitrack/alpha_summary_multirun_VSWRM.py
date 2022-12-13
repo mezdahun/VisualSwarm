@@ -13,12 +13,13 @@ import glob
 data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
 EXPERIMENT_NAMES = []
 show_change = "alpha"  # or beta
-if show_change == "alpha":
+calc_profiles = False  # slow if true
+if show_change == "beta":
     alpha_base = "E21"  # when changing alpha
     alphas = [0, 20, 120, 180]
 else:
     alpha_base = "E22"  # when changing beta
-    alphas = [0.001, 0.1, 1, 6, 14]
+    alphas = [0.001, 0.1, 1, 6]
 num_runs = 4
 runs = [0, 1, 2, 3]
 alpha_pattern = os.path.join(data_path, f"{alpha_base}*.csv")
@@ -29,6 +30,7 @@ WALL_EXPERIMENT_NAME = "ArenaBorders"
 
 wall_ord_tw = [200, 800]
 wall_iid_tw = [200, 1200]
+hist_res = 15
 mean_ord_after_wall_m = np.zeros((2, len(alphas), num_runs, np.sum(wall_ord_tw)))
 mean_iid_after_wall_m = np.zeros((2, len(alphas), num_runs, np.sum(wall_iid_tw)))
 num_clus_matrix = np.zeros((len(alphas), num_runs))
@@ -36,7 +38,7 @@ acc_matrix_final = np.zeros((len(alphas), num_runs))
 acc_matrix_final_std = np.zeros_like(acc_matrix_final)
 pol_over_wall_dist = np.zeros((len(alphas), num_runs, 400, 2))
 polrats_over_exps = np.zeros((len(alphas), num_runs, 100))
-polrats_over_exps_hist = np.zeros((len(alphas), num_runs, 100))
+polrats_over_exps_hist = np.zeros((len(alphas), num_runs, hist_res))
 iidrats_over_exps = np.zeros((len(alphas), num_runs, 60))
 valid_ts_matrix_final = np.zeros((len(alphas), num_runs))
 abs_vel_m_final = np.zeros((len(alphas), num_runs))
@@ -121,11 +123,12 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=valid_ts, runi=0)
         num_clus_matrix[a, ri] = np.array(np.mean(cluster_dict["num_subgroups"]))
 
-        mean_ord_after_wall_m[0, a, ri, :], mean_ord_after_wall_m[1, a, ri, :] = data_tools.calculate_avg_metric_after_wall_refl(ord[0, :], wall_reflection_times, wall_ord_tw)
-        mean_iid_after_wall_m[0, a, ri, :], mean_iid_after_wall_m[1, a, ri,
-                                            :] = data_tools.calculate_avg_metric_after_wall_refl(mean_iid[0, :],
-                                                                                                 wall_reflection_times,
-                                                                                                 wall_iid_tw)
+        if calc_profiles:
+            mean_ord_after_wall_m[0, a, ri, :], mean_ord_after_wall_m[1, a, ri, :] = data_tools.calculate_avg_metric_after_wall_refl(ord[0, :], wall_reflection_times, wall_ord_tw)
+            mean_iid_after_wall_m[0, a, ri, :], mean_iid_after_wall_m[1, a, ri,
+                                                :] = data_tools.calculate_avg_metric_after_wall_refl(mean_iid[0, :],
+                                                                                                     wall_reflection_times,
+                                                                                                     wall_iid_tw)
 
         print("before ", len(valid_ts))
         # Filtering datapoints where agents are impossibly fast
@@ -162,9 +165,9 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         # Calculating polarization time ratios histogram
         pol_ratios_h = []
         mean_ord_vals = ord[0, :]
-        for i in range(99):
+        for i in range(hist_res-1):
             # pol_ratio = np.count_nonzero(mean_pol_vals[valid_ts]>i*0.01) / (len(valid_ts))
-            pol_ratio = np.count_nonzero( np.logical_and(i* 0.01 < mean_ord_vals[valid_ts], mean_ord_vals[valid_ts] < (i+1)*0.01)) / (len(valid_ts))
+            pol_ratio = np.count_nonzero( np.logical_and(i * 1/hist_res < mean_ord_vals[valid_ts], mean_ord_vals[valid_ts] < (i+1)*(1/hist_res))) / (len(valid_ts))
             pol_ratios_h.append(pol_ratio)
         polrats_over_exps_hist[a, ri, :-1] = np.array(pol_ratios_h)
 
@@ -188,9 +191,6 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         #
         # valid_ts_iid = valid_ts_iid[valid_ts_iid>num_t-(time_w*60*60)]
         # valid_ts_iid = [t for t in valid_ts_iid if t in valid_ts]
-
-
-
 
         print("All valid timepoints: ", len(valid_ts))
         print(f"Valid timepoints in last {time_w} minutes: ", len(valid_ts_last_chunk))
@@ -478,17 +478,21 @@ plt.ylabel("Time ratio spent above thr.")
 plt.title("Time spent above order thr.")
 plt.legend()
 
-plt.figure()
+fig, ax = plt.subplots(1, len(alphas), sharey=True)
 polrats_over_exps_mean = np.mean(polrats_over_exps_hist, axis=1)
 polrats_over_exps_std = np.std(polrats_over_exps_hist, axis=1)
 for a, alp in enumerate(alphas):
+    plt.axes(ax[a])
+    if a == 0:
+        plt.ylabel("Time ratio spent at order level")
     plt.plot(polrats_over_exps_mean[a, :], label=f"${show_change}_0$={alp}")
-    plt.fill_between([i for i in range(0, 100)], polrats_over_exps_mean[a, :]-polrats_over_exps_std[a, :],
+    plt.fill_between([i for i in range(0, hist_res)], polrats_over_exps_mean[a, :]-polrats_over_exps_std[a, :],
                       polrats_over_exps_mean[a, :]+polrats_over_exps_std[a, :], alpha=0.2)
-plt.xlabel("Order thr. [AU]")
-# plt.xticks([i for i in range(0, 100, 10)], [i*0.1 for i in range(0, 99, 10)])
-plt.ylabel("Time ratio spent at order level")
-plt.title("Histogram / time spent at order")
+    plt.xlabel("Order thr. [AU]")
+    plt.title(f"${show_change}_0$={alp}")
+    plt.xticks([i for i in range(0, hist_res, 10)], [i*(1/hist_res) for i in range(0, hist_res, 10)])
+
+plt.suptitle("Histogram / time spent at order")
 plt.legend()
 
 plt.figure()
