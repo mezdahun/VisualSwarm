@@ -2,9 +2,12 @@
 @author: mezdahun
 @description: tools to plot recorded values in webots (only works with saving data)
 """
+import glob
 import os
+import subprocess
 import time
 
+from visualswarm.monitoring.ifdb import pad_to_n_digits
 from visualswarm.simulation_tools import data_tools
 import matplotlib.patches as patches
 from scipy.spatial.distance import pdist, squareform
@@ -73,12 +76,17 @@ def compute_serial_matrix(dist_mat, method="ward"):
 
 
 def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, step_by_step=False,
-                    x_min=-5000, x_max=5000, wall_data_tuple=None, history_length=0, show_wall_distance=True,
-                    show_polarization=True, show_iid=True, show_COM_vel=True, use_clastering=False, vis_window=1500,
-                    wall_vic_thr=200, agent_dist_thr=275, mov_avg_w=10,
+                    x_min=-5000, x_max=5000, wall_data_tuple=None, history_length=0, show_wall_distance=False,
+                    show_polarization=True, show_iid=True, show_COM_vel=True, use_clastering=False, show_clustering=False,
+                    vis_window=1500, wall_vic_thr=200, agent_dist_thr=275, mov_avg_w=10,
                     force_recalculate=False, turn_thr=0.02, return_fig=False,
-                    with_trajectory=True, valid_ts=None, iid_of_interest=1250, iid_tolerance=250):
+                    with_trajectory=True, valid_ts=None, show_min_iid=False, iid_of_interest=1250, iid_tolerance=250,
+                    video_save_path=None):
     """Replaying experiment from summary and data in matplotlib plot"""
+    if video_save_path is not None:
+        video_save_temp_path = os.path.join(video_save_path, "temp")
+        os.makedirs(video_save_temp_path, exist_ok=True)
+
     if wall_data_tuple is not None:
         wall_summary, wall_data = wall_data_tuple
         wall_coordinates = wall_data[0, 0, [1, 3], :]
@@ -119,9 +127,12 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
         num_subplots += 1
 
     if show_iid:
-        num_subplots += 2
+        num_subplots += 1
 
-    if use_clastering:
+    if show_min_iid:
+        num_subplots += 1
+
+    if show_clustering:
         num_subplots += 1
 
     if show_polarization:
@@ -136,13 +147,13 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                                          agent_dist_thr=agent_dist_thr, force_recalculate=force_recalculate,
                                          turn_thr=turn_thr)
 
-    valid_ts_iid = data_tools.return_validts_iid(mean_iid[runi], iid_of_interest=iid_of_interest,
-                                                 tolerance=iid_tolerance)
+    # valid_ts_iid = data_tools.return_validts_iid(mean_iid[runi], iid_of_interest=iid_of_interest,
+    #                                              tolerance=iid_tolerance)
 
     plot_w = int(np.ceil(num_subplots / 2))
     plot_shape = (2, plot_w)
 
-    fig, ax = plt.subplots(plot_shape[0], plot_shape[1])
+    fig, ax = plt.subplots(plot_shape[0], plot_shape[1], figsize=(18, 9))
     if with_trajectory:
         gs = ax[0, 1].get_gridspec()
 
@@ -195,7 +206,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                     if isinstance(colors, list):
                         col = colors[robi]
                     else:
-                        col = "blue"
+                        col = "grey"
                     plt.plot(data[runi, robi, 1, t - history_length:t:5], data[runi, robi, 3, t - history_length:t:5],
                              '-',
                              c=col)
@@ -225,27 +236,36 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
         plot_i = 2 if with_trajectory else 0
         if use_clastering:
             if num_robots > 1:
-                plot_col = int(np.floor(plot_i / 2))
-                plot_row = 0 if plot_i % 2 == 0 else 1
-                plt.axes(ax[plot_row, plot_col])
-                ax[plot_row, plot_col].get_shared_x_axes().join(ax[plot_row, plot_col], ax[0, 1])
+                if show_clustering:
+                    plot_col = int(np.floor(plot_i / 2))
+                    plot_row = 0 if plot_i % 2 == 0 else 1
+                    plt.axes(ax[plot_row, plot_col])
+                    ax[plot_row, plot_col].get_shared_x_axes().join(ax[plot_row, plot_col], ax[0, 1])
                 niidm = (iidm[runi, :, :, t] - np.min(iidm[runi, :, :, t])) / (
                         np.max(iidm[runi, :, :, t]) - np.min(iidm[runi, :, :, t]))
                 dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
                 # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
                 linkage_matrix = linkage(dist, "single")
                 ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(num_robots)],
-                                 show_leaf_counts=True)
+                                 show_leaf_counts=True, no_plot=(not show_clustering))
                 colors = [color for _, color in sorted(zip(ret['leaves'], ret['leaves_color_list']))]
-                plot_i += 1
+                plt.axes(axbig)
+                plt.scatter(x, y, s=ms, c=colors)
+                plt.scatter(x[refid_w], y[refid_w], s=ms, c="red")
+                plt.scatter(x[refid_a], y[refid_a], s=ms, c="blue")
+                for ri in range(num_robots):
+                    angle = ori[ri]
+                    plt.arrow(x[ri], y[ri], ms * math.cos(angle), ms * math.sin(angle), color="white")
+                if show_clustering:
+                    plot_i += 1
 
         if show_polarization:
             plot_col = int(np.floor(plot_i / 2))
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
             try:
-                plt.plot([k for k in range(t - vis_window, t + 5)], mean_pol_vals[t - vis_window:t + 5], color="black",
-                         label="Mean Pol.")
+                # plt.plot([k for k in range(t - vis_window, t + 5)], mean_pol_vals[t - vis_window:t + 5], color="black",
+                #          label="Mean Pol.")
                 plt.plot([k for k in range(t - vis_window, t + 5)], ord[runi, t - vis_window:t + 5], color="blue",
                          label="Mean Ord.")
             except:
@@ -261,13 +281,12 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                                 c="blue", label="agent refl.")
                     plt.vlines(agent_reflection_times_chunk, -1, 1, color="blue", alpha=0.05)
                 else:
-                    print(len(valid_ts))
                     nonvalid_chunk = [tx for tx in range(t - vis_window, t + 5) if tx not in valid_ts]
                     plt.scatter(nonvalid_chunk, [1 for k in range(len(nonvalid_chunk))],
                                 c="red", label="nonvalid t.")
                     plt.vlines(nonvalid_chunk, -1, 1, color="red", alpha=0.05)
 
-            plt.vlines(t, mean_pol_vals[t] - 0.1, mean_pol_vals[t] + 0.1)
+            plt.vlines(t, ord[runi, t] - 0.1, ord[runi, t] + 0.1)
             plt.ylim(0, 1.1)
             plt.ylabel("Pol. $\\in$ [-1, 1]")
             plt.legend(loc="upper left")
@@ -284,7 +303,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.ylabel("Turning rate [rad/ts]")
             plot_i += 1
 
-        if show_iid:
+        if show_min_iid:
             plot_col = int(np.floor(plot_i / 2))
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
@@ -295,7 +314,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.ylabel("Min a.-w. dist. [mm]")
             plt.hlines(wall_vic_thr, t - vis_window, t + 5, ls="--", color="red", label="A.-W. thr.")
             plt.legend(loc="upper left")
-            plt.ylim(0, 600)
+            # plt.ylim(0, 600)
 
             # plotting minimum interindividual distance
             ax2 = ax[plot_row, plot_col].twinx()
@@ -306,9 +325,10 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.ylabel("Min I.I.D [mm]")
             plt.legend(loc="lower left")
             plt.ylim(0, 600)
-
             plot_i += 1
-            non_valid_iid_ts = [k for k in range(t - vis_window, t + 5) if k not in valid_ts_iid]
+
+        if show_iid:
+            # non_valid_iid_ts = [k for k in range(t - vis_window, t + 5) if k not in valid_ts_iid]
             plot_col = int(np.floor(plot_i / 2))
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
@@ -321,7 +341,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.hlines(iid_of_interest, t - vis_window, t + 5, color="grey", label="IID of interest")
             plt.hlines(iid_of_interest-iid_tolerance, t - vis_window, t + 5, ls="--", color="grey")
             plt.hlines(iid_of_interest+iid_tolerance, t - vis_window, t + 5, ls="--", color="grey")
-            plt.vlines(non_valid_iid_ts, 0, 3000, color="grey", alpha=0.05)
+            # plt.vlines(non_valid_iid_ts, 0, 3000, color="grey", alpha=0.05)
             plt.ylabel("Mean Distance [mm]")
             plt.legend(loc="upper left")
             plt.ylim(0, 3000)
@@ -333,26 +353,38 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plt.axes(ax[plot_row, plot_col])
             plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
                      m_com_vel[runi, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="purple", label="COM vel.")
-            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
-                     m_abs_vel[runi, :, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="green", label="agent abs vel.")
+            # plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
+            #          m_abs_vel[runi, :, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="green", label="agent abs vel.")
             plt.legend(loc="upper left")
             plt.ylabel("COM vel. [mm/ts]")
             plot_i += 1
 
         if not return_fig:
-            plt.draw()
-            plt.subplots_adjust(wspace=0.35, hspace=0.1, left=0.05, right=0.95, top=0.95, bottom=0.05)
-            if step_by_step:
-                input()
+            if video_save_path is not None:
+                plt.savefig(video_save_temp_path + f"/{pad_to_n_digits(t, n=8)}.png")
+                print(f"t={t}/{t_end}")
             else:
-                fig.canvas.draw()
-                # to flush the GUI events
-                fig.canvas.flush_events()
-                time.sleep(0.01)
-
+                plt.draw()
+                plt.subplots_adjust(wspace=0.35, hspace=0.1, left=0.05, right=0.95, top=0.95, bottom=0.05)
+                if step_by_step:
+                    input()
+                else:
+                    fig.canvas.draw()
+                    # to flush the GUI events
+                    fig.canvas.flush_events()
+                    time.sleep(0.01)
             plt.clf()
         else:
             return fig, ax
+
+    if video_save_path is not None:
+        os.chdir(video_save_temp_path)
+        subprocess.call([
+            'ffmpeg', '-framerate', '10', "-pattern_type", "glob", "-i", "*.png", '-r', '30', '-pix_fmt', 'yuv420p',
+            f'{summary.get("experiment_name", "unknown")}.mp4'
+        ])
+        for file_name in glob.glob("*.png"):
+            os.remove(file_name)
 
 def plot_summary_over_run(summary, data, runi=0, t_start=None, t_end=None, t_step=None, wall_data_tuple=None,
                           history_length=0, show_polarization=True, show_iid=True, show_COM_vel=True, wall_vic_thr=200,

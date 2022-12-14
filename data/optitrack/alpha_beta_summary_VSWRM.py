@@ -22,8 +22,8 @@ print(EXPERIMENT_NAMES)
 WALL_EXPERIMENT_NAME = "../ArenaBorders_02122022"
 indices = [en.split("E2B")[1] for en in EXPERIMENT_NAMES]
 
-wall_ord_tw = [100, 1500]
-wall_iid_tw = [100, 1500]
+wall_ord_tw = [200, 1800]
+wall_iid_tw = [200, 1800]
 mean_ord_after_wall_m = np.zeros((2, len(alphas), len(betas), np.sum(wall_ord_tw)))
 mean_iid_after_wall_m = np.zeros((2, len(alphas), len(betas), np.sum(wall_iid_tw)))
 num_clus_matrix = np.zeros((len(alphas), len(betas)))
@@ -203,6 +203,8 @@ for i in range(len(valid_ts_r)):
 # plt.xlabel("$\\beta_0$")
 # plt.ylabel("time ratio [%]")
 # plt.legend()
+
+
 fig, ax = plt.subplots(len(alphas), len(betas))
 # mean_mean_ord_after_wall_m = np.mean(mean_ord_after_wall_m, axis=2)
 # std_mean_ord_after_wall_m = np.std(mean_ord_after_wall_m, axis=2)
@@ -220,7 +222,35 @@ for a in range(len(alphas)):
         plt.xticks([i for i in range(0, np.sum(wall_ord_tw), 100)], [i for i in range(-wall_ord_tw[0], wall_ord_tw[1], 100)])
         plt.ylabel("order [AU]")
 
+fig, ax = plt.subplots(len(alphas), len(betas), sharey=True)
+# mean_mean_ord_after_wall_m = np.mean(mean_ord_after_wall_m, axis=2)
+# std_mean_ord_after_wall_m = np.std(mean_ord_after_wall_m, axis=2)
+plt.suptitle("Typical Order profile after wall reflection")
+for a in range(len(alphas)):
+    for b in range(len(betas)):
+        plt.axes(ax[a, b])
+        plt.title(f"$alpa_0$={alphas[a]}, $beta_0$={betas[b]}")
+        plt.plot(mean_ord_after_wall_m[0, a, b, :])
+        # plt.fill_between([i for i in range(np.sum(wall_ord_tw))], mean_mean_ord_after_wall_m[0, a, :] - std_mean_ord_after_wall_m[0, a, :],
+        #                  mean_mean_ord_after_wall_m[0, a, :] + std_mean_ord_after_wall_m[0, a, :], alpha=0.2)
+        plt.vlines(wall_ord_tw[0], np.min(mean_ord_after_wall_m[0, a, b, :]),
+                   np.max(mean_ord_after_wall_m[0, a, b, :]), colors="red")
+        plt.xlabel("dt [ts]")
+        plt.xticks([i for i in range(0, np.sum(wall_ord_tw), 100)], [i for i in range(-wall_ord_tw[0], wall_ord_tw[1], 100)])
+        plt.ylabel("order [AU]")
 
+fig, ax = plt.subplots(len(alphas), len(betas), sharey=True)
+plt.suptitle("Typical Order profile after wall reflection")
+for a in range(len(alphas)):
+    for b in range(len(betas)):
+        plt.axes(ax[a, b])
+        plt.title(f"$alpa_0$={alphas[a]}, $beta_0$={betas[b]}")
+        plt.plot(mean_iid_after_wall_m[0, a, b, :])
+        plt.vlines(wall_ord_tw[0], np.min(mean_iid_after_wall_m[0, a, b, :]),
+                   np.max(mean_iid_after_wall_m[0, a, b, :]), colors="red")
+        plt.xlabel("dt [ts]")
+        plt.xticks([i for i in range(0, np.sum(wall_ord_tw), 100)], [i for i in range(-wall_ord_tw[0], wall_ord_tw[1], 100)])
+        plt.ylabel("IID [mm]")
 
 fig, ax = plt.subplots(2, 3)
 polrats_over_exps_mean = np.mean(polrats_over_exps, axis=1)

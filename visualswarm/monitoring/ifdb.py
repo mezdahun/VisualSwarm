@@ -2,7 +2,10 @@
 @author: mezdahun
 @description: Helper functions for InfluxDB
 """
-from influxdb import InfluxDBClient
+try:
+    from influxdb import InfluxDBClient
+except:
+    pass
 
 from visualswarm import env
 

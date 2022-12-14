@@ -8,9 +8,9 @@ from visualswarm.simulation_tools import data_tools, plotting_tools
 import os
 import matplotlib.pyplot as plt
 
-data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
-EXPERIMENT_NAMES = ["E214r1"]
-WALL_EXPERIMENT_NAME = "../ArenaBorders"
+data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2B"
+EXPERIMENT_NAMES = ["E2B11_r1"]
+WALL_EXPERIMENT_NAME = "ArenaBorders_r1"
 
 for EXPERIMENT_NAME in EXPERIMENT_NAMES:
     # if data is freshly created first summarize it into multidimensional array
@@ -46,13 +46,16 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
     print(len(valid_ts))
     # replaying experiment
     plotting_tools.plot_replay_run(summary, data,
-                                   history_length=1000,
+                                   history_length=1200,
                                    wall_data_tuple=wall_data_tuple,
                                    step_by_step=False,
-                                   t_start=11000,
-                                   t_step=30,
-                                   use_clastering=False,
+                                   t_start=50000,
+                                   # t_end=-1,
+                                   t_step=60,
+                                   use_clastering=True,
                                    mov_avg_w=30,
-                                   vis_window=300,
-                                   force_recalculate=True)
+                                   vis_window=1200,
+                                   force_recalculate=False,
+                                   video_save_path=f"/home/david/Desktop/test_video/{EXPERIMENT_NAME}",
+                                   show_COM_vel=False)
 

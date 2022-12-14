@@ -14,6 +14,7 @@ data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
 EXPERIMENT_NAMES = []
 show_change = "alpha"  # or beta
 calc_profiles = False  # slow if true
+show_scatters = True
 if show_change == "alpha":
     alpha_base = "E21"  # when changing alpha
     alphas = [0, 20, 120, 180, 320]
@@ -59,7 +60,9 @@ coll_times = np.zeros((2, len(alphas), num_runs))
 
 valid_ts_r, min_iids_r, mean_iids_r, mean_pols_r = [], [], [], []
 # only alphas
-# fig, ax = plt.subplots(len(alphas), num_runs)
+if show_scatters:
+    fig1, ax1 = plt.subplots(len(alphas), 4, sharey=True, sharex=True)
+    fig2, ax2 = plt.subplots(len(alphas), 4, sharey=True, sharex=True)
 for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
     print(f"Processing file {EXPERIMENT_NAME}")
     ri_orig = int(EXPERIMENT_NAME.split("r")[1].split(".")[0]) - 1
@@ -116,7 +119,7 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
                                                                                                                   0,
                                                                                                                   agent_reflection_times,
                                                                                                                   wall_reflection_times,
-                                                                                                                  window_after=500,
+                                                                                                                  window_after=150,
                                                                                                                   window_before=0,
                                                                                                                   force_recalculate=False)
 
@@ -147,6 +150,43 @@ for ei, EXPERIMENT_NAME in enumerate(EXPERIMENT_NAMES):
         # # Histogram of I.I.D matrix
         # plt.axes(ax[a, ri])
         # plt.hist(mean_pol_vals[valid_ts], bins=30
+
+        if show_scatters:
+            # # # IID-ORD space
+            ax1[a, 0].scatter(mean_iid[0, ::30], ord[0, ::30], c="grey", s=0.2, label="all")
+            ax1[a, 0].set_title(f"all ${show_change}_0$={alphas[a]}")
+            # plt.axes(ax1[a, 1])
+            ax1[a, 1].scatter(mean_iid[0, ::30], ord[0, ::30], c="grey", s=0.2, label="all")
+            ax1[a, 1].scatter(mean_iid[0, wall_reflection_times], ord[0, wall_reflection_times], c="red", s=0.3, label="wall reflections")
+            ax1[a, 1].set_title(f"wall ${show_change}_0$={alphas[a]}")
+            # plt.axes(ax1[a, 2])
+            ax1[a, 2].scatter(mean_iid[0, ::30], ord[0, ::30], c="grey", s=0.2, label="all")
+            ax1[a, 2].scatter(mean_iid[0, agent_reflection_times], ord[0, agent_reflection_times], c="blue", s=0.3, label="agent reflections")
+            ax1[a, 2].set_title(f"agent ${show_change}_0$={alphas[a]}")
+            # plt.axes(ax1[a, 3])
+            ax1[a, 3].scatter(mean_iid[0, [valid_ts[t] for t in range(0, len(valid_ts), 30)]], ord[0, [valid_ts[t] for t in range(0, len(valid_ts), 30)]],
+                        c="green", s=0.1, label="after filtering")
+            ax1[a, 3].set_title(f"filtered ${show_change}_0$={alphas[a]}")
+
+            # # X-Y space
+            plt.axes(ax2[a, 0])
+            plt.scatter(data[0, :, 1, ::30], data[0, :, 3, ::30], c="grey", s=0.2, label="all")
+            plt.title(f"all ${show_change}_0$={alphas[a]}")
+            plt.axes(ax2[a, 1])
+            plt.scatter(data[0, :, 1, ::30], data[0, :, 3, ::30], c="grey", s=0.2, label="all")
+            plt.scatter(data[0, :, 1, wall_reflection_times], data[0, :, 3, wall_reflection_times], c="red", s=0.3,
+                        label="wall reflections")
+            plt.title(f"wall ${show_change}_0$={alphas[a]}")
+            plt.axes(ax2[a, 2])
+            plt.scatter(data[0, :, 1, ::30], data[0, :, 3, ::30], c="grey", s=0.2, label="all")
+            plt.scatter(data[0, :, 1, agent_reflection_times], data[0, :, 3, agent_reflection_times], c="blue", s=0.3,
+                        label="agent reflections")
+            plt.title(f"agent ${show_change}_0$={alphas[a]}")
+            plt.axes(ax2[a, 3])
+            plt.scatter(data[0, :, 1, [valid_ts[t] for t in range(0, len(valid_ts), 30)]],
+                        data[0, :, 3, [valid_ts[t] for t in range(0, len(valid_ts), 30)]],
+                        c="green", s=0.1, label="after filtering")
+            plt.title(f"filtered ${show_change}_0$={alphas[a]}")
 
         # Calculating acceleration values
         print(abs_vel.shape)
