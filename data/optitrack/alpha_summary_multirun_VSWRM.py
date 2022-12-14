@@ -14,12 +14,12 @@ data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
 EXPERIMENT_NAMES = []
 show_change = "alpha"  # or beta
 calc_profiles = False  # slow if true
-if show_change == "beta":
+if show_change == "alpha":
     alpha_base = "E21"  # when changing alpha
-    alphas = [0, 20, 120, 180]
+    alphas = [0, 20, 120, 180, 320]
 else:
     alpha_base = "E22"  # when changing beta
-    alphas = [0.001, 0.1, 1, 6]
+    alphas = [0.001, 0.1, 1, 6, 14]
 num_runs = 4
 runs = [0, 1, 2, 3]
 alpha_pattern = os.path.join(data_path, f"{alpha_base}*.csv")
@@ -28,8 +28,8 @@ EXPERIMENT_NAMES = [pat.split(".")[0] for pat in EXPERIMENT_NAMES]
 
 WALL_EXPERIMENT_NAME = "ArenaBorders"
 
-wall_ord_tw = [200, 800]
-wall_iid_tw = [200, 1200]
+wall_ord_tw = [200, 1800]
+wall_iid_tw = [200, 1800]
 hist_res = 15
 mean_ord_after_wall_m = np.zeros((2, len(alphas), num_runs, np.sum(wall_ord_tw)))
 mean_iid_after_wall_m = np.zeros((2, len(alphas), num_runs, np.sum(wall_iid_tw)))
@@ -431,7 +431,7 @@ mean_aac = coll_times[1].mean(axis=1)
 std_aac = coll_times[1].std(axis=1)
 fig, ax = plt.subplots(1, 2)
 plt.axes(ax[0])
-plt.imshow(iid_matrix_final.T)
+plt.imshow(coll_times[1].T)
 plt.title("Agent-agent collision times")
 plt.xticks([i for i in range(len(alphas))], alphas)
 plt.yticks([i for i in range(num_runs)])
