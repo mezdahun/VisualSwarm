@@ -660,7 +660,7 @@ def calculate_avg_metric_after_wall_refl(metric_m, wall_refl, time_windows):
     for t in wall_refl:
         if t+time_windows[1] < num_t and t-time_windows[0] > 0:
             snippet = metric_m[t-time_windows[0]:t+time_windows[1]]
-            snippet = (snippet - np.min(snippet)) / (np.max(snippet) - np.min(snippet))
+            # snippet = (snippet - np.min(snippet)) / (np.max(snippet) - np.min(snippet))
             if snips is None:
                 snips = snippet
             else:
