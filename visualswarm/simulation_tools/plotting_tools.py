@@ -175,20 +175,21 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             ori = data[runi, :, 4, t]
             plt.scatter(x, y, s=ms, c=colors)
 
-            # Showing reflected agents
-            refid_w = []
-            refid_a = []
+            if wall_data_tuple is not None:
+                # Showing reflected agents
+                refid_w = []
+                refid_a = []
 
-            for k, v in wall_refl_dict[str(runi)].items():
-                if t in v:
-                    refid_w.append(int(k))
+                for k, v in wall_refl_dict[str(runi)].items():
+                    if t in v:
+                        refid_w.append(int(k))
 
-            for k, v in ag_refl_dict[str(runi)].items():
-                if t in v:
-                    refid_a.append(int(k))
+                for k, v in ag_refl_dict[str(runi)].items():
+                    if t in v:
+                        refid_a.append(int(k))
 
-            plt.scatter(x[refid_w], y[refid_w], s=ms, c="red")
-            plt.scatter(x[refid_a], y[refid_a], s=ms, c="blue")
+                plt.scatter(x[refid_w], y[refid_w], s=ms, c="red")
+                plt.scatter(x[refid_a], y[refid_a], s=ms, c="blue")
 
             for ri in range(num_robots):
                 plt.annotate(ri, (x[ri], y[ri] + 0.2))
@@ -333,9 +334,10 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
             # # plotting mean agent_wall distance
-            plt.plot([k for k in range(t - vis_window, t + 5)], mean_wall_dist[t - vis_window:t + 5],
-                     label="Mean a.-w. dist.",
-                     color="red")
+            if wall_data_tuple is not None:
+                plt.plot([k for k in range(t - vis_window, t + 5)], mean_wall_dist[t - vis_window:t + 5],
+                         label="Mean a.-w. dist.",
+                         color="red")
             plt.plot([k for k in range(t - vis_window, t + 5)], mean_iid[0, t - vis_window:t + 5], label="Mean I.I.D",
                      color="blue")
             plt.hlines(iid_of_interest, t - vis_window, t + 5, color="grey", label="IID of interest")
@@ -379,9 +381,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
 
     if video_save_path is not None:
         os.chdir(video_save_temp_path)
-        subprocess.call([
-            'ffmpeg', '-framerate', '10', "-pattern_type", "glob", "-i", "*.png", '-r', '30', '-pix_fmt', 'yuv420p',
-            f'{summary.get("experiment_name", "unknown")}.mp4'
+        subprocess.call(['ffmpeg', '-framerate', '10', "-pattern_type", "glob", "-i", "*.png", '-r', '30', '-pix_fmt', 'yuv420p', f'{summary.get("experiment_name", "unknown")}.mp4'
         ])
         for file_name in glob.glob("*.png"):
             os.remove(file_name)
