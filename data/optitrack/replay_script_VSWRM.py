@@ -49,13 +49,13 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
                                    history_length=1200,
                                    wall_data_tuple=wall_data_tuple,
                                    step_by_step=False,
-                                   t_start=50000,
+                                   t_start=1200,
                                    # t_end=-1,
                                    t_step=60,
                                    use_clastering=True,
                                    mov_avg_w=30,
                                    vis_window=1200,
                                    force_recalculate=False,
-                                   video_save_path=f"/home/david/Desktop/test_video/{EXPERIMENT_NAME}",
+                                   video_save_path=None, #f"/home/david/Desktop/test_video/{EXPERIMENT_NAME}",
                                    show_COM_vel=False)
 
