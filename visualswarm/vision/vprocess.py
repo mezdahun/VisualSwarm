@@ -68,6 +68,25 @@ def get_latest_element(queue):
             return val
     return val
 
+
+def return_false_negative_rate(blob_center, blob_size, retina_length):
+    """Generating position dependent false negative rate to model larger false negative detection rates on periphery"""
+    MIN_RATE = 0.01
+    MAX_RATE = 0.05
+    # linear
+    b = retina_length/2
+    c = MAX_RATE - MIN_RATE
+    rate = abs(c-(c/b)*blob_center) + MIN_RATE
+
+    critical_bs = 15
+    if blob_size > critical_bs:
+        size_multiplier = 1
+    else:  # for small blobs we increase flase negatives
+        size_multiplier = (blob_size/critical_bs) * 3
+    rate = rate * size_multiplier
+    logger.warning(f"generating false det rate {rate} for blob with center {blob_center}, bs {blob_size}, retl: {retina_length}")
+    return rate
+
 def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
                       target_config_stream=None):
     """
@@ -92,7 +111,15 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             if vision.RECOGNITION_TYPE == "Color":
 
-                (img, frame_id, capture_timestamp) = raw_vision_stream.get()
+                (img_raw, frame_id, capture_timestamp) = raw_vision_stream.get()
+
+                # cutting back raw image according to real fov of sensor
+                # cutting back mask according to real FOV
+                w_start = int(img_raw.shape[1] / 2) - int(camera.RESOLUTION[0] / 2)
+                w_end = w_start + camera.RESOLUTION[0]
+                logger.error(f"w start: {w_start}, w end: {w_end}")
+                img = img_raw[:, w_start:w_end]
+
                 # logger.info(raw_vision_stream.qsize())
                 if vision.FIND_COLOR_INTERACTIVE:
                     if target_config_stream is not None:
@@ -123,24 +150,31 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
             cv2.drawContours(img, fconts, -1, vision.RAW_CONTOUR_COLOR, vision.RAW_CONTOUR_WIDTH)
 
             # final mask
-            blurred_ext = np.zeros_like(blurred)
-
-            # cutting back mask according to real FOV
-            w_start = int(blurred.shape[1] / 2) - int(camera.RESOLUTION[0] / 2)
-            w_end = w_start + camera.RESOLUTION[0]
+            blurred_ext = np.zeros([img.shape[0], img.shape[1] + 2 * img.shape[0]])
+            logger.error(f"img: {img.shape}, blurred: {blurred.shape}, blurred_ext: {blurred_ext.shape}")
 
             for c in fconts:
                 x, y, w, h = cv2.boundingRect(c)
-                if w_start <= x <= w_end or w_start <= x+w <= w_end:
-                    cv2.rectangle(blurred_ext, (x, y), (x + w, y + h), (255, 255, 255), -1)
+                x += img.shape[0]
+                # adding
+                x_noise = np.round(np.random.normal(0, 1))
+                x = int(x + x_noise)
+                if w >= visualswarm.contrib.vision.MIN_BLOB_WIDTH:
+                    if w_start <= x <= w_end or w_start <= x+w <= w_end:
+                        blob_center = int((x+w)/2)
+                        false_neg_rate = return_false_negative_rate(blob_center, w, blurred_ext.shape[1])
+                        if np.random.uniform(0, 1) < (1-false_neg_rate):  # introducing some random false negative detection 5%
+                            cv2.rectangle(blurred_ext, (x, y), (x + w, y + h), (255, 255, 255), -1)
+                        else:
+                            logger.warning("False negative detection!")
 
 
             # Forwarding result to VPF extraction
-            high_level_vision_stream.put((img[:, w_start:w_end], blurred_ext, frame_id, capture_timestamp))
+            high_level_vision_stream.put((img, blurred_ext, frame_id, capture_timestamp))
 
             # Forwarding result for visualization if requested
             if visualization_stream is not None:
-                visualization_stream.put((img[:, w_start:w_end], blurred_ext, frame_id))
+                visualization_stream.put((img, blurred_ext, frame_id))
 
             # To test infinite loops
             if env.EXIT_CONDITION:
