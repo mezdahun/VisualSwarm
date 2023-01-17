@@ -744,6 +744,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     t5 = datetime.utcnow()
                     logger.info(f'total vision_rate: {1 / (t5 - t0).total_seconds()}')
 
+                    logger.error(f"t: {datetime.utcnow()}, frid: {frame_id}")
+
                     frame_id += 1
             except KeyboardInterrupt:
                 try:
