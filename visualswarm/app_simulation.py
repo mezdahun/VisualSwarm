@@ -144,6 +144,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         dt_image = t1 - t0
                         avg_times[1] += dt_image
                         timer_counts[1] += 1
+                        time.sleep(0.01)
 
                     # Thymio updates sensor values on predefined frequency
                     if (sensor_get_time / 1000) > (1 / simulation.UPFREQ_PROX_HORIZONTAL):
@@ -164,6 +165,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         dt_prox = t1 - t0
                         avg_times[2] += dt_prox
                         timer_counts[2] += 1
+                        time.sleep(0.01)
 
                     # Acting on robot devices according to controller
                     if webots_do_stream.qsize() > 0:
@@ -177,6 +179,7 @@ def webots_entrypoint(robot, devices, timestep, with_control=False):
                         dt_webotsdo = t1 - t0
                         avg_times[3] += dt_webotsdo
                         timer_counts[3] += 1
+                        time.sleep(0.01)
 
                     # increment virtual time counters
                     sensor_get_time += timestep
