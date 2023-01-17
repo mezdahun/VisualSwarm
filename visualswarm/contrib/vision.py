@@ -59,6 +59,7 @@ HSV_HIGH = np.uint8([TARGET_HSV_COLOR[0][0][0] + HSV_HUE_RANGE, SV_MAXIMUM, SV_M
 GAUSSIAN_KERNEL_WIDTH = 1  # 15
 MEDIAN_BLUR_WIDTH = 1  # 9
 MIN_BLOB_AREA = 0
+MIN_BLOB_WIDTH = 3
 
 # Visual Projection
 # for simulation keet FOV=2*pi and use REAL_FOV to then cut the resulting image
