@@ -62,12 +62,12 @@ AVOID_TURN_DIRECTION = 'Various'  # or 'Various'
 EMERGENCY_CHECK_FREQ = 10
 
 # Threshold value on horizontal proximity sensors that triggers obstacle avoidance
-EMERGENCY_PROX_THRESHOLD = 1500  # for simulations use 3000 (in RL 1500 is ca 10cm, 2500 is 5cm for white surfaces)
-EMERGENCY_PROX_THRESHOLD_BACK = 1500
+EMERGENCY_PROX_THRESHOLD = 2500  # for simulations use 3000 (in RL 1500 is ca 10cm, 2500 is 5cm for white surfaces)
+EMERGENCY_PROX_THRESHOLD_BACK = 2500
 
 # angle to turn away from obstacle during obstacle avoidance.
 turn_angle_correction = 30
-desired_alignemnt_angle = 25  # for simulations use 30
+desired_alignemnt_angle = 30  # for simulations use 30
 OBSTACLE_TURN_ANGLE = desired_alignemnt_angle + turn_angle_correction
 
 # PENDULUM TRAP
