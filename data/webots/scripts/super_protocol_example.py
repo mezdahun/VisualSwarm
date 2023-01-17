@@ -15,29 +15,36 @@ from visualswarm.simulation_tools import webots_tools
 # Motor scaling
 KAPPA = 80
 # Simulation timesteps
-SIMULATION_TIME = 20 * 60
+SIMULATION_TIME_MIN = 35  # in minutes
+SIMULATION_TIME = SIMULATION_TIME_MIN * 60
 # Number of robots
 num_robots = 10
 # Number of repetitions per parameter combo
-num_runs = 1
+num_runs = 4
 # Number of maximum parallel webots processes
-num_max_processes = 8
+num_max_processes = 5
 
 # Name of experiment (batch)
-BATCH_NAME = f"RealExperiments_Exploration_{num_robots}bots"
+BATCH_NAME = f"RealExperiments_EXP2.1_{num_robots}bots_withMass135_DynVisionNoise_MotorNoise_FOV205deg"
 
 # Setting up tuned parameters
-alphas = [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 3, 5]
-bethas = [0, 0.01, 0.1, 0.25, 0.5, 0.75, 1, 3, 5]
-FOV_percent = 0.55
+# Field of View
+FOV_percent = 0.57  # 210deg
 FOV = FOV_percent * 2 * np.pi
+
+# Behavioral Parameters (tuning alpha and Beta)
+# Exp.2.1 - Tuning Alpha while Beta large
+alpha_1 = beta_1 = 0.0014
+alphas = [0, 0.25, 1.5, 2.25, 4]
+bethas = [8]
+
 
 # Define path for saving
 save_path = "/mnt/DATA/mezey/Seafile/SwarmRobotics/VisualSwarm Simulation Data"
 save_path = os.path.join(save_path, BATCH_NAME)
 
 # Path of world file
-wbt_path = f"/home/mezey/Webots_VSWRM/VisualSwarm/data/webots/VSWRM_WeBots_Project/worlds/VSWRM_{num_robots}Bots_OptiTrackArena.wbt"
+wbt_path = f"/home/mezey/Webots_VSWRM/VisualSwarm/data/webots/VSWRM_WeBots_Project/worlds/VSWRM_{num_robots}Bots_OptiTrackArena_withPhysics.wbt"
 
 # Controller folder path
 cont_folder = "/home/mezey/Webots_VSWRM/VisualSwarm/data/webots/VSWRM_WeBots_Project/controllers/VSWRM-controller"
@@ -50,6 +57,7 @@ for alpi, alpha_0 in enumerate(alphas):
         run_i = 0
         while run_i < num_runs:
 
+            time.sleep(1)
             num_running_processes = len(subprocess.run(["pgrep", "webots"], stdout=subprocess.PIPE).stdout.decode('utf-8').split("\n")) - 1
             num_running_processes = num_running_processes / 2
             print(f"Found {num_running_processes} webots processes, {num_max_processes-num_running_processes} free slots available.")
@@ -74,7 +82,7 @@ for alpi, alpha_0 in enumerate(alphas):
                 webots_tools.generate_robot_config(robot_names, position_type, orientation_type, initial_condition_path)
                 print("Generated robot config for all runs!")
 
-                EXPERIMENT_NAME = f"TestAfterLongPause_An{alpha_0}_Bn{betha_0}_{num_robots}bots_FOV{FOV}"
+                EXPERIMENT_NAME = f"Exp21_An{alpha_0}_Bn{betha_0}_{num_robots}bots"
                 print(f"Simulating runs for experiment {EXPERIMENT_NAME} with alpha0={alpha_0}, betha0={betha_0}")
 
                 # Generate behavior parameters under behave_params path
@@ -82,10 +90,10 @@ for alpi, alpha_0 in enumerate(alphas):
                     "GAM": 0.1,
                     "V0": KAPPA,
                     "ALP0": KAPPA * alpha_0,
-                    "ALP1": 0.0012,
+                    "ALP1": alpha_1,
                     "ALP2": 0,
                     "BET0": betha_0,
-                    "BET1": 0.0012,
+                    "BET1": beta_1,
                     "BET2": 0,
                     "KAP": 1
                 }
@@ -94,6 +102,10 @@ for alpi, alpha_0 in enumerate(alphas):
                 pprint(behavior_params)
 
                 print(f"Number of Runs: {num_runs}")
+                if run_i <= 2:
+                    save_video = True
+                else:
+                    save_video = False
 
                 # making base link via environmental variables between webots and this script
                 # env_config_path should be the same in this script and the controller code in webots
@@ -105,7 +117,7 @@ for alpi, alpha_0 in enumerate(alphas):
                     'SPARE_RESCOURCES': str(int(True)),
                     'BORDER_CONDITIONS': "Reality",
                     'WEBOTS_SAVE_SIMULATION_DATA': str(int(True)),
-                    'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(True)),  # save video automatically
+                    'WEBOTS_SAVE_SIMULATION_VIDEO': str(int(save_video)),  # save video automatically
                     'WEBOTS_SIM_SAVE_FOLDER': os.path.join(save_path, EXPERIMENT_NAME),
                     'PAUSE_SIMULATION_AFTER': str(SIMULATION_TIME),
                     'PAUSE_BEHAVIOR': 'Quit',  # important to quit when batch simulation scripts are used
@@ -120,13 +132,15 @@ for alpi, alpha_0 in enumerate(alphas):
                 webots_tools.write_config(env_config_dict, env_config_path)
                 print(f"\nGenerated environment config as:\n")
                 pprint(env_config_dict)
+                time.sleep(1)
 
                 # call webots to run world file
                 print("\n\n ---------- NEW WEBOTS RUN ----------")
                 # To start N webots processes parallel
-                os.system(f"WEBOTS_CONFBASEPATH={base_path} nohup env WEBOTS_CONFBASEPATH={base_path} webots --mode=realtime --stdout --stderr --minimize {wbt_path} &")
+                os.system(f"WEBOTS_CONFBASEPATH={base_path} nohup env WEBOTS_CONFBASEPATH={base_path} webots --mode=realtime --batch --stdout --stderr --minimize {wbt_path} &")
                 # To start webots processing one by one after each other
                 # os.system(f"WEBOTS_CONFBASEPATH={base_path} webots --mode=realtime --stdout --stderr --minimize {wbt_path} &")
+                time.sleep(1)
                 print('Started simulation\n\n\n')
                 print(f'PROGRESS: {(donei/(len(alphas)*len(bethas)*num_runs))*100}%')
                 donei += 1
