@@ -8,6 +8,7 @@ from visualswarm.simulation_tools import webots_tools
 
 sbasepath = "/mnt/DATA/mezey/VSWRMSimulationData"  # os.path.dirname(os.path.abspath(__file__))
 confbasebath = os.getenv('WEBOTS_CONFBASEPATH', os.path.dirname(os.path.abspath(__file__)))
+# confbasebath = "/home/mezey/Webots_VSWRM/VisualSwarm/data/webots/VSWRM_WeBots_Project/controllers/VSWRM-controller/conf_000[80]"
 
 ####### START CONFIG ######
 
