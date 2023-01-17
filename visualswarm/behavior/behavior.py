@@ -174,9 +174,6 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             #     #raise KeyboardInterrupt('DV decreased to zero and already 5 sec gone from experiment!!!')
             #     return
 
-            # DEBUG
-            dpsi = 1
-
             # prev_sign = now_sign
             t_prev = t_now
 
