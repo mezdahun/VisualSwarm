@@ -64,15 +64,21 @@ MIN_BLOB_AREA = 0
 # for simulation keet FOV=2*pi and use REAL_FOV to then cut the resulting image
 # for real robots FOV will decide the FOV of robots
 if simulation.ENABLE_SIMULATION:
-    FOV = 2 * np.pi
-    REAL_FOV = float(os.getenv('ROBOT_FOV', '6.28'))
+    FOV = 2 * np.pi  # FOV of Webots sensor, don't change, always capture full image and restrict during detection
+    REAL_FOV = float(os.getenv('ROBOT_FOV', '6.28'))  # FOV of detection, which part of sensor is usable
+    VIRTUAL_FOV = 8.5 #7.065 #8.5  # FOV of extended projection map with which PHI is calculated due to FOV mismatch
 else:
     FOV = float(os.getenv('ROBOT_FOV', '6.28'))
 
 H_MARGIN = 1  # 10
 W_MARGIN = 1  # 10
-PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
-PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
+if not simulation.ENABLE_SIMULATION:
+    PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
+    PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
+else:
+    # generating mismatch between sensor FOV and calculation FOV for PHI
+    PHI_START = - (VIRTUAL_FOV / 2)  # * pi  # -0.5394 * pi
+    PHI_END = (VIRTUAL_FOV / 2)
 
 # Fisheye lens approximate horizontal correction
 # offsets: in pixel from left and right (with input resolution width 320px)
