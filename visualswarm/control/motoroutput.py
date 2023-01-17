@@ -598,6 +598,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 # Behavior according to Romanczuk and Bastien 2020
                                 # distributing desired forward speed according to dpsi
                                 [v_left, v_right] = distribute_overall_speed(v, dpsi)
+                                logger.info(f"vl:{v_left}, vr:{v_right}")
 
                                 # hard limit motor velocities but keep their ratio for desired movement
                                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
@@ -611,7 +612,9 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
 
                                 else:   # pragma: simulation no cover
+                                    latest_control_comm = get_latest_element(webots_do_stream)
                                     webots_do_stream.put(("SET_MOTOR", {'left': v_left, 'right': v_right}))
+                                    logger.info(f"webots_do_stream len: {webots_do_stream.qsize()}")
 
                                 logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
                                 # last time we changed velocity according to BEHAVIOR REGIME
