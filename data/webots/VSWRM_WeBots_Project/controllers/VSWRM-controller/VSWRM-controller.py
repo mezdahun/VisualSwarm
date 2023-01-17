@@ -98,7 +98,7 @@ def setup_leds(robot):
 def setup_camera(robot):
     # create and enable the camera on the robot
     camera = Camera("rPi4_Camera_Module_v2.1")
-    sampling_freq = 8  # Hz
+    sampling_freq = 5  # Hz
     sampling_period = int(1 / sampling_freq * 1000)
     camera.enable(sampling_period)
 
