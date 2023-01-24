@@ -671,6 +671,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             b_width = xmax_orig - xmin_orig
                             b_height = ymax - ymin
                             b_area = b_width * b_height
+                            print(f"Box width: {b_width}px")
                             print(f"Box area: {b_area}px")
 
                             # extending partial detections on perphery assuming cubic bodies
