@@ -81,7 +81,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                     vis_window=1500, wall_vic_thr=200, agent_dist_thr=275, mov_avg_w=10,
                     force_recalculate=False, turn_thr=0.02, return_fig=False,
                     with_trajectory=True, valid_ts=None, show_min_iid=False, iid_of_interest=1250, iid_tolerance=250,
-                    video_save_path=None):
+                    video_save_path=None, meas_ts=1):
     """Replaying experiment from summary and data in matplotlib plot"""
     if video_save_path is not None:
         video_save_temp_path = os.path.join(video_save_path, "temp")
@@ -146,6 +146,12 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                                          mov_avg_w=mov_avg_w, wall_vic_thr=wall_vic_thr,
                                          agent_dist_thr=agent_dist_thr, force_recalculate=force_recalculate,
                                          turn_thr=turn_thr)
+    com_vel = com_vel/meas_ts
+    m_com_vel = m_com_vel / meas_ts
+    m_abs_vel = m_abs_vel/meas_ts
+    turning_rates = turning_rates/meas_ts
+    ma_turning_rates = ma_turning_rates/meas_ts
+
 
     # valid_ts_iid = data_tools.return_validts_iid(mean_iid[runi], iid_of_interest=iid_of_interest,
     #                                              tolerance=iid_tolerance)
@@ -267,17 +273,17 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             try:
                 # plt.plot([k for k in range(t - vis_window, t + 5)], mean_pol_vals[t - vis_window:t + 5], color="black",
                 #          label="Mean Pol.")
-                plt.plot([k for k in range(t - vis_window, t + 5)], ord[runi, t - vis_window:t + 5], color="blue",
+                plt.plot([k/meas_ts for k in range(t - vis_window, t + 5)], ord[runi, t - vis_window:t + 5], color="blue",
                          label="Mean Ord.")
             except:
                 pass
             if wall_coordinates is not None:
-                wall_reflection_times_chunk = [tx for tx in wall_reflection_times if t - vis_window < tx < t + 5]
+                wall_reflection_times_chunk = [tx/meas_ts for tx in wall_reflection_times if t - vis_window < tx < t + 5]
                 if valid_ts is None:
                     plt.scatter(wall_reflection_times_chunk, [1 for k in range(len(wall_reflection_times_chunk))],
                                 c="red", label="wall refl.")
                     plt.vlines(wall_reflection_times_chunk, -1, 1, color="red", alpha=0.05)
-                    agent_reflection_times_chunk = [tx for tx in agent_reflection_times if t - vis_window < tx < t + 5]
+                    agent_reflection_times_chunk = [tx/meas_ts for tx in agent_reflection_times if t - vis_window < tx < t + 5]
                     plt.scatter(agent_reflection_times_chunk, [1 for k in range(len(agent_reflection_times_chunk))],
                                 c="blue", label="agent refl.")
                     plt.vlines(agent_reflection_times_chunk, -1, 1, color="blue", alpha=0.05)
@@ -287,7 +293,7 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
                                 c="red", label="nonvalid t.")
                     plt.vlines(nonvalid_chunk, -1, 1, color="red", alpha=0.05)
 
-            plt.vlines(t, ord[runi, t] - 0.1, ord[runi, t] + 0.1)
+            plt.vlines(t/meas_ts, ord[runi, t] - 0.1, ord[runi, t] + 0.1)
             plt.ylim(0, 1.1)
             plt.ylabel("Pol. $\\in$ [-1, 1]")
             plt.legend(loc="upper left")
@@ -295,11 +301,11 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             # plotting turning rate
             ax2 = ax[plot_row, plot_col].twinx()
             plt.axes(ax2)
-            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
+            plt.plot([k/meas_ts for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
                      ma_turning_rates[runi, :, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="grey")
 
-            plt.hlines(turn_thr, t - vis_window, t + 5, ls="--", color="grey", label="Turn r. thr.")
-            plt.ylim(0, 0.2)
+            plt.hlines(turn_thr, (t - vis_window)/meas_ts, (t + 5)/meas_ts, ls="--", color="grey", label="Turn r. thr.")
+            # plt.ylim(0, 0.1)
             plt.legend(loc="lower left")
             plt.ylabel("Turning rate [rad/ts]")
             plot_i += 1
@@ -309,20 +315,20 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
             # # plotting mean agent_wall distance
-            plt.plot([k for k in range(t - vis_window, t + 5)], min_wall_dist[t - vis_window:t + 5],
+            plt.plot([k/meas_ts for k in range(t - vis_window, t + 5)], min_wall_dist[t - vis_window:t + 5],
                      label="Min a.-w. dist.",
                      color="red")
             plt.ylabel("Min a.-w. dist. [mm]")
-            plt.hlines(wall_vic_thr, t - vis_window, t + 5, ls="--", color="red", label="A.-W. thr.")
+            plt.hlines(wall_vic_thr, (t - vis_window)/meas_ts, (t + 5)/meas_ts, ls="--", color="red", label="A.-W. thr.")
             plt.legend(loc="upper left")
             # plt.ylim(0, 600)
 
             # plotting minimum interindividual distance
             ax2 = ax[plot_row, plot_col].twinx()
             plt.axes(ax2)
-            plt.plot([k for k in range(t - vis_window, t + 5)], min_iidm[0, t - vis_window:t + 5], label="Min I.I.D",
+            plt.plot([k/meas_ts for k in range(t - vis_window, t + 5)], min_iidm[0, t - vis_window:t + 5], label="Min I.I.D",
                      color="blue")
-            plt.hlines(agent_dist_thr, t - vis_window, t + 5, ls="--", color="blue", label="IID thr.")
+            plt.hlines(agent_dist_thr, (t - vis_window)/meas_ts, (t + 5)/meas_ts, ls="--", color="blue", label="IID thr.")
             plt.ylabel("Min I.I.D [mm]")
             plt.legend(loc="lower left")
             plt.ylim(0, 600)
@@ -334,15 +340,16 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
             # # plotting mean agent_wall distance
+            t_plot = [k/meas_ts for k in range(t - vis_window, t + 5)]
             if wall_data_tuple is not None:
-                plt.plot([k for k in range(t - vis_window, t + 5)], mean_wall_dist[t - vis_window:t + 5],
+                plt.plot(t_plot, mean_wall_dist[t - vis_window:t + 5],
                          label="Mean a.-w. dist.",
                          color="red")
-            plt.plot([k for k in range(t - vis_window, t + 5)], mean_iid[0, t - vis_window:t + 5], label="Mean I.I.D",
+            plt.plot(t_plot, mean_iid[0, t - vis_window:t + 5], label="Mean I.I.D",
                      color="blue")
-            plt.hlines(iid_of_interest, t - vis_window, t + 5, color="grey", label="IID of interest")
-            plt.hlines(iid_of_interest-iid_tolerance, t - vis_window, t + 5, ls="--", color="grey")
-            plt.hlines(iid_of_interest+iid_tolerance, t - vis_window, t + 5, ls="--", color="grey")
+            plt.hlines(iid_of_interest, (t - vis_window)/meas_ts, (t + 5)/meas_ts, color="grey", label="IID of interest")
+            plt.hlines(iid_of_interest-iid_tolerance, (t - vis_window)/meas_ts, (t + 5)/meas_ts, ls="--", color="grey")
+            plt.hlines(iid_of_interest+iid_tolerance, (t - vis_window)/meas_ts, (t + 5)/meas_ts, ls="--", color="grey")
             # plt.vlines(non_valid_iid_ts, 0, 3000, color="grey", alpha=0.05)
             plt.ylabel("Mean Distance [mm]")
             plt.legend(loc="upper left")
@@ -353,10 +360,11 @@ def plot_replay_run(summary, data, runi=0, t_start=0, t_end=None, t_step=None, s
             plot_col = int(np.floor(plot_i / 2))
             plot_row = 0 if plot_i % 2 == 0 else 1
             plt.axes(ax[plot_row, plot_col])
-            plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
+            t_plot = [k/meas_ts for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))]
+            plt.plot(t_plot,
                      m_com_vel[runi, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="purple", label="COM vel.")
-            # plt.plot([k for k in range(t - vis_window, t + 5 - (mov_avg_w - 1))],
-            #          m_abs_vel[runi, :, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="green", label="agent abs vel.")
+            plt.plot(t_plot,
+                     m_abs_vel[runi, :, t - vis_window: t + 5 - (mov_avg_w - 1)].T, color="green", label="agent abs vel.")
             plt.legend(loc="upper left")
             plt.ylabel("COM vel. [mm/ts]")
             plot_i += 1
