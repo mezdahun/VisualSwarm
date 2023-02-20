@@ -29,8 +29,8 @@ def webots_do(control_args, devices):
         v_left = command_arg['left'] * (simulation.MAX_WEBOTS_MOTOR_SPEED / control.MAX_MOTOR_SPEED)
         v_right = command_arg['right'] * (simulation.MAX_WEBOTS_MOTOR_SPEED / control.MAX_MOTOR_SPEED)
         # add small motor noise
-        v_left = v_left + np.random.normal(0, 0.35)
-        v_right = v_right + np.random.normal(0, 0.35)
+        v_left = v_left + np.random.normal(0, 0.05)
+        v_right = v_right + np.random.normal(0, 0.05)
         logger.debug(f"webots_do move: left {v_left}, right {v_right}")
         devices['motors']['left'].setVelocity(v_left)
         devices['motors']['right'].setVelocity(v_right)
