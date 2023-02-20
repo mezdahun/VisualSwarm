@@ -22,7 +22,8 @@ UPFREQ_PROX_HORIZONTAL = 10  # in Hz
 SPARE_RESCOURCES = bool(int(os.getenv('SPARE_RESCOURCES', '1')))
 
 # Max Thymio motor speed in webots environment
-MAX_WEBOTS_MOTOR_SPEED = 9.53
+MAX_WEBOTS_MOTOR_SPEED = 5.5 #7.25 #7.25 #7.75 #6.5 #5.5 #9.53#8.17 #9.53 #7.74  # 9.53
+WEBOTS_TO_REAL_TURN_SCALE = 4.7619
 
 # Zero angle direction, robot orientation will be calculated as a difference from this vector
 # if an axis is disable in Webots, write nan there here too
