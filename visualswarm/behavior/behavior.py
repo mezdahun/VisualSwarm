@@ -12,6 +12,7 @@ import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import monitoring, simulation, control
 from visualswarm.behavior import statevarcomp
+from visualswarm.control.motoroutput import distribute_overall_speed
 from visualswarm import env
 
 if monitoring.ENABLE_CLOUD_STORAGE:
@@ -101,6 +102,12 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 v = max(v, -300)
 
             v = float(v)
+
+            if simulation.ENABLE_SIMULATION:
+                logger.warning(f"Applying motor rate correction on {dpsi}, would apply {distribute_overall_speed(v, dpsi)}")
+                dpsi = dpsi * simulation.WEBOTS_TO_REAL_TURN_SCALE
+                logger.warning(f"new rate {dpsi}, will apply {distribute_overall_speed(v, dpsi)}")
+
 
             if dpsi > 0:
                 dpsi = min(dpsi, 1)
