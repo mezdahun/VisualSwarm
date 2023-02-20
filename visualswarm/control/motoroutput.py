@@ -1,3 +1,5 @@
+import time
+
 from visualswarm.contrib import simulation
 
 if not simulation.ENABLE_SIMULATION:
@@ -248,6 +250,9 @@ def turn_robot(network, angle, emergency_stream, turning_motor_speed=125, blind_
             # new element
             if not blind_mode:
                 logger.debug('Recursive turning maneuver during obstacle detection...')
+                if simulation.ENABLE_SIMULATION:
+                    # slowing down recursion as simulation is not real time
+                    time.sleep(0.1)
                 turn_avoid_obstacle(network, proximity_values, emergency_stream, webots_do_stream=webots_do_stream)
                 break
             else:
@@ -339,6 +344,8 @@ def stop_robot(network, duration, webots_do_stream=None):
         else:  # pragma: simulation no cover
             webots_do_stream.put(("SET_MOTOR", {'left': float(0),
                                                 'right': float(0)}))
+            # slowing down process as simulation is not real time
+            time.sleep(0.1)
 
 def speed_up_robot(network, additional_motor_speed_multiplier,  # pragma: no cover
                    emergency_stream, protocol_time=0.5):
