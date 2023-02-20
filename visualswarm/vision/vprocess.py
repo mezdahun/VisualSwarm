@@ -173,9 +173,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 blurred = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
                 # Gaussian blur
-                blurred = cv2.GaussianBlur(mask, (
-                    visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
-                blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
+                # blurred = cv2.GaussianBlur(mask, (
+                #     visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
+                # blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
 
                 # Find contours
                 conts, h = cv2.findContours(blurred.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[-2:]
