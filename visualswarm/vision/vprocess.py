@@ -170,7 +170,7 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
                 hsvimg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
                 # Threshold the HSV image to get only blue colors
-                mask = cv2.inRange(hsvimg, hsv_low, hsv_high)
+                blurred = cv2.inRange(hsvimg, hsv_low, hsv_high)
 
                 # Gaussian blur
                 blurred = cv2.GaussianBlur(mask, (
