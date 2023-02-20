@@ -192,18 +192,40 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
             for c in fconts:
                 x, y, w, h = cv2.boundingRect(c)
-                x += img.shape[0]
-                # adding
-                x_noise = np.round(np.random.normal(0, 1))
-                x = int(x + x_noise)
                 if w >= visualswarm.contrib.vision.MIN_BLOB_WIDTH:
-                    if w_start <= x <= w_end or w_start <= x+w <= w_end:
-                        blob_center = int((x+w)/2)
-                        false_neg_rate = return_false_negative_rate(blob_center, w, blurred_ext.shape[1])
-                        if np.random.uniform(0, 1) < (1-false_neg_rate):  # introducing some random false negative detection 5%
-                            cv2.rectangle(blurred_ext, (x, y), (x + w, y + h), (255, 255, 255), -1)
-                        else:
-                            logger.warning("False negative detection!")
+                    logger.warning(f"{x} {y} {w} {h}")
+                    blob_center = int((x+w)/2)
+                    # # introducing lense distortion
+                    # dist = introduce_lense_distortion(blob_center, w, img.shape[1], cutoff=20)
+                    # generating false negative rate
+                    false_neg_rate = return_false_negative_rate(blob_center, w, img.shape[1])
+                    if np.abs(x) < 1 or np.abs((x+w)-img.shape[1]) < 1:
+                        logger.debug("Blob on periphery")
+                        # simulating approximation on peripheries in reality
+                        if h > w:
+                            w = int(0.6 * h)
+                    if np.random.uniform(0, 1) < (1-false_neg_rate):  # introducing some random false negative detection 5%
+                        # changing x coordinate according to periphery extension
+                        x += img.shape[0]
+                        # # applying lense distortion
+                        # x -= int(dist/2)
+                        # w += dist
+                        # adding location noise
+                        x_noise = np.round(np.random.normal(0, ))
+                        x = int(x + x_noise)
+                        logger.warning(f"{x} {y} {w} {h}")
+                        cv2.rectangle(blurred_ext, (x, y), (x + w, y + h), (255, 255, 255), -1)
+
+            # # generating false positives
+            # for i in range(np.random.randint(1, 3)):
+            #     if np.random.uniform(0, 1) < 0.5:
+            #         x, y, h, w = generate_false_positive(img.shape[1], img.shape[0])
+            #         x += img.shape[0]
+            #         # adding location noise
+            #         x_noise = np.round(np.random.normal(0, ))
+            #         x = int(x + x_noise)
+            #         logger.warning(f"false pos: {x} {y} {w} {h}")
+            #         cv2.rectangle(blurred_ext, (x, y), (x + w, y + h), (255, 255, 255), -1)
 
 
             # Forwarding result to VPF extraction
