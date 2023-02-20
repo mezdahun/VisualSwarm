@@ -14,15 +14,15 @@ data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2"
 EXPERIMENT_NAMES = []
 show_change = "alpha"  # or beta
 calc_profiles = False  # slow if true
-show_scatters = True
+show_scatters = False
 if show_change == "alpha":
     alpha_base = "E21"  # when changing alpha
     alphas = [0, 20, 120, 180, 320]
 else:
     alpha_base = "E22"  # when changing beta
     alphas = [0.001, 0.1, 1, 6, 14]
-num_runs = 4
-runs = [0, 1, 2, 3]
+num_runs = 5
+runs = [0, 1, 2, 3, 4]
 alpha_pattern = os.path.join(data_path, f"{alpha_base}*.csv")
 EXPERIMENT_NAMES = [pat.split("/")[-1] for pat in list(glob.glob(alpha_pattern))]
 EXPERIMENT_NAMES = [pat.split(".")[0] for pat in EXPERIMENT_NAMES]

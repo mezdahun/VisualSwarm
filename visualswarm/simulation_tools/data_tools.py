@@ -185,7 +185,7 @@ def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agen
     num_t = polarization_m.shape[-1]
 
     save_path = os.path.join(summary['data_path'],
-                             f"{summary['experiment_name']}_validts_wa{window_after}_wb{window_before}.npy")
+                             f"{summary['experiment_name']}_validts_wa{window_after}_wb{window_before}_run{runi}.npy")
 
     if os.path.isfile(save_path) and not force_recalculate:
         print("File in target path for valid time points already exists! No recalculation was"
@@ -767,7 +767,7 @@ def subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=F
     """Using hierarhical clustering according to iid and pm scores to get number of subgroups"""
     if isinstance(valid_ts, list):
         valid_ts = np.array(valid_ts)
-    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_clustering.json")
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_run{runi}_clustering.json")
     if os.path.isfile(save_path) and not force_recalculate:
         print("Files in target path for clustering already exists! No recalculation was"
               "requested, so data will be loaded from the json files.")
