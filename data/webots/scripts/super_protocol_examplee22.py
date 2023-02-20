@@ -25,7 +25,7 @@ num_runs = 1
 num_max_processes = 7
 
 # Name of experiment (batch)
-BATCH_NAME = f"RealExperiments_EXP2.1_{num_robots}bots_FOV05_fric06_maxspeed55_NOcamdistort_slip0_fixedvision_tallhelo_turncorr"
+BATCH_NAME = f"RealExperiments_EXP2.2_{num_robots}bots_FOV05_fric06_maxspeed55_NOcamdistort_slip0_fixedvision_tallhelo_rescaledturn"
 
 # Setting up tuned parameters
 # Field of View
@@ -33,10 +33,10 @@ FOV_percent = 0.5  # 210deg
 FOV = FOV_percent * 2 * np.pi
 
 # Behavioral Parameters (tuning alpha and Beta)
-# Exp.2.1 - Tuning Alpha while Beta large
+# Exp.2.2 - Tuning Beta while Alpha large
 alpha_1 = beta_1 = 0.0014
-alphas = [0.25, 0, 1.5, 2.25, 4]
-bethas = [8]
+alphas = [0.75]
+bethas = [0.01, 0.1, 1, 6, 14]
 
 
 # Define path for saving
@@ -82,7 +82,7 @@ for alpi, alpha_0 in enumerate(alphas):
                 webots_tools.generate_robot_config(robot_names, position_type, orientation_type, initial_condition_path)
                 print("Generated robot config for all runs!")
 
-                EXPERIMENT_NAME = f"Exp21_An{alpha_0}_Bn{betha_0}_{num_robots}bots"
+                EXPERIMENT_NAME = f"Exp22_An{alpha_0}_Bn{betha_0}_{num_robots}bots"
                 print(f"Simulating runs for experiment {EXPERIMENT_NAME} with alpha0={alpha_0}, betha0={betha_0}")
 
                 # Generate behavior parameters under behave_params path
