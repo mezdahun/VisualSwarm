@@ -8,7 +8,8 @@ import numpy as np
 from visualswarm.simulation_tools import data_tools, plotting_tools
 
 BASE_PATH = '/media/david/DMezeySCIoI/VSWRMData/Webots'
-BATCH_NAME = "Experiment21_tuningAlpha_Webots"
+BATCH_NAME = "RealExperiments_EXP2.1_10bots_FOV05_fric06_maxspeed55_NOcamdistort_slip0_fixedvision_tallhelo_turncorr"
+save_path = "/media/david/DMezeySCIoI/VSWRMData/Webots/Webetos_vs_reality/E21_calcsave_webots_turncorr_FOV05"
 RUN_BASE_NAME = "Exp21"
 EXPERIMENT_FOLDER = os.path.join(BASE_PATH, BATCH_NAME)
 FOV = "3.455751918948773"
@@ -20,9 +21,11 @@ wall_data_tuple = (summay_wall, data_wall)
 iid_path = os.path.join(EXPERIMENT_FOLDER, "iid.npy")
 pol_path = os.path.join(EXPERIMENT_FOLDER, "pol.npy")
 
-betas = [1.5]  # this is now beta
+betas = [8]  # this is now beta
 alphas = [0, 0.25, 1.5, 2.25, 4] #, 0.5, 0.75, 1] #, 3, 5]
 num_runs = 5
+
+force_recalc = False
 
 num_clus_matrix = np.zeros((len(alphas), num_runs))
 acc_matrix_final = np.zeros((len(alphas), num_runs))
@@ -57,13 +60,15 @@ donei = 0
 num_data_points = len(alphas)*len(betas)
 for ai, alpha in enumerate(alphas):
     for bi, beta in enumerate(betas):
-        for runi in range(num_runs):
-            print(f"Experiment with alpha: {alpha} and beta {beta}")
-            EXPERIMENT_NAME = f"{RUN_BASE_NAME}_An{alpha}_Bn{beta}_10bots"  #_FOV{FOV}"
-            data_path = os.path.join(EXPERIMENT_FOLDER, EXPERIMENT_NAME)
-            data_tools.summarize_experiment(data_path, EXPERIMENT_NAME, skip_already_summed=True)
-            summary, data = data_tools.read_summary_data(data_path, EXPERIMENT_NAME)
+        print(f"Experiment with alpha: {alpha} and beta {beta}")
+        EXPERIMENT_NAME = f"{RUN_BASE_NAME}_An{alpha}_Bn{beta}_10bots"  # _FOV{FOV}"
+        data_path = os.path.join(EXPERIMENT_FOLDER, EXPERIMENT_NAME)
+        print(data_path)
+        data_tools.summarize_experiment(data_path, EXPERIMENT_NAME, skip_already_summed=True)
+        summary, data = data_tools.read_summary_data(data_path, EXPERIMENT_NAME)
 
+        for runi in range(num_runs):
+            print(f"run: {runi}")
             num_t = data.shape[-1]
 
             com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
@@ -71,42 +76,47 @@ for ai, alpha in enumerate(alphas):
                 agent_reflection_times, wall_distances, wall_coords_closest \
                 = data_tools.return_summary_data(summary, data,
                                                  wall_data_tuple=wall_data_tuple, runi=runi,
-                                                 mov_avg_w=30, force_recalculate=False)
+                                                 mov_avg_w=30, turn_thr=0.0115, force_recalculate=False) #for 5.5 - 0.011, 6.5 - 0.0139, 7.0 - 0.015, 7.25 - 0.0158, 7.75 - 0.017, 9.53 - 0.021
+
+            abs_vel = (abs_vel/25)*33
+            m_abs_vel = (m_abs_vel/25)*33
+            turning_rates = (turning_rates/25)*33
+            ma_turning_rates = (ma_turning_rates/25)*33
 
             valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long = data_tools.return_metrics_where_no_collision(
                 summary, pm, iidm,
                 runi,
                 agent_reflection_times,
                 wall_reflection_times,
-                window_after=150,
+                window_after=200,
                 window_before=0)
 
             time_w = 25  # in minutes
-            time_lim = num_t - (time_w * 60 * 30)
+            time_lim = num_t - (time_w * 60 * (1000/25))
             if time_lim < 0:
                 time_lim = 0
             print("Time lim: ", time_lim)
             valid_ts = [t for t in valid_ts if t > time_lim]
             valid_ts = valid_ts[0:-1]
 
-            cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=np.array(valid_ts),
-                                                          runi=runi)
+            # cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=np.array(valid_ts),
+            #                                               runi=runi)
             a = alphas.index(alpha)
             ri = runi
-            comv_matrix_final[a, ri] = np.mean(com_vel[0, valid_ts])
-            comv_matrix_final_std[a, ri] = np.std(com_vel[0, valid_ts])
-            ord_matrix_final[a, ri] = np.mean(ord[0, valid_ts])
-            ord_matrix_final_std[a, ri] = np.std(ord[0, valid_ts])
+            comv_matrix_final[a, ri] = np.mean(com_vel[ri, valid_ts])
+            comv_matrix_final_std[a, ri] = np.std(com_vel[ri, valid_ts])
+            ord_matrix_final[a, ri] = np.mean(ord[ri, valid_ts])
+            ord_matrix_final_std[a, ri] = np.std(ord[ri, valid_ts])
             pol_matrix_final[a, ri] = np.mean(mean_pol_vals_long[valid_ts])
             pol_matrix_final_std[a, ri] = np.std(mean_pol_vals_long[valid_ts])
             iid_matrix_final[a, ri] = np.mean(mean_iid_long[valid_ts])
             iid_matrix_final_std[a, ri] = np.std(mean_iid_long[valid_ts])
             coll_times[0, a, ri] = len(wall_reflection_times) / num_t
             coll_times[1, a, ri] = len(agent_reflection_times) / num_t
-            abs_vel_m_final[a, ri] = abs_vel[..., valid_ts].mean(axis=-1)[0].mean()
-            abs_vel_m_final_std[a, ri] = abs_vel[..., valid_ts].mean(axis=-1)[0].std()
-            turn_rate_m_final[a, ri] = turning_rates[..., valid_ts].mean(axis=-1)[0].mean()
-            turn_rate_final_std[a, ri] = turning_rates[..., valid_ts].mean(axis=-1)[0].std()
+            abs_vel_m_final[a, ri] = abs_vel[..., valid_ts].mean(axis=-1)[ri].mean()
+            abs_vel_m_final_std[a, ri] = abs_vel[..., valid_ts].mean(axis=-1)[ri].std()
+            turn_rate_m_final[a, ri] = turning_rates[..., valid_ts].mean(axis=-1)[ri].mean()
+            turn_rate_final_std[a, ri] = turning_rates[..., valid_ts].mean(axis=-1)[ri].std()
 
 
             # ord_matrix_final[runi, alphas.index(alpha), betas.index(beta)] = np.mean(ord[runi, valid_ts])
@@ -119,6 +129,17 @@ for ai, alpha in enumerate(alphas):
             donei += 1
             print(f"Process: {donei/num_data_points*100}%")
 
+if not os.path.isdir(save_path):
+    os.makedirs(save_path, exist_ok=True)
+np.save(os.path.join(save_path, "accm.npy"), acc_matrix_final)
+np.save(os.path.join(save_path, "accmstd.npy"), acc_matrix_final_std)
+np.save(os.path.join(save_path, "ordm.npy"), ord_matrix_final)
+np.save(os.path.join(save_path, "ordmstd.npy"), ord_matrix_final_std)
+np.save(os.path.join(save_path, "colltm.npy"), coll_times)
+np.save(os.path.join(save_path, "absvm.npy"), abs_vel_m_final)
+np.save(os.path.join(save_path, "absvmstd.npy"), abs_vel_m_final_std)
+np.save(os.path.join(save_path, "turnm.npy"), turn_rate_m_final)
+np.save(os.path.join(save_path, "turnmstd.npy"), turn_rate_final_std)
 
 ## mean_time_in_iid_tolerance = time_in_iid_tolerance.mean(axis=1)
 ## std_time_in_iid_tolerance = time_in_iid_tolerance.std(axis=1)
@@ -224,6 +245,7 @@ plt.xlabel(f"${show_change}_0$")
 plt.ylabel("mean IID [mm]")
 plt.legend()
 
+# abs_vel_m_final = (abs_vel_m_final/25)*33
 mean_av = abs_vel_m_final.mean(axis=1)
 std_av = abs_vel_m_final_std.mean(axis=1)
 fig, ax = plt.subplots(1, 2)
@@ -299,6 +321,8 @@ plt.xticks([i for i in range(len(alphas))], alphas)
 plt.xlabel(f"${show_change}_0$")
 plt.ylabel("#")
 
+# matching timestep of simulation and reality
+# turn_rate_m_final = (turn_rate_m_final/25)*33
 
 mean_tr = turn_rate_m_final.mean(axis=1)
 std_tr = turn_rate_final_std.mean(axis=1)
@@ -316,7 +340,7 @@ plt.fill_between([i for i in range(len(alphas))], mean_tr-std_tr,
                   mean_tr+std_tr, alpha=0.2)
 plt.xticks([i for i in range(len(alphas))], alphas)
 plt.xlabel(f"${show_change}_0$")
-plt.ylabel("Turning rate [mm/ts]")
+plt.ylabel("Turning rate [mm/$ts_{reality}$]")
 plt.legend()
 
 

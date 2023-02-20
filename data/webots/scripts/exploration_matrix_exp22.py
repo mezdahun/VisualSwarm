@@ -8,7 +8,8 @@ import numpy as np
 from visualswarm.simulation_tools import data_tools, plotting_tools
 
 BASE_PATH = '/media/david/DMezeySCIoI/VSWRMData/Webots'
-BATCH_NAME = "Experiment22_tuningBeta_Webots"
+BATCH_NAME = "RealExperiments_EXP2.2_10bots_FOV05_fric06_maxspeed55_NOcamdistort_slip0_fixedvision_tallhelo_rescaledturn"
+save_path = "/media/david/DMezeySCIoI/VSWRMData/Webots/Webetos_vs_reality/E22_calcsave_webots_turncorr_FOV05"
 RUN_BASE_NAME = "Exp22"
 EXPERIMENT_FOLDER = os.path.join(BASE_PATH, BATCH_NAME)
 FOV = "3.455751918948773"
@@ -57,40 +58,46 @@ donei = 0
 num_data_points = len(alphas)*len(betas)
 for ai, alpha in enumerate(alphas):
     for bi, beta in enumerate(betas):
-        for runi in range(num_runs):
-            print(f"Experiment with alpha: {alpha} and beta {beta}")
-            EXPERIMENT_NAME = f"{RUN_BASE_NAME}_An{alpha}_Bn{beta}_10bots"  #_FOV{FOV}"
-            data_path = os.path.join(EXPERIMENT_FOLDER, EXPERIMENT_NAME)
-            data_tools.summarize_experiment(data_path, EXPERIMENT_NAME, skip_already_summed=True)
-            summary, data = data_tools.read_summary_data(data_path, EXPERIMENT_NAME)
+        print(f"Experiment with alpha: {alpha} and beta {beta}")
+        EXPERIMENT_NAME = f"{RUN_BASE_NAME}_An{alpha}_Bn{beta}_10bots"  # _FOV{FOV}"
+        data_path = os.path.join(EXPERIMENT_FOLDER, EXPERIMENT_NAME)
+        data_tools.summarize_experiment(data_path, EXPERIMENT_NAME, skip_already_summed=True)
+        summary, data = data_tools.read_summary_data(data_path, EXPERIMENT_NAME)
 
-            num_t = data.shape[-1]
+        num_t = data.shape[-1]
+        for runi in range(num_runs):
 
             com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
                 mean_wall_dist, min_wall_dist, wall_refl_dict, ag_refl_dict, wall_reflection_times, \
                 agent_reflection_times, wall_distances, wall_coords_closest \
                 = data_tools.return_summary_data(summary, data,
                                                  wall_data_tuple=wall_data_tuple, runi=runi,
-                                                 mov_avg_w=30, force_recalculate=False)
+                                                 mov_avg_w=30, turn_thr=0.0115, force_recalculate=False)
+            # for 5.5 - 0.011, 6.5 - 0.0139, 7.0 - 0.015, 7.25 - 0.0158, 7.75 - 0.017, 9.53 - 0.021
+
+            abs_vel = (abs_vel/25)*33
+            m_abs_vel = (m_abs_vel/25)*33
+            turning_rates = (turning_rates/25)*33
+            ma_turning_rates = (ma_turning_rates/25)*33
 
             valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long = data_tools.return_metrics_where_no_collision(
                 summary, pm, iidm,
                 runi,
                 agent_reflection_times,
                 wall_reflection_times,
-                window_after=150,
+                window_after=200,  # matched for diff timestep
                 window_before=0)
 
             time_w = 25  # in minutes
-            time_lim = num_t - (time_w * 60 * 30)
+            time_lim = int(num_t - (time_w * 60 * (1000/25)))
             if time_lim < 0:
                 time_lim = 0
             print("Time lim: ", time_lim)
             valid_ts = [t for t in valid_ts if t > time_lim]
             valid_ts = valid_ts[0:-1]
 
-            cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=np.array(valid_ts),
-                                                          runi=runi)
+            # cluster_dict = data_tools.subgroup_clustering(summary, pm, iidm, valid_ts=np.array(valid_ts),
+            #                                               runi=runi)
             a = betas.index(beta)
             ri = runi
             comv_matrix_final[a, ri] = np.mean(com_vel[0, valid_ts])
@@ -119,6 +126,17 @@ for ai, alpha in enumerate(alphas):
             donei += 1
             print(f"Process: {donei/num_data_points*100}%")
 
+if not os.path.isdir(save_path):
+    os.makedirs(save_path, exist_ok=True)
+np.save(os.path.join(save_path, "accm.npy"), acc_matrix_final)
+np.save(os.path.join(save_path, "accmstd.npy"), acc_matrix_final_std)
+np.save(os.path.join(save_path, "ordm.npy"), ord_matrix_final)
+np.save(os.path.join(save_path, "ordmstd.npy"), ord_matrix_final_std)
+np.save(os.path.join(save_path, "colltm.npy"), coll_times)
+np.save(os.path.join(save_path, "absvm.npy"), abs_vel_m_final)
+np.save(os.path.join(save_path, "absvmstd.npy"), abs_vel_m_final_std)
+np.save(os.path.join(save_path, "turnm.npy"), turn_rate_m_final)
+np.save(os.path.join(save_path, "turnmstd.npy"), turn_rate_final_std)
 
 ## mean_time_in_iid_tolerance = time_in_iid_tolerance.mean(axis=1)
 ## std_time_in_iid_tolerance = time_in_iid_tolerance.std(axis=1)
@@ -166,24 +184,24 @@ alphas = betas
 # plt.figure()
 # plt.imshow(num_clus_matrix.T)
 
-mean_clus = num_clus_matrix.mean(axis=1)
-std_clus = num_clus_matrix.std(axis=1)
-fig, ax = plt.subplots(1, 2)
-plt.axes(ax[0])
-plt.imshow(num_clus_matrix.T)
-plt.title("Mean number of subgroups")
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.yticks([i for i in range(num_runs)])
-plt.xlabel(f"${show_change}_0$")
-plt.ylabel(f"runs")
-plt.axes(ax[1])
-plt.plot(mean_clus)
-plt.fill_between([i for i in range(len(alphas))], mean_clus-std_clus,
-                  mean_clus+std_clus, alpha=0.2)
-plt.xticks([i for i in range(len(alphas))], alphas)
-plt.xlabel(f"${show_change}_0$")
-plt.ylabel("#")
-plt.legend()
+# mean_clus = num_clus_matrix.mean(axis=1)
+# std_clus = num_clus_matrix.std(axis=1)
+# fig, ax = plt.subplots(1, 2)
+# plt.axes(ax[0])
+# plt.imshow(num_clus_matrix.T)
+# plt.title("Mean number of subgroups")
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.yticks([i for i in range(num_runs)])
+# plt.xlabel(f"${show_change}_0$")
+# plt.ylabel(f"runs")
+# plt.axes(ax[1])
+# plt.plot(mean_clus)
+# plt.fill_between([i for i in range(len(alphas))], mean_clus-std_clus,
+#                   mean_clus+std_clus, alpha=0.2)
+# plt.xticks([i for i in range(len(alphas))], alphas)
+# plt.xlabel(f"${show_change}_0$")
+# plt.ylabel("#")
+# plt.legend()
 
 
 

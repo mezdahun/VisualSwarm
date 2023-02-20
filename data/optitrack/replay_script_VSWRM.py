@@ -8,9 +8,9 @@ from visualswarm.simulation_tools import data_tools, plotting_tools
 import os
 import matplotlib.pyplot as plt
 
-data_path = "/home/david/Desktop/database/OptiTrackCSVs/E2B"
-EXPERIMENT_NAMES = ["E2B11_r1"]
-WALL_EXPERIMENT_NAME = "ArenaBorders_r1"
+data_path = "/home/david/Desktop/database/velcompare/robot5_angularspeed"
+EXPERIMENT_NAMES = ["R05_av300_r1"]
+WALL_EXPERIMENT_NAME = None  #"ArenaBorders_r5"
 
 for EXPERIMENT_NAME in EXPERIMENT_NAMES:
     # if data is freshly created first summarize it into multidimensional array
@@ -19,6 +19,7 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
 
     # retreiving data
     summary, data = data_tools.read_summary_data(data_path, EXPERIMENT_NAME)
+    t_len = data.shape[-1]
 
     if WALL_EXPERIMENT_NAME is not None:
         csv_path_walls = os.path.join(data_path, f"{WALL_EXPERIMENT_NAME}.csv")
@@ -35,27 +36,29 @@ for EXPERIMENT_NAME in EXPERIMENT_NAMES:
                                          wall_data_tuple=wall_data_tuple, runi=0,
                                          mov_avg_w=30, force_recalculate=False)
 
-    valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long = data_tools.return_metrics_where_no_collision(
-        summary, pm, iidm,
-        0,
-        agent_reflection_times,
-        wall_reflection_times,
-        window_after=600,
-        window_before=0)
+    # valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long = data_tools.return_metrics_where_no_collision(
+    #     summary, pm, iidm,
+    #     0,
+    #     agent_reflection_times,
+    #     wall_reflection_times,
+    #     window_after=600,
+    #     window_before=0)
 
-    print(len(valid_ts))
+    # print(len(valid_ts))
     # replaying experiment
     plotting_tools.plot_replay_run(summary, data,
-                                   history_length=1200,
+                                   history_length=20,
                                    wall_data_tuple=wall_data_tuple,
-                                   step_by_step=False,
-                                   t_start=1200,
+                                   step_by_step=True,
+                                   t_start=t_len-10,
                                    # t_end=-1,
-                                   t_step=60,
-                                   use_clastering=True,
+                                   t_step=30,
+                                   use_clastering=False,
                                    mov_avg_w=30,
-                                   vis_window=1200,
+                                   vis_window=t_len-15,
                                    force_recalculate=False,
                                    video_save_path=None, #f"/home/david/Desktop/test_video/{EXPERIMENT_NAME}",
-                                   show_COM_vel=False)
+                                   show_COM_vel=True,
+                                   show_polarization=True,
+                                   meas_ts=0.33)
 

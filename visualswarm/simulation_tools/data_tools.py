@@ -283,8 +283,12 @@ def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=1
     for t in range(iidm_nan.shape[-1]):
         np.fill_diagonal(iidm_nan[runi, :, :, t], None)
 
-    min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
-    mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
+    try:
+        min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
+        mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
+    except:
+        min_iidm = None
+        mean_iid = None
 
     pm = calculate_ploarization_matrix(summary, data, force_recalculate=force_recalculate)
     mean_pol_vals = np.mean(np.mean(pm, axis=1), axis=1)
