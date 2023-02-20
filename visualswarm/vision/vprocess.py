@@ -87,6 +87,43 @@ def return_false_negative_rate(blob_center, blob_size, retina_length):
     logger.warning(f"generating false det rate {rate} for blob with center {blob_center}, bs {blob_size}, retl: {retina_length}")
     return rate
 
+def return_false_negative_rate_quad(blob_center, blob_size, retina_length):
+    """Generating position dependent false negative rate to model larger false negative detection rates on periphery"""
+    amp = 0.25
+    # estimating amplitude as blob size dependent, small blobs are generally worse to detect
+    critical_bs = 10
+    if blob_size < critical_bs:
+        amp = min(np.abs((blob_size-critical_bs)/2) * amp, 0.7)
+    # quadratic
+    orig = int(retina_length/2)
+    rate = amp * np.square(((blob_center-orig)/orig)) + 0.1
+    logger.warning(f"generating false det rate {rate} for blob with center {blob_center}, bs {blob_size}, retl: {retina_length}")
+    return rate
+
+def generate_false_positive(retina_length, retina_height, w_min=5, w_max=15):
+    x = np.random.randint(0, retina_length)
+    w = np.random.randint(w_min, w_max)
+    h = int(0.6 * w)
+    y = int(retina_height/2)
+    return x, y, h, w
+
+def introduce_lense_distortion(blob_center, blob_width, retina_length, cutoff1=10, cutoff=20):
+    """Introducing lense distortion according to measurements with real robots"""
+    exc = blob_center / retina_length  # excentricity between 0 and 1, where 0.5 means the blob center is in the middle
+                                       # of the retina
+    distortion = 0
+    if blob_width >= cutoff1:
+        distortion += 2
+        logger.warning(f"Return non-negative base distortion, bc{blob_center}, bw{blob_width}, d{distortion}")
+    if blob_width >= cutoff:
+        slope = -2 * abs(exc - 0.5) + 1  # slope changes with excentricity of the blob between 0 and 1
+        # introduce distortion to close objects as liner function with slope
+        distortion += int(slope * (blob_width - cutoff))
+        logger.warning(f"Return non-negative distortion, bc{blob_center}, bw{blob_width}, d{distortion}")
+
+
+    return distortion
+
 def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
                       target_config_stream=None):
     """
