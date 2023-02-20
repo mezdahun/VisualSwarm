@@ -842,8 +842,8 @@ def visualizer(visualization_stream, target_config_stream=None):
                 if vision.SHOW_VISION_STREAMS:
                     vis_width = floor(camera.RESOLUTION[0] / vision.VIS_DOWNSAMPLE_FACTOR)
                     vis_height = floor(camera.RESOLUTION[1] / vision.VIS_DOWNSAMPLE_FACTOR)
-                    cv2.imshow("Object Contours", cv2.resize(img, (vis_width, vis_height)))
-                    cv2.imshow("Final Area", cv2.resize(mask, (vis_width, vis_height)))
+                    cv2.imshow("Object Contours", img)  # cv2.resize(img, (vis_width, vis_height)))
+                    cv2.imshow("Final Area", mask)  # cv2.resize(mask, (vis_width, vis_height)))
                     if vision.FIND_COLOR_INTERACTIVE:
                         cv2.imshow("Segmentation Parameters", color_sample)
                     cv2.waitKey(1)
