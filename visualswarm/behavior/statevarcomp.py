@@ -39,7 +39,7 @@ def dPhi_V_of(Phi: npt.ArrayLike, V: npt.ArrayLike) -> npt.ArrayLike:
     else:
         dPhi_V_raw = dPhi_V_raw[1:, ...]
 
-    dPhi_V = dPhi_V_raw / (Phi[-1] - Phi[-2])
+    dPhi_V = dPhi_V_raw  # / (Phi[-1] - Phi[-2])
     return dPhi_V
 
 
@@ -122,8 +122,8 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
 
     dvel = GAM * (V0 - vel_now) + \
            ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
-           ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike) * dPhi
+           ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike)  #* dPhi
     dpsi = BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
-           BET0 * BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike) * dPhi
+           BET0 * BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike)  #* dPhi
 
     return dvel, dpsi
