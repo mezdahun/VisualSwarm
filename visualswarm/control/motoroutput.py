@@ -134,7 +134,7 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     return [v_left_lim, v_right_lim]
 
 
-def distribute_overall_speed(v: float, dpsi: float) -> list:
+def distribute_overall_speed(v: float, dpsi: float, v_lower_thr=10) -> list:
     """
     distributing desired forward speed to motor velocities according to the change in the heading angle dpsi.
         Args:
@@ -143,15 +143,23 @@ def distribute_overall_speed(v: float, dpsi: float) -> list:
         Returns:
             [v_left, v_right]: motor velocity values of the agent
     """
-    # Matching simulation scale with reality
-    v = v * behavior.KAP
 
     # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
 
-    # Distributing velocity
-    v_left = v * (1 + dpsi_p)
-    v_right = v * (1 - dpsi_p)
+    if v > v_lower_thr:
+        # Matching simulation scale with reality
+        v = v * behavior.KAP
+
+        # Distributing velocity
+        v_left = v * (1 + dpsi_p)
+        v_right = v * (1 - dpsi_p)
+
+    else:
+
+        v_left = (v_lower_thr/2) * dpsi_p
+        v_right = -(v_lower_thr/2) * dpsi_p
+
 
     return [v_left, v_right]
 
