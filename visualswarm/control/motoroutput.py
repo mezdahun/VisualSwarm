@@ -147,7 +147,7 @@ def distribute_overall_speed(v: float, dpsi: float, v_lower_thr=10, dpsi_p_thres
     # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
 
-    if v < v_lower_thr and dpsi_p > dpsi_p_threshold:
+    if np.abs(v) < v_lower_thr and np.abs(dpsi_p) > dpsi_p_threshold:
         # stationary turn due to large angle and low speed
         v_turn = 200
         v_left = np.sign(v) * (v_turn/2) * dpsi_p
