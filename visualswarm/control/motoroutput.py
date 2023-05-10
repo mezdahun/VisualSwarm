@@ -156,9 +156,9 @@ def distribute_overall_speed(v: float, dpsi: float, v_lower_thr=10) -> list:
         v_right = v * (1 - dpsi_p)
 
     else:
-
-        v_left = (v_lower_thr/2) * dpsi_p
-        v_right = -(v_lower_thr/2) * dpsi_p
+        v_turn = 30
+        v_left = (v_turn/2) * dpsi_p
+        v_right = -(v_turn/2) * dpsi_p
 
 
     return [v_left, v_right]
