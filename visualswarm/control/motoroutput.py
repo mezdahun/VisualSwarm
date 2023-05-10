@@ -134,7 +134,7 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     return [v_left_lim, v_right_lim]
 
 
-def distribute_overall_speed(v: float, dpsi: float, v_lower_thr=10, dpsi_p_threshold=0.1) -> list:
+def distribute_overall_speed(v: float, dpsi: float, v_lower_thr=10, dpsi_p_threshold=0.05) -> list:
     """
     distributing desired forward speed to motor velocities according to the change in the heading angle dpsi.
         Args:
@@ -149,7 +149,7 @@ def distribute_overall_speed(v: float, dpsi: float, v_lower_thr=10, dpsi_p_thres
 
     if v < v_lower_thr and dpsi_p > dpsi_p_threshold:
         # stationary turn due to large angle and low speed
-        v_turn = 50
+        v_turn = 100
         v_left = (v_turn/2) * dpsi_p
         v_right = -(v_turn/2) * dpsi_p
 
