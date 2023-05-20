@@ -139,7 +139,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             if v > 0:
                 v = min(v, 160)
             elif v < 0:
-                v = max(v, 0)
+                v = max(v, -20)
 
             v = float(v)
 
