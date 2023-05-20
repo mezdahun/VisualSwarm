@@ -998,7 +998,10 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
         proj_f_stack = None
         while True:
-            (img, mask, frame_id, capture_timestamp) = get_latest_element(high_level_vision_stream)
+            try:
+                (img, mask, frame_id, capture_timestamp) = get_latest_element(high_level_vision_stream)
+            except:
+                continue
             # logger.info(high_level_vision_stream.qsize())
             if not vision.divided_projection_field:
                 cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
