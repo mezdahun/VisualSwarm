@@ -144,26 +144,26 @@ def distribute_overall_speed(v: float, dpsi: float, v_lower_thr_p=50, v_lower_th
             [v_left, v_right]: motor velocity values of the agent
     """
 
-    # Calculating proportional heading angle change
+    # # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
-    if v < 0:
-        mask = np.abs(v) < v_lower_thr_n
-    else:
-        mask = np.abs(v) < v_lower_thr_p
+    # if v < 0:
+    #     mask = np.abs(v) < v_lower_thr_n
+    # else:
+    #     mask = np.abs(v) < v_lower_thr_p
+    #
+    # if mask and np.abs(dpsi_p) > dpsi_p_threshold:
+    #     # stationary turn due to large angle and low speed
+    #     v_turn = 300
+    #     v_left = np.sign(v) * (v_turn/2) * dpsi_p
+    #     v_right = -(v_turn/2) * dpsi_p * np.sign(v)
+    #
+    # else:
+    # Matching simulation scale with reality
+    v = v * behavior.KAP
 
-    if mask and np.abs(dpsi_p) > dpsi_p_threshold:
-        # stationary turn due to large angle and low speed
-        v_turn = 300
-        v_left = np.sign(v) * (v_turn/2) * dpsi_p
-        v_right = -(v_turn/2) * dpsi_p * np.sign(v)
-
-    else:
-        # Matching simulation scale with reality
-        v = v * behavior.KAP
-
-        # Distributing velocity
-        v_left = v * (1 + dpsi_p)
-        v_right = v * (1 - dpsi_p)
+    # Distributing velocity
+    v_left = v * (1 + dpsi_p)
+    v_right = v * (1 - dpsi_p)
 
 
     return [v_left, v_right]
