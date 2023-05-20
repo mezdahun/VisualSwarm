@@ -68,7 +68,12 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         # start_behave = t_prev
         # prev_sign = 0
 
-        (projection_field, capture_timestamp, projection_field_c2) = get_latest_element(VPF_stream)
+        element = None
+        while element is None:
+            element = get_latest_element(VPF_stream)
+
+        (projection_field, capture_timestamp, projection_field_c2) = element
+
         if not visualswarm.contrib.vision.divided_projection_field:
             phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
                               len(projection_field))
@@ -90,7 +95,10 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         dpsi_before = None
 
         while True:
-            (projection_field, capture_timestamp, projection_field_c2) = get_latest_element(VPF_stream)
+            try:
+                (projection_field, capture_timestamp, projection_field_c2) = get_latest_element(VPF_stream)
+            except:
+                continue
 
             if np.mean(projection_field) == 0 and control.EXP_MOVE_TYPE != 'NoExploration':
                 movement_mode = "EXPLORE"
