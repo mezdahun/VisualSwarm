@@ -12,6 +12,7 @@ from visualswarm.monitoring import ifdb
 from visualswarm.contrib import monitoring, simulation, control
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
+from queue import Empty
 
 if monitoring.ENABLE_CLOUD_STORAGE:
     import pickle  # nosec
@@ -26,6 +27,22 @@ if not simulation.ENABLE_SIMULATION:
 else:
     logger = logging.getLogger('visualswarm.app_simulation')  # pragma: simulation no cover
 
+def get_latest_element(queue):  # pragma: simulation no cover
+    """
+    fetching the latest element in queue and by that emptying the FIFO Queue object. Use this to consume queue elements
+    with a slow process that is filled up by a faster process
+        Args:
+            queue (multiprocessing.Queue): queue object to be emptied and returned the latest element
+        Returns:
+            val: latest vaue in the queue
+    """
+    val = None
+    while not queue.empty():
+        try:
+            val = queue.get_nowait()
+        except Empty:
+            return val
+    return val
 
 def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_control=False):
     """
@@ -51,7 +68,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         # start_behave = t_prev
         # prev_sign = 0
 
-        (projection_field, capture_timestamp, projection_field_c2) = VPF_stream.get()
+        (projection_field, capture_timestamp, projection_field_c2) = get_latest_element(VPF_stream)
         if not visualswarm.contrib.vision.divided_projection_field:
             phi = np.linspace(visualswarm.contrib.vision.PHI_START, visualswarm.contrib.vision.PHI_END,
                               len(projection_field))
@@ -73,7 +90,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
         dpsi_before = None
 
         while True:
-            (projection_field, capture_timestamp, projection_field_c2) = VPF_stream.get()
+            (projection_field, capture_timestamp, projection_field_c2) = get_latest_element(VPF_stream)
 
             if np.mean(projection_field) == 0 and control.EXP_MOVE_TYPE != 'NoExploration':
                 movement_mode = "EXPLORE"

@@ -17,6 +17,7 @@ from visualswarm.monitoring import ifdb
 from visualswarm.contrib import camera, vision, monitoring, simulation
 
 from datetime import datetime
+from queue import Empty
 
 if vision.RECOGNITION_TYPE == "CNN":
     import importlib.util
@@ -39,6 +40,23 @@ else:
     logger = logging.getLogger('visualswarm.app_simulation')   # pragma: simulation no cover
 from time import sleep
 
+
+def get_latest_element(queue):  # pragma: simulation no cover
+    """
+    fetching the latest element in queue and by that emptying the FIFO Queue object. Use this to consume queue elements
+    with a slow process that is filled up by a faster process
+        Args:
+            queue (multiprocessing.Queue): queue object to be emptied and returned the latest element
+        Returns:
+            val: latest vaue in the queue
+    """
+    val = None
+    while not queue.empty():
+        try:
+            val = queue.get_nowait()
+        except Empty:
+            return val
+    return val
 
 def output_tensor(interpreter, i):
     """Returns dequantized output tensor if quantized before."""
@@ -980,7 +998,7 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
         proj_f_stack = None
         while True:
-            (img, mask, frame_id, capture_timestamp) = high_level_vision_stream.get()
+            (img, mask, frame_id, capture_timestamp) = get_latest_element(high_level_vision_stream)
             # logger.info(high_level_vision_stream.qsize())
             if not vision.divided_projection_field:
                 cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
