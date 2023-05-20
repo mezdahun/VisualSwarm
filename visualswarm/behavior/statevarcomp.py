@@ -120,10 +120,20 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     FOV_rescaling_cos = 1
     FOV_rescaling_sin = 1
 
+    # dvel = GAM * (V0 - vel_now) + \
+    #        ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
+    #        ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike)  #* dPhi
+    # dpsi = BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
+    #        BET0 * BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike)  #* dPhi
+
     dvel = GAM * (V0 - vel_now) + \
            ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
            ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike)  #* dPhi
-    dpsi = BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
-           BET0 * BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike)  #* dPhi
+    dpsi = BET0 * integrate.trapz(sigmoid(Phi, s=2*np.pi) * G_psi, Phi) + \
+           BET0 * BET1 * np.sum(sigmoid(Phi, s=2*np.pi) * G_psi_spike)  #* dPhi
 
     return dvel, dpsi
+
+
+def sigmoid(x, s):
+    return 2 / (1 + np.exp(-s*x)) - 1
