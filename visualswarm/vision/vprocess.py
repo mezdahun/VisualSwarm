@@ -635,6 +635,13 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # print(boxes)
 
                         if vision.focus_on_N_largest:
+                            wthr = 15
+                            widths = widths[widths>wthr]
+                            boxes = boxes[widths>wthr]
+                            classes = classes[widths > wthr]
+                            scores = scores[widths > wthr]
+
+
                             sorted_width_indices = np.argsort(widths)[::-1]
                             sorted_width_indices = sorted_width_indices[
                                                    0:int(min(vision.N_largest, len(sorted_width_indices)))]
@@ -648,6 +655,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # Filtering data for N largest widths
                             boxes, classes, scores, widths = boxes[sorted_width_indices, :], classes[sorted_width_indices], \
                             scores[sorted_width_indices], widths[sorted_width_indices]
+
                             # print(f"After width sorting: {len(scores)}")
                             # print(widths)
                             # print(boxes)
