@@ -635,12 +635,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # print(boxes)
 
                         if vision.focus_on_N_largest:
-                            wthr = 15
-                            widths = widths[widths>wthr]
-                            boxes = boxes[widths>wthr, :]
-                            classes = classes[widths > wthr]
-                            scores = scores[widths > wthr]
-
 
                             sorted_width_indices = np.argsort(widths)[::-1]
                             sorted_width_indices = sorted_width_indices[
@@ -660,7 +654,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # print(widths)
                             # print(boxes)
 
-                            boxes, classes, scores, _ = remove_overlapping_boxes(boxes, classes, scores,
+                            boxes, classes, scores, widths = remove_overlapping_boxes(boxes, classes, scores,
                                                                                  overlap_thr=vision.overlap_removal_thr)
                             # print(f"After second overlap removal: {len(scores)}")
                             # print(boxes)
@@ -684,57 +678,59 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         if (scores[i] > min_conf_threshold_class_0) and (scores[i] <= 1.0):
                             # Get bounding box coordinates and draw box
                             # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
-                            ymin = int(max(0, (boxes[i, 0] * imH)))
-                            ymax = int(min(imH, (boxes[i, 2] * imH)))
-                            xmin_orig = int(max(0, (boxes[i, 1] * imW)))
-                            xmax_orig = int(min(imW, (boxes[i, 3] * imW)))
-                            xmin_extend = xmin_orig + img.shape[0]
-                            xmax_extend = xmax_orig + img.shape[0]
-                            # print(f"xmin_orig: {xmin_orig}, xmin_e: {xmin_extend}")
-                            # print(f"xmax_orig: {xmax_orig}, xmax_e: {xmin_extend}")
-                            # print(f"imH: {imH}, imW: {imW}")
+                            wthr=15
+                            if widths[i] > wthr:
+                                ymin = int(max(0, (boxes[i, 0] * imH)))
+                                ymax = int(min(imH, (boxes[i, 2] * imH)))
+                                xmin_orig = int(max(0, (boxes[i, 1] * imW)))
+                                xmax_orig = int(min(imW, (boxes[i, 3] * imW)))
+                                xmin_extend = xmin_orig + img.shape[0]
+                                xmax_extend = xmax_orig + img.shape[0]
+                                # print(f"xmin_orig: {xmin_orig}, xmin_e: {xmin_extend}")
+                                # print(f"xmax_orig: {xmax_orig}, xmax_e: {xmin_extend}")
+                                # print(f"imH: {imH}, imW: {imW}")
 
-                            b_width = xmax_orig - xmin_orig
-                            b_height = ymax - ymin
-                            b_area = b_width * b_height
-                            print(f"Box width: {b_width}px")
-                            print(f"Box area: {b_area}px")
+                                b_width = xmax_orig - xmin_orig
+                                b_height = ymax - ymin
+                                b_area = b_width * b_height
+                                print(f"Box width: {b_width}px")
+                                print(f"Box area: {b_area}px")
 
-                            # extending partial detections on perphery assuming cubic bodies
-                            # if the height is large, the object is closer
-                            if xmin_orig <= 2:
-                                xmin_extend -= (b_height - b_width)
-                            elif xmax_orig >= imW-2:
-                                xmax_extend += (b_height - b_width)
+                                # extending partial detections on perphery assuming cubic bodies
+                                # if the height is large, the object is closer
+                                if xmin_orig <= 2:
+                                    xmin_extend -= (b_height - b_width)
+                                elif xmax_orig >= imW-2:
+                                    xmax_extend += (b_height - b_width)
 
-                            # shoes
-                            if np.rint(classes[i]) == 0:
-                                if scores[i] > min_conf_threshold_class_0:
-                                    box_color = (10, 255, 0)
-                                    # set to -255 for double class detection
-                                    blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
-                                    if vision.divided_projection_field:
-                                        blurred_divided[ymin:ymax, xmin_extend:xmax_extend, i] = 255
-                                    # num_detections_class_0 += 1
-                                    cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                                    frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
-                                                            cv2.FONT_HERSHEY_SIMPLEX,
-                                                            0.5, (255, 0, 0), 1, cv2.LINE_AA)
-                            # elif np.rint(classes[i]) == 1:
-                            #     if num_detections_class_1 < max_num_detection_class_1:
-                            #         box_color = (255, 10, 0)
-                            #         blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
-                            #         num_detections_class_1 += 1
-                            #         cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                            #         frame_rgb = cv2.putText(frame_rgb, f'B{int(scores[i] * 100)}', (xmin_orig, ymin),
-                            #                                 cv2.FONT_HERSHEY_SIMPLEX,
-                            #                                 0.5, (255, 0, 0), 1, cv2.LINE_AA)
-                            # else:
-                            #     box_color = (0, 10, 255)
-                            #     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                            #     frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
-                            #                             cv2.FONT_HERSHEY_SIMPLEX,
-                            #                             0.5, (255, 0, 0), 1, cv2.LINE_AA)
+                                # shoes
+                                if np.rint(classes[i]) == 0:
+                                    if scores[i] > min_conf_threshold_class_0:
+                                        box_color = (10, 255, 0)
+                                        # set to -255 for double class detection
+                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                        if vision.divided_projection_field:
+                                            blurred_divided[ymin:ymax, xmin_extend:xmax_extend, i] = 255
+                                        # num_detections_class_0 += 1
+                                        cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                                        frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                                                cv2.FONT_HERSHEY_SIMPLEX,
+                                                                0.5, (255, 0, 0), 1, cv2.LINE_AA)
+                                # elif np.rint(classes[i]) == 1:
+                                #     if num_detections_class_1 < max_num_detection_class_1:
+                                #         box_color = (255, 10, 0)
+                                #         blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                #         num_detections_class_1 += 1
+                                #         cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                                #         frame_rgb = cv2.putText(frame_rgb, f'B{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                #                                 cv2.FONT_HERSHEY_SIMPLEX,
+                                #                                 0.5, (255, 0, 0), 1, cv2.LINE_AA)
+                                # else:
+                                #     box_color = (0, 10, 255)
+                                #     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                                #     frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                #                             cv2.FONT_HERSHEY_SIMPLEX,
+                                #                             0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
                     t3 = datetime.utcnow()
                     logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
