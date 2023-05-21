@@ -151,7 +151,7 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     # else:
     #     mask = np.abs(v) < v_lower_thr_p
 
-    if np.abs(v) > v_thr:
+    if np.abs(v) < v_thr:
         # stationary turn due to large angle and low speed
         v_turn = 50
         v_left = np.sign(v) * (v_turn/2) * dpsi_p
