@@ -127,13 +127,42 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     #        BET0 * BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike)  #* dPhi
 
     dvel = GAM * (V0 - vel_now) + \
-           ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
-           ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike)  #* dPhi
-    dpsi = BET0 * integrate.trapz(sigmoid(Phi, s=4*np.pi) * G_psi, Phi) + \
-           BET0 * BET1 * np.sum(sigmoid(Phi, s=4*np.pi) * G_psi_spike)  #* dPhi
+           ALP0 * integrate.trapz(cos_sigmoid(FOV_rescaling_cos * Phi, 4*np.pi) * G_vel, Phi) + \
+           ALP0 * ALP1 * np.sum(cos_sigmoid(Phi, 4*np.pi) * G_vel_spike)  #* dPhi
+    dpsi = BET0 * integrate.trapz(sin_sigmoid(Phi, s=4*np.pi) * G_psi, Phi) + \
+           BET0 * BET1 * np.sum(sin_sigmoid(Phi, s=4*np.pi) * G_psi_spike)  #* dPhi
 
     return dvel, dpsi
 
 
 def sigmoid(x, s):
     return 2 / (1 + np.exp(-s*x)) - 1
+
+
+def cos_sigmoid(x, s):
+    # left part
+    left = 2 / (1 + np.exp(-s * (x + (np.pi / 2)))) - 1
+    right = -2 / (1 + np.exp(-s * (x - (np.pi / 2)))) + 1
+    final = []
+    for xid, xi in enumerate(list(x)):
+        if xi < 0:
+            final.append(left[xid])
+        else:
+            final.append(right[xid])
+    return final
+
+
+def sin_sigmoid(x, s):
+    # left part
+    middle = 2 / (1 + np.exp(-s * (x))) - 1
+    left = -2 / (1 + np.exp(-s * (x + (np.pi)))) + 1
+    right = -2 / (1 + np.exp(-s * (x - (np.pi)))) + 1
+    final = []
+    for xid, xi in enumerate(list(x)):
+        if -np.pi / 2 < xi < np.pi / 2:
+            final.append(middle[xid])
+        elif xi < -np.pi / 2:
+            final.append(left[xid])
+        else:
+            final.append(right[xid])
+    return final
