@@ -701,9 +701,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             elif xmax_orig >= imW-2:
                                 xmax_extend += (b_height - b_width)
 
-                            if xmax_extend - xmin_extend > 15:
+                            if xmax_extend - xmin_extend > 8:
 
-                            # shoes
+                                # shoes
                                 if np.rint(classes[i]) == 0:
                                     if scores[i] > min_conf_threshold_class_0:
                                         box_color = (10, 255, 0)
