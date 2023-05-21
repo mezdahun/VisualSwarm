@@ -151,18 +151,18 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     # else:
     #     mask = np.abs(v) < v_lower_thr_p
 
-    if np.abs(v) < v_thr:
-        # stationary turn due to large angle and low speed
-        v_turn = 100
-        v_left = np.sign(v) * (v_turn/2) * dpsi_p
-        v_right = -(v_turn/2) * dpsi_p * np.sign(v)
-    else:
-        # Matching simulation scale with reality
-        v = v * behavior.KAP
+    # if np.abs(v) < v_thr:
+    #     # stationary turn due to large angle and low speed
+    #     v_turn = 100
+    #     v_left = np.sign(v) * (v_turn/2) * dpsi_p
+    #     v_right = -(v_turn/2) * dpsi_p * np.sign(v)
+    # else:
+    #     # Matching simulation scale with reality
+    v = v * behavior.KAP
 
-        # Distributing velocity
-        v_left = v * (1 + dpsi_p)
-        v_right = v * (1 - dpsi_p)
+    # Distributing velocity
+    v_left = v * (1 + dpsi_p)
+    v_right = v * (1 - dpsi_p)
 
 
     return [v_left, v_right]
