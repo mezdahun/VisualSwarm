@@ -137,16 +137,16 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 print(f"With Improved edge overlay (sum): dv={np.sum(dvs)}, dpsi={np.sum(dpsis)}")
 
             if v > 0:
-                v = min(v, 250)
+                v = min(v, 400)
             elif v < 0:
-                v = max(v, -250)
+                v = max(v, -400)
 
             v = float(v)
 
-            if dpsi > 0:
-                dpsi = min(dpsi, 1)
-            elif dpsi < 0:
-                dpsi = max(dpsi, -1)
+            # if dpsi > 0:
+            #     dpsi = min(dpsi, 1)
+            # elif dpsi < 0:
+            #     dpsi = max(dpsi, -1)
 
             # if dpsic2 > 0:
             #     dpsic2 = min(dpsic2, 1)
