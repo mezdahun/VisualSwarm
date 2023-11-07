@@ -701,21 +701,21 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             elif xmax_orig >= imW-2:
                                 xmax_extend += (b_height - b_width)
 
-                            if xmax_extend - xmin_extend > 8:
+                            # if xmax_extend - xmin_extend > 8:
 
-                                # shoes
-                                if np.rint(classes[i]) == 0:
-                                    if scores[i] > min_conf_threshold_class_0:
-                                        box_color = (10, 255, 0)
-                                        # set to -255 for double class detection
-                                        blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
-                                        if vision.divided_projection_field:
-                                            blurred_divided[ymin:ymax, xmin_extend:xmax_extend, i] = 255
-                                        # num_detections_class_0 += 1
-                                        cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                                        frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
-                                                                cv2.FONT_HERSHEY_SIMPLEX,
-                                                                0.5, (255, 0, 0), 1, cv2.LINE_AA)
+                            # shoes
+                            if np.rint(classes[i]) == 0:
+                                if scores[i] > min_conf_threshold_class_0:
+                                    box_color = (10, 255, 0)
+                                    # set to -255 for double class detection
+                                    blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
+                                    if vision.divided_projection_field:
+                                        blurred_divided[ymin:ymax, xmin_extend:xmax_extend, i] = 255
+                                    # num_detections_class_0 += 1
+                                    cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
+                                    frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                                            cv2.FONT_HERSHEY_SIMPLEX,
+                                                            0.5, (255, 0, 0), 1, cv2.LINE_AA)
                             # elif np.rint(classes[i]) == 1:
                             #     if num_detections_class_1 < max_num_detection_class_1:
                             #         box_color = (255, 10, 0)
