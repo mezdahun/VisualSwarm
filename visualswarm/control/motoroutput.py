@@ -639,32 +639,35 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             # Persistent change in modes
                             if abs((last_behave_change - datetime.now()).total_seconds()) \
                                     > control.WAIT_BEFORE_SWITCH_MOVEMENT:
-                                # Enforcing specific dt in Random Walk Process
-                                if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
-
-                                    if control.EXP_MOVE_TYPE == 'RandomWalk':
-                                        # Exploration according to Random Walk Process
-                                        [v_left, v_right] = step_random_walk()
-                                    elif control.EXP_MOVE_TYPE == 'Rotation':
-                                        # Exploration according to simple rotation movement
-                                        [v_left, v_right] = rotate()
-                                    else:
-                                        # Unknown exploration regime in configuration
-                                        logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
-                                        raise KeyboardInterrupt
+                                if control.EXP_MOVE_TYPE == 'Rotation':
+                                    # Exploration according to simple rotation movement
+                                    [v_left, v_right] = rotate()
+                                else:
+                                    # Enforcing specific dt in Random Walk Process
+                                    if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
+                                        if control.EXP_MOVE_TYPE == 'RandomWalk':
+                                            # Exploration according to Random Walk Process
+                                            [v_left, v_right] = step_random_walk()
+                                        elif control.EXP_MOVE_TYPE == 'Rotation':
+                                            # Exploration according to simple rotation movement
+                                            [v_left, v_right] = rotate()
+                                        else:
+                                            # Unknown exploration regime in configuration
+                                            logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
+                                            raise KeyboardInterrupt
 
                                     logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
 
-                                    # sending motor values to robot
-                                    if not simulation.ENABLE_SIMULATION:
-                                        network.SetVariable("thymio-II", "motor.left.target", [v_left])
-                                        network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                                    else:   # pragma: simulation no cover
-                                        webots_do_stream.put(("SET_MOTOR",
-                                                              {'left': float(v_left), 'right': float(v_right)}))
+                                # sending motor values to robot
+                                if not simulation.ENABLE_SIMULATION:
+                                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                                else:   # pragma: simulation no cover
+                                    webots_do_stream.put(("SET_MOTOR",
+                                                          {'left': float(v_left), 'right': float(v_right)}))
 
-                                    # last time we changed velocity according to EXPLORE REGIME
-                                    last_explore_change = datetime.now()
+                                # last time we changed velocity according to EXPLORE REGIME
+                                last_explore_change = datetime.now()
 
                         else:
                             logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
