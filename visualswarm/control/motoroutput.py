@@ -657,7 +657,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             if abs((last_behave_change - datetime.now()).total_seconds()) \
                                     > control.WAIT_BEFORE_SWITCH_MOVEMENT:
                                 # Enforcing specific dt in Random Walk Process
-                                if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
+                                if abs((last_explore_change - datetime.now()).total_seconds()) > 0:  #control.RW_DT:
 
                                     # Dumm exploration techniques
                                     if not algoimp.WITH_EXPLORE_ROT:
