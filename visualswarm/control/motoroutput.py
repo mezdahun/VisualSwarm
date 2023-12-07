@@ -595,6 +595,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
             if is_connection_healthy:
                 logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
 
+                dpsi_last = 0
                 while True:
                     # fetching state variables
                     (v, dpsi) = control_stream.get()
@@ -619,6 +620,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
                                             control.WAIT_BEFORE_SWITCH_MOVEMENT
                             if is_persistent or env.EXIT_CONDITION:
+                                dpsi_last = dpsi
                                 # Behavior according to Romanczuk and Bastien 2020
                                 # distributing desired forward speed according to dpsi
                                 [v_left, v_right] = distribute_overall_speed(v, dpsi)
@@ -671,8 +673,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     # Improved exploration rotation towards the last scial cue
                                     # checking the direction of last social cue with checking dpsi sign
                                     else:
-                                        logger.debug(f'dorientation: {dpsi}')
-                                        rot_to_right = np.sign(dpsi) >= 0
+                                        logger.debug(f'dorientation: {dpsi_last}')
+                                        rot_to_right = np.sign(dpsi_last) >= 0
                                         logger.debug(f'rot_to_right: {rot_to_right}')
                                         [v_left, v_right] = rotate(rot_to_right=rot_to_right)
                                         logger.debug("Improved exploration rotation towards the last social cue")
