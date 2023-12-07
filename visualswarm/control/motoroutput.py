@@ -697,7 +697,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                             logger.debug(f'rot_to_right: {rot_to_right}')
                                             [v_left, v_right] = rotate(rot_to_right=rot_to_right)
                                             logger.debug("Improved exploration rotation towards the last social cue")
-                                        else:
+                                        elif algoimp.WITH_EXPLORE_ROT_CONT:
                                             # # Using continous movement
                                             # The rotation should happen in the direction of last calculated direction
                                             # but is a fixed rate always
