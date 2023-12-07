@@ -688,7 +688,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                                         # # Using continous movement
                                         dpsi_rot = np.sign(dpsi_last)
-                                        [v_left, v_right] = distribute_overall_speed(v_last, dpsi_rot)
+                                        v_rot = 10 if v_last == 0 else v_last
+                                        [v_left, v_right] = distribute_overall_speed(v_rot, dpsi_rot)
 
 
                                     logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
