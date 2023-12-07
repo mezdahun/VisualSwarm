@@ -10,6 +10,7 @@ import numpy as np
 import visualswarm.contrib.vision
 from visualswarm.monitoring import ifdb
 from visualswarm.contrib import monitoring, simulation, control
+from visualswarm.contrib import algorithm_improvements as algoimp
 from visualswarm.behavior import statevarcomp
 from visualswarm import env
 from queue import Empty
@@ -96,30 +97,25 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
         while True:
             try:
+                # the possibility of 2 detection classes is already included, only using the first for now
                 (projection_field, capture_timestamp, projection_field_c2) = get_latest_element(VPF_stream)
             except:
                 continue
 
-            if np.mean(projection_field) == 0 and control.EXP_MOVE_TYPE != 'NoExploration':
-                movement_mode = "EXPLORE"
+            if np.mean(projection_field) == 0:
+                if control.EXP_MOVE_TYPE != 'NoExploration' or algoimp.WITH_EXPLORE_ROT:
+                    movement_mode = "EXPLORE"
+                else:
+                    movement_mode = "BEHAVE"
             else:
                 movement_mode = "BEHAVE"
 
             t_now = datetime.datetime.now()
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
-            ## TODO: Find out what causes weird turning behavior
-            #v = 0 # only to measure equilibrium distance. set v0 to zero too
             if not visualswarm.contrib.vision.divided_projection_field:
                 logger.error(f"{projection_field.shape}, {phi.shape}")
                 dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
-                # if np.mean(projection_field_c2) > 0:
-                #     dvc2, dpsic2 = statevarcomp.compute_state_variables(v, phi, projection_field_c2,
-                #                                                         V0=80, ALP0=150, BET0=8,
-                #                                                         ALP1=0.00165, BET1=0.00175)
-                # else:
-                # dvc2 = 0
-                # dpsic2 = 0
             else:
                 dvs = []
                 dpsis = []
@@ -154,17 +150,6 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             #     dpsic2 = max(dpsic2, -1)
 
             dpsi = float(dpsi)
-            # dpsic2 = float(dpsic2)
-
-            # dpsi = dpsi + 2 * dpsic2
-            # if dpsi_before is None:
-            #     dpsi_before = dpsi
-            # delta_dpsi = dpsi - dpsi_before
-            # if delta_dpsi > 0.5:
-            #     dpsi = dpsi_before + 0.5
-            # elif delta_dpsi < -0.5:
-            #     dpsi = dpsi_before - 0.5
-            # print(f"DPSI: {dpsi}")
 
             ## TODO: this is temporary smooth reandom walk
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
@@ -182,7 +167,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 add_psi = 0.1
 
             if is_initialized:
-                v += dv * dt  # (dv + dvc2) * dt
+                v += dv * dt
                 dpsi
             else:
                 is_initialized = True
@@ -190,14 +175,6 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 dpsi = float(0)
 
             # now_sign = np.sign(dv)
-
-            # logger.warning(f'dV={dv * dt} with passed seconds {(t_now - start_behave).total_seconds()}')
-            # if np.abs(now_sign - prev_sign) == 2 and (t_now - start_behave).total_seconds() > 15:
-            #     control_stream.put((0, 0))
-            #     motor_control_mode_stream.put("BEHAVE")
-            #     logger.warning('STOP EXPERIMENT!!!!')
-            #     #raise KeyboardInterrupt('DV decreased to zero and already 5 sec gone from experiment!!!')
-            #     return
 
             # prev_sign = now_sign
             t_prev = t_now

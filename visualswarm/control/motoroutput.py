@@ -7,6 +7,7 @@ if not simulation.ENABLE_SIMULATION:
 
 import logging
 from visualswarm.contrib import logparams, control, behavior, physconstraints, monitoring
+from visualswarm.contrib import algorithm_improvements as algoimp
 from visualswarm import env
 
 import numpy as np
@@ -74,7 +75,7 @@ def step_random_walk() -> list:
     return [v_left, v_right]
 
 
-def rotate() -> list:
+def rotate(rot_to_right=None) -> list:
     """
     Method to get motor velocity values according to a preconfigured rotation (ROT) process
         Args:
@@ -82,19 +83,31 @@ def rotate() -> list:
         Returns:
             [v_left, v_right]: ROT motor values
     """
-    if control.ROT_DIRECTION == 'Left':
-        right_sign = 1
-    elif control.ROT_DIRECTION == 'Right':
-        right_sign = -1
-    elif control.ROT_DIRECTION == 'Random':
-        right_sign = np.random.choice([1, -1], 1)[0]
+    if rot_to_right is None:
+        if control.ROT_DIRECTION == 'Left':
+            right_sign = 1
+        elif control.ROT_DIRECTION == 'Right':
+            right_sign = -1
+        elif control.ROT_DIRECTION == 'Random':
+            right_sign = np.random.choice([1, -1], 1)[0]
+        else:
+            logger.error(f"Wrong configuration value control.ROT_DIRECTION=\"{control.ROT_DIRECTION}\"! Abort!")
+            raise KeyboardInterrupt
     else:
-        logger.error(f"Wrong configuration value control.ROT_DIRECTION=\"{control.ROT_DIRECTION}\"! Abort!")
-        raise KeyboardInterrupt
+        if rot_to_right:
+            right_sign = -1
+        else:
+            right_sign = 1
+
     left_sign = -1 * right_sign
 
-    v_left = left_sign * control.ROT_MOTOR_SPEED
-    v_right = right_sign * control.ROT_MOTOR_SPEED
+    if not algoimp.WITH_EXPLORE_ROT:
+        v_left = left_sign * control.ROT_MOTOR_SPEED
+        v_right = right_sign * control.ROT_MOTOR_SPEED
+    else:
+        v_left = left_sign * algoimp.EXPLORE_ROT_SPEED
+        v_right = right_sign * algoimp.EXPLORE_ROT_SPEED
+
     return [v_left, v_right]
 
 
@@ -642,16 +655,24 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 # Enforcing specific dt in Random Walk Process
                                 if abs((last_explore_change - datetime.now()).total_seconds()) > control.RW_DT:
 
-                                    if control.EXP_MOVE_TYPE == 'RandomWalk':
-                                        # Exploration according to Random Walk Process
-                                        [v_left, v_right] = step_random_walk()
-                                    elif control.EXP_MOVE_TYPE == 'Rotation':
-                                        # Exploration according to simple rotation movement
-                                        [v_left, v_right] = rotate()
+                                    # Dumm exploration techniques
+                                    if not algoimp.WITH_EXPLORE_ROT:
+                                        if control.EXP_MOVE_TYPE == 'RandomWalk':
+                                            # Exploration according to Random Walk Process
+                                            [v_left, v_right] = step_random_walk()
+                                        elif control.EXP_MOVE_TYPE == 'Rotation':
+                                            # Exploration according to simple rotation movement
+                                            [v_left, v_right] = rotate()
+                                        else:
+                                            # Unknown exploration regime in configuration
+                                            logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
+                                            raise KeyboardInterrupt
                                     else:
-                                        # Unknown exploration regime in configuration
-                                        logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
-                                        raise KeyboardInterrupt
+                                        # Improved exploration rotation towards the last scial cue
+                                        # checking the direction of last social cue with checking dpsi sign
+                                        rot_to_right = np.sign(dpsi) <= 0
+                                        [v_left, v_right] = rotate(rot_to_right=rot_to_right)
+                                        logger.debug("Improved exploration rotation towards the last social cue")
 
                                     logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
 
