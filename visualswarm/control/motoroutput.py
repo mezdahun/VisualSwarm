@@ -698,7 +698,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                         # logger.debug("Improved exploration rotation towards the last social cue")
 
                                         # # Using continous movement
-                                        dpsi_rot = float(int(np.sign(dpsi_last) > 0)) * 0.5
+                                        dpsi_rot = np.sign(dpsi_last) * 0.5
                                         if dpsi_rot == 0:
                                             dpsi_rot = 0.5
                                         v_rot = algoimp.EXPLORE_ROT_SPEED_CONT if v_last == 0 else v_last
