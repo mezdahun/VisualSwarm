@@ -103,7 +103,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 continue
 
             if np.mean(projection_field) == 0:
-                if control.EXP_MOVE_TYPE != 'NoExploration' or algoimp.WITH_EXPLORE_ROT:
+                if control.EXP_MOVE_TYPE != 'NoExploration' or algoimp.WITH_EXPLORE_ROT or algoimp.WITH_EXPLORE_ROT_CONT:
                     movement_mode = "EXPLORE"
                 else:
                     movement_mode = "BEHAVE"

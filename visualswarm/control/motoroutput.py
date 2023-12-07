@@ -675,7 +675,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 if abs((last_explore_change - datetime.now()).total_seconds()) > 0:  #control.RW_DT:
 
                                     # Dumm exploration techniques
-                                    if not (algoimp.WITH_EXPLORE_ROT or algoimp.WITH_EXPLORE_ROT_CONT):
+                                    if not algoimp.WITH_EXPLORE_ROT and not algoimp.WITH_EXPLORE_ROT_CONT:
                                         if control.EXP_MOVE_TYPE == 'RandomWalk':
                                             # Exploration according to Random Walk Process
                                             [v_left, v_right] = step_random_walk()
