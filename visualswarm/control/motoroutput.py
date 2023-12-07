@@ -688,6 +688,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                                         # # Using continous movement
                                         dpsi_rot = float(int(np.sign(dpsi_last) > 0)) * np.pi
+                                        if dpsi_rot == 0:
+                                            dpsi_rot = np.pi
                                         v_rot = algoimp.EXPLORE_ROT_SPEED_CONT if v_last == 0 else v_last
                                         logger.info(f"dpis_rot: {dpsi_rot} \t v_rot: {v_rot}")
                                         [v_left, v_right] = distribute_overall_speed(v_rot, dpsi_rot)
