@@ -682,8 +682,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                         logger.debug(f'dorientation: {dpsi_last}')
                                         rot_to_right = np.sign(dpsi_last) <= 0
                                         logger.debug(f'rot_to_right: {rot_to_right}')
-                                        v_rot = algoimp.EXPLORE_ROT_SPEED if v_last==0 else v_last
-                                        [v_left, v_right] = rotate(rot_to_right=rot_to_right, v_rot=v_rot)
+                                        [v_left, v_right] = rotate(rot_to_right=rot_to_right)
                                         logger.debug("Improved exploration rotation towards the last social cue")
 
 
