@@ -650,6 +650,16 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
                                 # last time we changed velocity according to BEHAVIOR REGIME
                                 last_behave_change = datetime.now()
+                            else:
+                                if not simulation.ENABLE_SIMULATION:
+                                    if behavior.MOVE_IN_CIRCLE:
+                                        v_left = 125
+                                        v_right = 110
+                                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                                else:   # pragma: simulation no cover
+                                    webots_do_stream.put(("SET_MOTOR", {'left': v_left, 'right': v_right}))
+
 
                         elif movement_mode == "EXPLORE":
 
