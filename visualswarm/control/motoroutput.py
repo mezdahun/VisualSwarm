@@ -675,7 +675,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 if abs((last_explore_change - datetime.now()).total_seconds()) > 0:  #control.RW_DT:
 
                                     # Dumm exploration techniques
-                                    if not algoimp.WITH_EXPLORE_ROT:
+                                    if not (algoimp.WITH_EXPLORE_ROT or algoimp.WITH_EXPLORE_ROT_CONT):
                                         if control.EXP_MOVE_TYPE == 'RandomWalk':
                                             # Exploration according to Random Walk Process
                                             [v_left, v_right] = step_random_walk()
@@ -690,20 +690,25 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     # Improved exploration rotation towards the last scial cue
                                     # checking the direction of last social cue with checking dpsi sign
                                     else:
-                                        # # Using stationary rotation
-                                        # logger.debug(f'dorientation: {dpsi_last}')
-                                        # rot_to_right = np.sign(dpsi_last) <= 0
-                                        # logger.debug(f'rot_to_right: {rot_to_right}')
-                                        # [v_left, v_right] = rotate(rot_to_right=rot_to_right)
-                                        # logger.debug("Improved exploration rotation towards the last social cue")
-
-                                        # # Using continous movement
-                                        dpsi_rot = np.sign(dpsi_last) * 0.5
-                                        if dpsi_rot == 0:
-                                            dpsi_rot = 0.5
-                                        v_rot = algoimp.EXPLORE_ROT_SPEED_CONT if v_last == 0 else v_last
-                                        logger.info(f"dpsi_last: {dpsi_last} \t dpis_rot: {dpsi_rot} \t v_rot: {v_rot}")
-                                        [v_left, v_right] = distribute_overall_speed(v_rot, dpsi_rot)
+                                        if algoimp.WITH_EXPLORE_ROT:
+                                            # Using stationary rotation
+                                            logger.debug(f'dorientation: {dpsi_last}')
+                                            rot_to_right = np.sign(dpsi_last) <= 0
+                                            logger.debug(f'rot_to_right: {rot_to_right}')
+                                            [v_left, v_right] = rotate(rot_to_right=rot_to_right)
+                                            logger.debug("Improved exploration rotation towards the last social cue")
+                                        else:
+                                            # # Using continous movement
+                                            # The rotation should happen in the direction of last calculated direction
+                                            # but is a fixed rate always
+                                            dpsi_rot = np.sign(dpsi_last) * algoimp.EXPLORE_ROT_THETA_CONT
+                                            # If no direction is defined we turn right
+                                            if dpsi_rot == 0:
+                                                dpsi_rot = algoimp.EXPLORE_ROT_THETA_CONT
+                                            # rotation happens with the last speed except if it's zero
+                                            v_rot = algoimp.EXPLORE_ROT_SPEED_CONT if v_last == 0 else v_last
+                                            logger.info(f"dpsi_last: {dpsi_last} \t dpis_rot: {dpsi_rot} \t v_rot: {v_rot}")
+                                            [v_left, v_right] = distribute_overall_speed(v_rot, dpsi_rot)
 
 
                                     logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
