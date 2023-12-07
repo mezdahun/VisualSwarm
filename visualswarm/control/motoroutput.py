@@ -75,7 +75,7 @@ def step_random_walk() -> list:
     return [v_left, v_right]
 
 
-def rotate(rot_to_right=None) -> list:
+def rotate(rot_to_right=None, v_rot=None) -> list:
     """
     Method to get motor velocity values according to a preconfigured rotation (ROT) process
         Args:
@@ -105,8 +105,12 @@ def rotate(rot_to_right=None) -> list:
         v_left = left_sign * control.ROT_MOTOR_SPEED
         v_right = right_sign * control.ROT_MOTOR_SPEED
     else:
-        v_left = left_sign * algoimp.EXPLORE_ROT_SPEED
-        v_right = right_sign * algoimp.EXPLORE_ROT_SPEED
+        if v_rot is None:
+            v_left = left_sign * algoimp.EXPLORE_ROT_SPEED
+            v_right = right_sign * algoimp.EXPLORE_ROT_SPEED
+        else:
+            v_left = left_sign * v_rot
+            v_right = right_sign * v_rot
 
     return [v_left, v_right]
 
@@ -678,7 +682,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                         logger.debug(f'dorientation: {dpsi_last}')
                                         rot_to_right = np.sign(dpsi_last) <= 0
                                         logger.debug(f'rot_to_right: {rot_to_right}')
-                                        [v_left, v_right] = rotate(rot_to_right=rot_to_right)
+                                        [v_left, v_right] = rotate(rot_to_right=rot_to_right, v_rot=v_last)
                                         logger.debug("Improved exploration rotation towards the last social cue")
 
 
