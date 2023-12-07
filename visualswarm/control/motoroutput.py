@@ -667,12 +667,16 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                             # Unknown exploration regime in configuration
                                             logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
                                             raise KeyboardInterrupt
+
+                                    # Improved exploration rotation towards the last scial cue
+                                    # checking the direction of last social cue with checking dpsi sign
                                     else:
-                                        # Improved exploration rotation towards the last scial cue
-                                        # checking the direction of last social cue with checking dpsi sign
+                                        logger.debug(f'dorientation: {dpsi}')
                                         rot_to_right = np.sign(dpsi) >= 0
+                                        logger.debug(f'rot_to_right: {rot_to_right}')
                                         [v_left, v_right] = rotate(rot_to_right=rot_to_right)
                                         logger.debug("Improved exploration rotation towards the last social cue")
+
 
                                     logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
 
