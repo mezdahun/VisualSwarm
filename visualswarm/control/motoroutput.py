@@ -674,7 +674,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     # checking the direction of last social cue with checking dpsi sign
                                     else:
                                         logger.debug(f'dorientation: {dpsi_last}')
-                                        rot_to_right = np.sign(dpsi_last) >= 0
+                                        rot_to_right = np.sign(dpsi_last) <= 0
                                         logger.debug(f'rot_to_right: {rot_to_right}')
                                         [v_left, v_right] = rotate(rot_to_right=rot_to_right)
                                         logger.debug("Improved exploration rotation towards the last social cue")
