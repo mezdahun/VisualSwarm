@@ -699,6 +699,14 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 # regime
                                 [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last)
 
+                                # sending motor values to robot
+                                if not simulation.ENABLE_SIMULATION:
+                                    network.SetVariable("thymio-II", "motor.left.target", [v_left])
+                                    network.SetVariable("thymio-II", "motor.right.target", [v_right])
+                                else:  # pragma: simulation no cover
+                                    webots_do_stream.put(("SET_MOTOR",
+                                                          {'left': float(v_left), 'right': float(v_right)}))
+
                         else:
                             logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
                             raise KeyboardInterrupt
