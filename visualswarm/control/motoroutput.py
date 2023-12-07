@@ -595,6 +595,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
             if is_connection_healthy:
                 logger.info(f'{bcolors.OKGREEN}✓ CONNECTION SUCCESSFUl{bcolors.ENDC} via asebamedulla')
 
+                v_last = 0
                 dpsi_last = 0
                 while True:
                     # fetching state variables
@@ -620,6 +621,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             is_persistent = abs((last_explore_change - datetime.now()).total_seconds()) > \
                                             control.WAIT_BEFORE_SWITCH_MOVEMENT
                             if is_persistent or env.EXIT_CONDITION:
+                                v_last = v
                                 dpsi_last = dpsi
                                 # Behavior according to Romanczuk and Bastien 2020
                                 # distributing desired forward speed according to dpsi
@@ -692,6 +694,10 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
 
                                     # last time we changed velocity according to EXPLORE REGIME
                                     last_explore_change = datetime.now()
+                            else:
+                                # if the movement is not et persistent we continue to move according to BEHAVE
+                                # regime
+                                [v_left, v_right] = distribute_overall_speed(v, dpsi)
 
                         else:
                             logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
