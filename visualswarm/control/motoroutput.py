@@ -651,6 +651,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 # last time we changed velocity according to BEHAVIOR REGIME
                                 last_behave_change = datetime.now()
                             else:
+                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last)
                                 if not simulation.ENABLE_SIMULATION:
                                     if behavior.MOVE_IN_CIRCLE:
                                         v_left = 125
