@@ -695,9 +695,9 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     # last time we changed velocity according to EXPLORE REGIME
                                     last_explore_change = datetime.now()
                             else:
-                                # if the movement is not et persistent we continue to move according to BEHAVE
+                                # if the movement is not yet persistent we continue to move according to BEHAVE
                                 # regime
-                                [v_left, v_right] = distribute_overall_speed(v, dpsi)
+                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last)
 
                         else:
                             logger.error(f"Unknown movement type \"{movement_mode}\"! Abort!")
