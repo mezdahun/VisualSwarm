@@ -687,7 +687,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                         # logger.debug("Improved exploration rotation towards the last social cue")
 
                                         # # Using continous movement
-                                        dpsi_rot = np.sign(dpsi_last) * 0.5
+                                        dpsi_rot = np.sign(dpsi_last)
                                         [v_left, v_right] = distribute_overall_speed(v_last, dpsi_rot)
 
 
