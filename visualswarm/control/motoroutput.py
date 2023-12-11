@@ -180,6 +180,8 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     if algoimp.WITH_STAT_TURNING:
         if np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
             # stationary turn due to large angle and low speed
+            print(f"absolute velocity: {np.abs(v)}")
+            print(f"prop. angle change: {dpsi_p}")
             v_left = (algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
             v_right = -(algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
         else:
