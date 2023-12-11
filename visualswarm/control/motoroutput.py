@@ -173,19 +173,25 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     # # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
 
-    # Limiting backwards movement speed if requested
-    if algoimp.WITH_LIMITED_BACKWARDS:
-        v = limit_backwards_movement(v)
-
     # Stationary turning to avoid lazy turning with lower speeds
     if algoimp.WITH_STAT_TURNING:
-        if np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
+        if v < 0 and algoimp.WITH_LIMITED_BACKWARDS and v < algoimp.MAX_BACKWARDS_SPEED:
+            # stationary turn due to large angle and low speed
+            print(f"velocity: {v}")
+            print(f"prop. angle change: {dpsi_p}")
+            v_left = algoimp.MAX_BACKWARDS_SPEED + algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
+            v_right = algoimp.MAX_BACKWARDS_SPEED - algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
+        elif np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
             # stationary turn due to large angle and low speed
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
             v_left = algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
             v_right = -algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
         else:
+            # Limiting backwards movement speed if requested
+            if algoimp.WITH_LIMITED_BACKWARDS:
+                v = limit_backwards_movement(v)
+
             # Matching simulation scale with reality
             v = v * behavior.KAP
 
@@ -193,6 +199,10 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
             v_left = v * (1 + dpsi_p)
             v_right = v * (1 - dpsi_p)
     else:
+        # Limiting backwards movement speed if requested
+        if algoimp.WITH_LIMITED_BACKWARDS:
+            v = limit_backwards_movement(v)
+
         # Matching simulation scale with reality
         v = v * behavior.KAP
 
