@@ -155,6 +155,7 @@ def limit_backwards_movement(v):
     """Limiting backwards movement speed if requested to avoid collisions."""
     if v < 0:
         if v < -algoimp.MAX_BACKWARDS_SPEED:
+            print(f"Limiting velocity {v} to {algoimp.MAX_BACKWARDS_SPEED}")
             v = -algoimp.MAX_BACKWARDS_SPEED
     return v
 
@@ -180,7 +181,7 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     if algoimp.WITH_STAT_TURNING:
         if np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
             # stationary turn due to large angle and low speed
-            print(f"absolute velocity: {np.abs(v)}")
+            print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
             v_left = (algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
             v_right = -(algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
