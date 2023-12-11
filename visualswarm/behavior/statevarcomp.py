@@ -10,6 +10,7 @@ import numpy.typing as npt
 from scipy import integrate
 
 from visualswarm.contrib import behavior, monitoring
+from visualswarm.contrib import algorithm_improvements as algoimp
 
 # using main logger
 # setup logging
@@ -115,22 +116,21 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     # Spikey parts shall be handled separately because of numerical integration
     G_psi_spike = np.square(dPhi_V)
 
-    # Calculating change in velocity and heading direction
-    dPhi = Phi[-1] - Phi[-2]
-    FOV_rescaling_cos = 1
-    FOV_rescaling_sin = 1
+    if not algoimp.WITH_SIGMOID_MASK_TURN:
+        dpsi = BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
+               BET0 * BET1 * np.sum(np.sin(Phi) * G_psi_spike)
+    else:
+        dpsi = BET0 * integrate.trapz(sin_sigmoid(Phi, s=algoimp.SIGMOID_MASK_TURN_STEEP*np.pi) * G_psi, Phi) + \
+               BET0 * BET1 * np.sum(sin_sigmoid(Phi, s=algoimp.SIGMOID_MASK_TURN_STEEP*np.pi) * G_psi_spike)
 
-    dvel = GAM * (V0 - vel_now) + \
-           ALP0 * integrate.trapz(np.cos(FOV_rescaling_cos * Phi) * G_vel, Phi) + \
-           ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike)  #* dPhi
-    dpsi = BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
-           BET0 * BET1 * np.sum(np.sin(FOV_rescaling_sin * Phi) * G_psi_spike)  #* dPhi
-
-    # dvel = GAM * (V0 - vel_now) + \
-    #        ALP0 * integrate.trapz(cos_sigmoid(FOV_rescaling_cos * Phi, 5*np.pi) * G_vel, Phi) + \
-    #        ALP0 * ALP1 * np.sum(cos_sigmoid(Phi, 5*np.pi) * G_vel_spike)  #* dPhi
-    # dpsi = BET0 * integrate.trapz(sin_sigmoid(Phi, s=5*np.pi) * G_psi, Phi) + \
-    #        BET0 * BET1 * np.sum(sin_sigmoid(Phi, s=5*np.pi) * G_psi_spike)  #* dPhi
+    if not algoimp.WITH_SIGMOID_MASK_ACC:
+        dvel = GAM * (V0 - vel_now) + \
+               ALP0 * integrate.trapz(np.cos(Phi) * G_vel, Phi) + \
+               ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike)
+    else:
+        dvel = GAM * (V0 - vel_now) + \
+               ALP0 * integrate.trapz(cos_sigmoid(Phi, algoimp.SIGMOID_MASK_ACC_STEEP*np.pi) * G_vel, Phi) + \
+               ALP0 * ALP1 * np.sum(cos_sigmoid(Phi, algoimp.SIGMOID_MASK_ACC_STEEP*np.pi) * G_vel_spike)
 
     return dvel, dpsi
 

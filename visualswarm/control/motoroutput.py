@@ -151,12 +151,16 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     return [v_left_lim, v_right_lim]
 
 
-def limit_backwards_movement(v):
+def limit_front_back_movement(v):
     """Limiting backwards movement speed if requested to avoid collisions."""
     if v < 0:
-        if v < -algoimp.MAX_BACKWARDS_SPEED:
+        if algoimp.WITH_LIMITED_BACKWARDS and v < -algoimp.MAX_BACKWARDS_SPEED:
             print(f"Limiting velocity {v} to {algoimp.MAX_BACKWARDS_SPEED}")
             v = -algoimp.MAX_BACKWARDS_SPEED
+    else:
+        if algoimp.WITH_LIMITED_FORWARD and v > algoimp.MAX_FORWARD_SPEED:
+            print(f"Limiting velocity {v} to {algoimp.MAX_FORWARD_SPEED}")
+            v = algoimp.MAX_FORWARD_SPEED
     return v
 
 
@@ -179,18 +183,18 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
             # stationary turn due to large angle and low speed
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
-            v_left = - (algoimp.MAX_BACKWARDS_SPEED/2) + algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
-            v_right = - (algoimp.MAX_BACKWARDS_SPEED/2) - algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
+            v_left = - (algoimp.MAX_BACKWARDS_SPEED/2) + algoimp.STAT_TURN_SPEED * dpsi_p
+            v_right = - (algoimp.MAX_BACKWARDS_SPEED/2) - algoimp.STAT_TURN_SPEED * dpsi_p
         elif np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
             # stationary turn due to large angle and low speed
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
-            v_left = (v/2) + algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
-            v_right = (v/2) - algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
+            v_left = algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
+            v_right = - algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
         else:
             # Limiting backwards movement speed if requested
             if algoimp.WITH_LIMITED_BACKWARDS:
-                v = limit_backwards_movement(v)
+                v = limit_front_back_movement(v)
 
             # Matching simulation scale with reality
             v = v * behavior.KAP
@@ -201,7 +205,7 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     else:
         # Limiting backwards movement speed if requested
         if algoimp.WITH_LIMITED_BACKWARDS:
-            v = limit_backwards_movement(v)
+            v = limit_front_back_movement(v)
 
         # Matching simulation scale with reality
         v = v * behavior.KAP
