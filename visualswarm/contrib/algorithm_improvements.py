@@ -38,8 +38,10 @@ SIGMOID_MASK_ACC_STEEP = int(float(os.getenv('SIGMOID_MASK_ACC_STEEP', '5')))
 WITH_STAT_TURNING = bool(int(os.getenv('WITH_STAT_TURNING', '0')))
 # Velocity threshold below which stationary turning is triggered in motor units
 STAT_TURN_VEL_THRES = int(float(os.getenv('STAT_TURN_VEL_THRES', '30')))
-# Fixed turning speed in motor units
+# Fixed turning speed in motor units (forward)
 STAT_TURN_SPEED = int(float(os.getenv('STAT_TURN_SPEED', '400')))
+# Fixed turning speed in motor units (backward)
+STAT_TURN_SPEED_BACK = int(float(os.getenv('STAT_TURN_SPEED_BACK', '200')))
 # Turn on/off sigmoid mask function for turning response
 WITH_SIGMOID_MASK_TURN = bool(int(os.getenv('WITH_SIGMOID_MASK_TURN', '0')))
 # Sigmoid steepness for acceleration response mask
