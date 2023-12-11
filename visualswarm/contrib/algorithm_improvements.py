@@ -1,10 +1,40 @@
 import os
 
-# Exploration by rotating towards last visible cue
-# Rotation speed
+
+##### EXPLORATION #####
+# Exploration by stationary rotating towards last visible cue
+# Turn ON/OFF exploration by stationary rotating towards last visible cue
 WITH_EXPLORE_ROT = bool(int(os.getenv('WITH_EXPLORE_ROT', '0')))
+# Rotation speed in motor units
 EXPLORE_ROT_SPEED = int(float(os.getenv('EXPLORE_ROT_SPEED', '50')))
-# Continous rotation keeping the velocity but increasing dphi
+
+# Continous rotation keeping the absolute velocity but with fixed dphi
+# keeping only the direction towards dphi in last timestep
+# Turn ON/OFF exploration by rotating towards last visible cue
 WITH_EXPLORE_ROT_CONT = bool(int(os.getenv('WITH_EXPLORE_ROT_CONT', '0')))
+# Rotation absolute speed in motor units
 EXPLORE_ROT_SPEED_CONT = int(float(os.getenv('EXPLORE_ROT_SPEED_CONT', '100')))
+# Fixed rotation angle in radian (dphi)
 EXPLORE_ROT_THETA_CONT = float(os.getenv('EXPLORE_ROT_THETA_CONT', '0.75'))
+
+
+##### FRONT-BACK OSCILLATIONS #####
+# Turn ON/OFF limited backwards movement
+WITH_LIMITED_BACKWARDS = bool(int(os.getenv('LIMITED_BACKWARDS', '0')))
+# Maximum absolut backwards speed in motor units
+MAX_BACKWARDS_SPEED = int(float(os.getenv('MAX_BACKWARDS_SPEED', '100')))
+# Turn on/off sigmid mask function for acceleration response
+WITH_SIGMID_MASK_ACC = bool(int(os.getenv('WITH_SIGMID_MASK_ACC', '0')))
+# Sigmoid steepness for acceleration response mask
+SIGMID_MASK_ACC_STEEP = int(float(os.getenv('SIGMID_MASK_ACC_STEEP', '5')))
+
+
+##### LAZY TURNING #####
+# Turn ON/OFF stationary turning behavior below velocity threshold
+WITH_STAT_TURNING = bool(int(os.getenv('WITH_STAT_TURNING', '0')))
+# Velocity threshold below which stationary turning is triggered in motor units
+STAT_TURN_VEL_THRES = int(float(os.getenv('STAT_TURN_VEL_THRES', '50')))
+# Fixed turning angle in radian
+STAT_TURN_THETA = float(os.getenv('STAT_TURN_THETA', '0.75'))
+# Fixed turning speed in motor units
+STAT_TURN_SPEED = int(float(os.getenv('STAT_TURN_SPEED', '50')))

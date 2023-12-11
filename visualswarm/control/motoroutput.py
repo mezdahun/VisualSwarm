@@ -151,6 +151,15 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
     return [v_left_lim, v_right_lim]
 
 
+def limit_backwards_movement(v):
+    """Limiting backwards movement speed if requested to avoid collisions."""
+    v_back_des = algoimp.MAX_BACKWARDS_SPEED
+    if v < 0:
+        if v < -v_back_des:
+            v = -v_back_des
+    return v
+
+
 def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     """
     distributing desired forward speed to motor velocities according to the change in the heading angle dpsi.
@@ -163,24 +172,31 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
 
     # # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
-    # if v < 0:
-    #     mask = np.abs(v) < v_lower_thr_n
-    # else:
-    #     mask = np.abs(v) < v_lower_thr_p
 
-    # if np.abs(v) < v_thr:
-    #     # stationary turn due to large angle and low speed
-    #     v_turn = 100
-    #     v_left = np.sign(v) * (v_turn/2) * dpsi_p
-    #     v_right = -(v_turn/2) * dpsi_p * np.sign(v)
-    # else:
-    #     # Matching simulation scale with reality
-    v = v * behavior.KAP
+    # Limiting backwards movement speed if requested
+    if algoimp.WITH_LIMITED_BACKWARDS:
+        v = limit_backwards_movement(v)
 
-    # Distributing velocity
-    v_left = v * (1 + dpsi_p)
-    v_right = v * (1 - dpsi_p)
+    # Stationary turning to avoid lazy turning with lower speeds
+    if algoimp.WITH_STAT_TURNING:
+        if np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
+            # stationary turn due to large angle and low speed
+            v_left = np.sign(v) * (algoimp.STAT_TURN_SPEED/2) * dpsi_p
+            v_right = -(algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
+        else:
+            # Matching simulation scale with reality
+            v = v * behavior.KAP
 
+            # Distributing velocity
+            v_left = v * (1 + dpsi_p)
+            v_right = v * (1 - dpsi_p)
+    else:
+        # Matching simulation scale with reality
+        v = v * behavior.KAP
+
+        # Distributing velocity
+        v_left = v * (1 + dpsi_p)
+        v_right = v * (1 - dpsi_p)
 
     return [v_left, v_right]
 

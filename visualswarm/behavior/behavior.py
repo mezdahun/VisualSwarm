@@ -138,17 +138,6 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 v = max(v, -400)
 
             v = float(v)
-
-            # if dpsi > 0:
-            #     dpsi = min(dpsi, 1)
-            # elif dpsi < 0:
-            #     dpsi = max(dpsi, -1)
-
-            # if dpsic2 > 0:
-            #     dpsic2 = min(dpsic2, 1)
-            # elif dpsic2 < 0:
-            #     dpsic2 = max(dpsic2, -1)
-
             dpsi = float(dpsi)
 
             ## TODO: this is temporary smooth reandom walk
@@ -166,9 +155,11 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 # logger.error('zerodpsi')
                 add_psi = 0.1
 
+            # Initializing control parameters
             if is_initialized:
                 v += dv * dt
                 dpsi
+
             else:
                 is_initialized = True
                 dv = float(0)
