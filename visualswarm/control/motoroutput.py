@@ -183,8 +183,8 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
             # stationary turn due to large angle and low speed
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
-            v_left = (algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
-            v_right = -(algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
+            v_left = algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
+            v_right = -algoimp.STAT_TURN_SPEED * dpsi_p * np.sign(v)
         else:
             # Matching simulation scale with reality
             v = v * behavior.KAP

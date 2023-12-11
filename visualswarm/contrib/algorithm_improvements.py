@@ -22,7 +22,7 @@ EXPLORE_ROT_THETA_CONT = float(os.getenv('EXPLORE_ROT_THETA_CONT', '0.75'))
 # Turn ON/OFF limited backwards movement
 WITH_LIMITED_BACKWARDS = bool(int(os.getenv('LIMITED_BACKWARDS', '0')))
 # Maximum absolut backwards speed in motor units
-MAX_BACKWARDS_SPEED = int(float(os.getenv('MAX_BACKWARDS_SPEED', '50')))
+MAX_BACKWARDS_SPEED = int(float(os.getenv('MAX_BACKWARDS_SPEED', '40')))
 # Turn on/off sigmid mask function for acceleration response
 WITH_SIGMOID_MASK_ACC = bool(int(os.getenv('WITH_SIGMOID_MASK_ACC', '0')))
 # Sigmoid steepness for acceleration response mask
@@ -35,4 +35,4 @@ WITH_STAT_TURNING = bool(int(os.getenv('WITH_STAT_TURNING', '0')))
 # Velocity threshold below which stationary turning is triggered in motor units
 STAT_TURN_VEL_THRES = int(float(os.getenv('STAT_TURN_VEL_THRES', '30')))
 # Fixed turning speed in motor units
-STAT_TURN_SPEED = int(float(os.getenv('STAT_TURN_SPEED', '75')))
+STAT_TURN_SPEED = int(float(os.getenv('STAT_TURN_SPEED', '500')))
