@@ -20,7 +20,7 @@ EXPLORE_ROT_THETA_CONT = float(os.getenv('EXPLORE_ROT_THETA_CONT', '0.75'))
 
 ##### FRONT-BACK OSCILLATIONS #####
 # Turn ON/OFF limited backwards movement
-WITH_LIMITED_BACKWARDS = bool(int(os.getenv('LIMITED_BACKWARDS', '0')))
+WITH_LIMITED_BACKWARDS = bool(int(os.getenv('WITH_LIMITED_BACKWARDS', '0')))
 # Maximum absolut backwards speed in motor units
 MAX_BACKWARDS_SPEED = int(float(os.getenv('MAX_BACKWARDS_SPEED', '40')))
 # Turn on/off sigmid mask function for acceleration response
