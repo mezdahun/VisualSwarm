@@ -153,10 +153,9 @@ def hardlimit_motor_speed(v_left: float, v_right: float) -> list:
 
 def limit_backwards_movement(v):
     """Limiting backwards movement speed if requested to avoid collisions."""
-    v_back_des = algoimp.MAX_BACKWARDS_SPEED
     if v < 0:
-        if v < -v_back_des:
-            v = -v_back_des
+        if v < -algoimp.MAX_BACKWARDS_SPEED:
+            v = -algoimp.MAX_BACKWARDS_SPEED
     return v
 
 
@@ -181,7 +180,7 @@ def distribute_overall_speed(v: float, dpsi: float, v_thr=20) -> list:
     if algoimp.WITH_STAT_TURNING:
         if np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
             # stationary turn due to large angle and low speed
-            v_left = np.sign(v) * (algoimp.STAT_TURN_SPEED/2) * dpsi_p
+            v_left = (algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
             v_right = -(algoimp.STAT_TURN_SPEED/2) * dpsi_p * np.sign(v)
         else:
             # Matching simulation scale with reality
