@@ -191,7 +191,10 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 ifclient.write_points(body, time_precision='ms')
 
             if with_control:
-                control_stream.put((v, dpsi))
+                #ating excitation of left vs right of the projection field
+                exc_left = np.mean(projection_field[0:int(len(projection_field) / 2)])
+                exc_right = np.mean(projection_field[int(len(projection_field) / 2):])
+                control_stream.put((v, dpsi, exc_left, exc_right))
                 motor_control_mode_stream.put(movement_mode)
 
             if monitoring.ENABLE_CLOUD_STORAGE:
