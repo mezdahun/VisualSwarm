@@ -665,8 +665,6 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 # Behavior according to Romanczuk and Bastien 2020
                                 # distributing desired forward speed according to dpsi
                                 [v_left, v_right] = distribute_overall_speed(v, dpsi)
-                                v = np.mean([v_left, v_right])
-
 
                                 # hard limit motor velocities but keep their ratio for desired movement
                                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
@@ -689,7 +687,6 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 last_behave_change = datetime.now()
                             else:
                                 [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last)
-                                v = np.mean([v_left, v_right])
                                 if not simulation.ENABLE_SIMULATION:
                                     if behavior.MOVE_IN_CIRCLE:
                                         v_left = 125
@@ -765,7 +762,6 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 # if the movement is not yet persistent we continue to move according to BEHAVE
                                 # regime
                                 [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last)
-                                v = np.mean([v_left, v_right])
 
                                 # sending motor values to robot
                                 if not simulation.ENABLE_SIMULATION:
