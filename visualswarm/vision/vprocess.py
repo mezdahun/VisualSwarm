@@ -734,11 +734,11 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             # deleting remaining blobs from candidates
                             if len(candidates) > 0:
                                 candidates = [int(c) for c in list(candidates)]
-                                centers.pop(candidates)
-                                widths.pop(candidates)
-                                xs.pop(candidates)
-                                xorigs.pop(candidates)
-                                ys.pop(candidates)
+                                centers = [cent for i, cent in enumerate(centers) if i not in candidates]
+                                widths = [wid for i, wid in enumerate(widths) if i not in candidates]
+                                xs = [x for i, x in enumerate(xs) if i not in candidates]
+                                xorigs = [x for i, x in enumerate(xorigs) if i not in candidates]
+                                ys = [y for i, y in enumerate(ys) if i not in candidates]
 
                         for i in range(len(centers)):
                             xmin_extend, xmax_extend = xs[i]
