@@ -114,7 +114,6 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             dt = (t_now - t_prev).total_seconds()  # to normalize
 
             if not visualswarm.contrib.vision.divided_projection_field:
-                logger.error(f"{projection_field.shape}, {phi.shape}")
                 dv, dpsi = statevarcomp.compute_state_variables(v, phi, projection_field)
             else:
                 dvs = []
@@ -127,10 +126,10 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                     dpsis.append(dpsii)
                 dv = np.sum(dvs)
                 dpsi = np.sum(dpsis)
-                print(f"According to original algorithm: dv={dv_orig}, dpsi={dpsi_orig}")
-                print(dvs, dpsis)
-                print(f"With Improved edge overlay (mean): dv={np.mean(dvs)}, dpsi={np.mean(dpsis)}")
-                print(f"With Improved edge overlay (sum): dv={np.sum(dvs)}, dpsi={np.sum(dpsis)}")
+                # print(f"According to original algorithm: dv={dv_orig}, dpsi={dpsi_orig}")
+                # print(dvs, dpsis)
+                # print(f"With Improved edge overlay (mean): dv={np.mean(dvs)}, dpsi={np.mean(dpsis)}")
+                # print(f"With Improved edge overlay (sum): dv={np.sum(dvs)}, dpsi={np.sum(dpsis)}")
 
             if v > 0:
                 v = min(v, 400)

@@ -1161,7 +1161,6 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
 
                 ifclient.write_points(body, time_precision='ms')
 
-            logger.error(f"proj field dim {projection_field_class_1.shape}")
             VPF_stream.put((projection_field_class_1, capture_timestamp, projection_field_class_0))
 
             # To test infinite loops
