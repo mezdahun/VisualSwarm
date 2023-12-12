@@ -46,3 +46,17 @@ STAT_TURN_SPEED_BACK = int(float(os.getenv('STAT_TURN_SPEED_BACK', '200')))
 WITH_SIGMOID_MASK_TURN = bool(int(os.getenv('WITH_SIGMOID_MASK_TURN', '0')))
 # Sigmoid steepness for acceleration response mask
 SIGMOID_MASK_TURN_STEEP = int(float(os.getenv('SIGMOID_MASK_TURN_STEEP', '5')))
+
+
+##### SELECTIVE BLOB FILTERING #####
+# Filtering visual blobs selectively
+# (1) only when there are more than 2 visible blobs
+# (2) we take the COM of visual blobs on the retina and make removal candidates
+#     the last N blobs in the list sorted according to their distance from the COM
+# (3) we remove blobs that are below a certain size from the candidates
+# Turn ON/OFF selective blob filtering
+WITH_SELECTIVE_BLOB_FILTERING = bool(int(os.getenv('WITH_SELECTIVE_BLOB_FILTERING', '0')))
+# Remove blobs below this size selectively (only when they are far from other blobs)
+MIN_BLOB_SIZE = int(float(os.getenv('MIN_BLOB_SIZE', '8')))
+# When ordering accordin to COM distance the last N blob will be candidate for removal
+N_BLOB_CANDIDATES = int(float(os.getenv('N_BLOB_CANDIDATES', '2')))
