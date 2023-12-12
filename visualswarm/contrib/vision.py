@@ -65,6 +65,7 @@ PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
 overlap_removal = bool(int(float(os.getenv('OVERLAP_REMOVAL', '0'))))
 overlap_removal_thr = 0.5
 min_box_width = 3
+max_num_detections = int(float(os.getenv('MAX_NUM_DETECTIONS', '9')))
 
 # Take N largest projections
 focus_on_N_largest = bool(int(float(os.getenv('FOCUS_N_NEAREST', '0'))))
