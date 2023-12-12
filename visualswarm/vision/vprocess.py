@@ -723,12 +723,13 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             candidates = np.argsort(com_distances)[::-1]
                             candidates = candidates[0:10]
                             candidates = candidates[np.array(widths)[candidates] < algoimp.MIN_BLOB_SIZE]
+                            candidates = [int(c) for c in list(candidates)]
                             # prinitng summary line
-                            logger.debug(f"centers: {centers}, "
+                            logger.error(f"centers: {centers}, "
                                          f"\nCOM: {com}, "
                                          f"\ncom_distances: {com_distances}, "
                                          f"\nwidths: {widths}")
-                            logger.debug(f"\ncandidates: {candidates}, "
+                            logger.error(f"\ncandidates: {candidates}, "
                                          f"\nwidths: {np.array(widths)[candidates]}, "
                                          f"\neliminated: {np.array(widths)[candidates] > algoimp.MIN_BLOB_SIZE}")
                             # deleting remaining blobs from candidates
