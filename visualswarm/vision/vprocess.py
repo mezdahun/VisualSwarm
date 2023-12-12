@@ -721,9 +721,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             com_distances = np.abs(np.array(centers) - com)
                             # getting 10 candidates farthest from COM with width below 3
                             candidates = np.argsort(com_distances)[::-1]
-                            candidates = candidates[0:10]
+                            candidates = candidates[0:algoimp.N_BLOB_CANDIDATES]
                             candidates = candidates[np.array(widths)[candidates] < algoimp.MIN_BLOB_SIZE]
-                            candidates = [int(c) for c in list(candidates)]
                             # prinitng summary line
                             logger.error(f"centers: {centers}, "
                                          f"\nCOM: {com}, "
@@ -733,11 +732,13 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                          f"\nwidths: {np.array(widths)[candidates]}, "
                                          f"\neliminated: {np.array(widths)[candidates] > algoimp.MIN_BLOB_SIZE}")
                             # deleting remaining blobs from candidates
-                            centers.pop(candidates)
-                            widths.pop(candidates)
-                            xs.pop(candidates)
-                            xorigs.pop(candidates)
-                            ys.pop(candidates)
+                            if len(candidates) > 0:
+                                candidates = [int(c) for c in list(candidates)]
+                                centers.pop(candidates)
+                                widths.pop(candidates)
+                                xs.pop(candidates)
+                                xorigs.pop(candidates)
+                                ys.pop(candidates)
 
                         for i in range(len(centers)):
                             xmin_extend, xmax_extend = xs[i]
