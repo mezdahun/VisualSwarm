@@ -224,8 +224,8 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
                     if v > 10:
                         dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
                         logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-            v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
-            v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
+            v_left = np.sign(v)*algoimp.STAT_TURN_VEL_THRES + algoimp.STAT_TURN_SPEED * dpsi_p
+            v_right = np.sign(v)*algoimp.STAT_TURN_VEL_THRES - algoimp.STAT_TURN_SPEED * dpsi_p
 
         else:
             # Limiting backwards movement speed if requested
