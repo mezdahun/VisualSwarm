@@ -210,9 +210,18 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
             # dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.025)
             print(f"prop. angle change: {dpsi_p}")
             if excl is not None and not (excl == 0 and excr == 0) and v < 0:
-                # turning towards more retinal excitation
+                # turning towards more retinal excitation if moving backwards
                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+            # turning away from all social cues towards somewhere where no social cues are visible
+            elif excl is not None:
+                # checking if turning to right according to dpsi
+                turn_right = dpsi_p > 0
+                if (turn_right and excr == 0) or (not turn_right and excl == 0):
+                    # turning away from all social cues so
+                    # turning towards more retinal excitation if moving backwards
+                    dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                    logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
             v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
             v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
 
