@@ -179,7 +179,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
 
     # trying to distinguish attraction vs repulsion
     # by checking if the agent is turning towards or away from the cue
-    is_right = excr > excl
+    is_right = excr < excl
 
     # Stationary turning to avoid lazy turning with lower speeds
     # and to avoid loosing other agents from sight due to repulsion forces
