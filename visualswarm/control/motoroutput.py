@@ -220,8 +220,10 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
                 elif (turn_right and excr == 0) or (not turn_right and excl == 0):
                     # turning away from all social cues so
                     # turning towards more retinal excitation if moving backwards
-                    dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                    logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                    # if velocity is larger than threshold
+                    if v > 10:
+                        dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                        logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
             v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
             v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
 
