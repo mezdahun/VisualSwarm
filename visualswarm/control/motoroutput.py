@@ -192,6 +192,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
             if excl is not None:
                 # turning towards more retinal excitation
                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.001
+                logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
             v_left = - algoimp.MAX_BACKWARDS_SPEED + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             v_right = - algoimp.MAX_BACKWARDS_SPEED - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             # if excl is not None:
