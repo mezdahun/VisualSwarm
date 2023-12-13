@@ -179,7 +179,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
 
     # trying to distinguish attraction vs repulsion
     # by checking if the agent is turning towards or away from the cue
-    is_right = excr < excl
+    is_right = excr > excl
 
     # Stationary turning to avoid lazy turning with lower speeds
     # and to avoid loosing other agents from sight due to repulsion forces
@@ -188,32 +188,32 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
             # stationary turn due to large angle and low speed
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
-            dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.001)
+            # dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.001)
+            if excl is not None:
+                # turning towards more retinal excitation
+                dpsi_p = ((excr - excl) / (excr + excl)) * 0.001
             v_left = - algoimp.MAX_BACKWARDS_SPEED + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             v_right = - algoimp.MAX_BACKWARDS_SPEED - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
-            if excl is not None:
-                if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
-                    # attraction we keep moving as before
-                    pass
-                else:
-                    # reulsion we reverse the turning, soven if something is very close we keep turning towards it
-                    v_left, v_right = v_right, v_left
+            # if excl is not None:
+            #     if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
+            #         # attraction we keep moving as before
+            #         pass
+            #     else:
+            #         # reulsion we reverse the turning, soven if something is very close we keep turning towards it
+            #         v_left, v_right = v_right, v_left
 
         elif np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
             # stationary turn due to large angle and low speed
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
-            dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.025)
+            # dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.025)
             print(f"prop. angle change: {dpsi_p}")
+            if excl is not None:
+                # turning towards more retinal excitation
+                dpsi_p = ((excr - excl) / (excr + excl)) * 0.001
             v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
             v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
-            if excl is not None:
-                if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
-                    # attraction we keep moving as before
-                    pass
-                else:
-                    # reulsion we reverse the turning, soven if something is very close we keep turning towards it
-                    v_left, v_right = v_right, v_left
+
         else:
             # Limiting backwards movement speed if requested
             if algoimp.WITH_LIMITED_BACKWARDS:
