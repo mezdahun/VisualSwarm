@@ -177,9 +177,12 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
     # # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
 
+    # trying to distinguish attraction vs repulsion
+    # by checking if the agent is turning towards or away from the cue
     is_right = excr > excl
 
     # Stationary turning to avoid lazy turning with lower speeds
+    # and to avoid loosing other agents from sight due to repulsion forces
     if algoimp.WITH_STAT_TURNING:
         if v < 0 and algoimp.WITH_LIMITED_BACKWARDS and v < algoimp.MAX_BACKWARDS_SPEED:
             # stationary turn due to large angle and low speed
@@ -189,9 +192,11 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
             v_left = - algoimp.MAX_BACKWARDS_SPEED + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             v_right = - algoimp.MAX_BACKWARDS_SPEED - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             if excl is not None:
-                if (is_right and v_left > v_right) or (v_left and v_right > v_left):
+                if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
+                    # attraction we keep moving as before
                     pass
                 else:
+                    # reulsion we reverse the turning, soven if something is very close we keep turning towards it
                     v_left, v_right = v_right, v_left
 
         elif np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
@@ -203,9 +208,11 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
             v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
             v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
             if excl is not None:
-                if (is_right and v_left > v_right) or (v_left and v_right > v_left):
+                if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
+                    # attraction we keep moving as before
                     pass
                 else:
+                    # reulsion we reverse the turning, soven if something is very close we keep turning towards it
                     v_left, v_right = v_right, v_left
         else:
             # Limiting backwards movement speed if requested
