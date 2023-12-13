@@ -209,7 +209,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
             print(f"prop. angle change: {dpsi_p}")
             # dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.025)
             print(f"prop. angle change: {dpsi_p}")
-            if excl is not None and not (excl == 0 and excr == 0):
+            if excl is not None and not (excl == 0 and excr == 0) and v < 0:
                 # turning towards more retinal excitation
                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
