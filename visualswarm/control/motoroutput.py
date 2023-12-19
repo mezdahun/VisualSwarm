@@ -217,27 +217,33 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
         else:
             # velocity fell below stationary turning threshold, increasing turning response artificially
             # stationary turn due to large angle and low speed
-            if np.abs(v) < algoimp.STAT_TURN_VEL_THRES and np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
-                print("Stationary turning due to low speed and large angle")
-                print(f"velocity: {v}")
-                print(f"prop. angle change: {dpsi_p}")
+            # if np.abs(v) < algoimp.STAT_TURN_VEL_THRES and np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
+            print("Stationary turning due to low speed and large angle")
+            print(f"velocity: {v}")
+            print(f"prop. angle change: {dpsi_p}")
 
-                turn_right = dpsi_p > 0
-                # there is visual excitation
-                if excl is not None and not (excl == 0 and excr == 0) \
-                        and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES \
-                        and ((turn_right and excr == 0) or (not turn_right and excl == 0)):
-                    # turning away from all social cues and we only have a single blob
-                    # we just wait and move forward with low velocity
-                    # dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                    # logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                    v = 10
-                    dpsi_p = 0
-                    v_left = v * (1 + dpsi_p)
-                    v_right = v * (1 - dpsi_p)
-                else:
-                    v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
-                    v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
+            turn_right = dpsi_p > 0
+            # there is visual excitation
+            if excl is not None and not (excl == 0 and excr == 0) \
+                    and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES \
+                    and ((turn_right and excr == 0) or (not turn_right and excl == 0)):
+                # turning away from all social cues and we only have a single blob
+                # we just wait and move forward with low velocity
+                # dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                # logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                # v = 10
+                dpsi_p = 0
+                v_left = v * (1 + dpsi_p)
+                v_right = v * (1 - dpsi_p)
+
+            elif excl is not None and not (excl == 0 and excr == 0) \
+                and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES \
+                and ((turn_right and excl == 0) or (not turn_right and excr == 0)):
+                # turning fast if there is one blob and it is to be followed
+                dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                v_left = v * (1 + dpsi_p)
+                v_right = v * (1 - dpsi_p)
 
             # elif (np.abs(v) < algoimp.STAT_TURN_VEL_THRES
             #       and num_blobs is not None
