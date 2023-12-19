@@ -196,10 +196,11 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
 
-            # turning towards more retinal excitation if excitation info is forwarded
+            # turning towards more retinal excitation if excitation info is forwarded and ony one blob is visible
             if excl is not None and not (excl == 0 and excr == 0):
-                dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                if num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES:
+                    dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                    logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
 
             v_left = v_stat_back + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             v_right = v_stat_back - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
