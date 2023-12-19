@@ -19,6 +19,7 @@ from queue import Empty
 if not simulation.ENABLE_SIMULATION:
     # setup logging
     import os
+
     ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
     logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
     logger.setLevel(monitoring.LOG_LEVEL)
@@ -204,54 +205,50 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
 
             v_left = v_stat_back + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             v_right = v_stat_back - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
-                # if excl is not None:
-                #     if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
-                #         # attraction we keep moving as before
-                #         pass
-                #     else:
-                #         # reulsion we reverse the turning, soven if something is very close we keep turning towards it
-                #         v_left, v_right = v_right, v_left
+            # if excl is not None:
+            #     if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
+            #         # attraction we keep moving as before
+            #         pass
+            #     else:
+            #         # reulsion we reverse the turning, soven if something is very close we keep turning towards it
+            #         v_left, v_right = v_right, v_left
 
         # positive velocity, moving forward
         else:
             # velocity fell below stationary turning threshold, increasing turning response artificially
             # stationary turn due to large angle and low speed
             if np.abs(v) < algoimp.STAT_TURN_VEL_THRES and np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
-                    print("Stationary turning due to low speed and large angle")
-                    print(f"velocity: {v}")
-                    print(f"prop. angle change: {dpsi_p}")
+                print("Stationary turning due to low speed and large angle")
+                print(f"velocity: {v}")
+                print(f"prop. angle change: {dpsi_p}")
 
-                    # # there is visual excitation
-                    # if excl is not None and not (excl == 0 and excr == 0):
-                    #     # checking if turning to right according to dpsi
-                    #     turn_right = dpsi_p > 0
-                    #     # moving backwards
-                    #     if v < 0:
-                    #         # turning towards more retinal excitation if moving backwards
-                    #         dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                    #         logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                    #     # turning away from all social cues towards somewhere where no social cues are visible
-                    #     else:
-                    #         if (turn_right and excr == 0) or (not turn_right and excl == 0):
-                    #             # turning away from all social cues so
-                    #             # turning towards more retinal excitation if moving backwards
-                    #             # if velocity is larger than threshold
-                    #             if v > 10:
-                    #                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                    #                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                turn_right = dpsi_p > 0
+                # there is visual excitation
+                if excl is not None and not (excl == 0 and excr == 0) \
+                        and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES \
+                        and ((turn_right and excr == 0) or (not turn_right and excl == 0)):
+                    # turning away from all social cues and we only have a single blob
+                    # we just wait and move forward with low velocity
+                    # dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                    # logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                    v = 10
+                    dpsi_p = 0
+                    v_left = v * (1 + dpsi_p)
+                    v_right = v * (1 - dpsi_p)
+                else:
                     v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
                     v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
 
-            elif (np.abs(v) < algoimp.STAT_TURN_VEL_THRES
-                  and num_blobs is not None
-                  and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES
-                  and excl is not None
-                  and not (excl == 0 and excr == 0)):
-                    print("247")
-                    dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                    logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                    v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
-                    v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
+            # elif (np.abs(v) < algoimp.STAT_TURN_VEL_THRES
+            #       and num_blobs is not None
+            #       and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES
+            #       and excl is not None
+            #       and not (excl == 0 and excr == 0)):
+            #         print("247")
+            #         dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+            #         logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+            #         v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
+            #         v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
             else:
                 print("256")
                 # Limiting backwards movement speed if requested
@@ -461,6 +458,7 @@ def stop_robot(network, duration, webots_do_stream=None):
         else:  # pragma: simulation no cover
             webots_do_stream.put(("SET_MOTOR", {'left': float(0),
                                                 'right': float(0)}))
+
 
 def speed_up_robot(network, additional_motor_speed_multiplier,  # pragma: no cover
                    emergency_stream, protocol_time=0.5):
@@ -723,13 +721,14 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 dpsi_last = dpsi
                                 # Behavior according to Romanczuk and Bastien 2020
                                 # distributing desired forward speed according to dpsi
-                                [v_left, v_right] = distribute_overall_speed(v, dpsi, excl=excl, excr=excr, num_blobs=num_blobs)
+                                [v_left, v_right] = distribute_overall_speed(v, dpsi, excl=excl, excr=excr,
+                                                                             num_blobs=num_blobs)
 
                                 # hard limit motor velocities but keep their ratio for desired movement
                                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
                                         np.abs(v_right) > control.MAX_MOTOR_SPEED:
                                     logger.warning(f'Reached max velocity: left:{v_left:.2f} right:{v_right:.2f}')
-                                    #[v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
+                                    # [v_left, v_right] = hardlimit_motor_speed(v_left, v_right)
 
                                 # sending motor values to robot
                                 if not simulation.ENABLE_SIMULATION:
@@ -738,21 +737,22 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                         v_right = 110
                                     network.SetVariable("thymio-II", "motor.left.target", [v_left])
                                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                                else:   # pragma: simulation no cover
+                                else:  # pragma: simulation no cover
                                     webots_do_stream.put(("SET_MOTOR", {'left': v_left, 'right': v_right}))
 
                                 logger.debug(f"BEHAVE left: {v_left} \t right: {v_right}")
                                 # last time we changed velocity according to BEHAVIOR REGIME
                                 last_behave_change = datetime.now()
                             else:
-                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr, num_blobs=num_blobs)
+                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr,
+                                                                             num_blobs=num_blobs)
                                 if not simulation.ENABLE_SIMULATION:
                                     if behavior.MOVE_IN_CIRCLE:
                                         v_left = 125
                                         v_right = 110
                                     network.SetVariable("thymio-II", "motor.left.target", [v_left])
                                     network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                                else:   # pragma: simulation no cover
+                                else:  # pragma: simulation no cover
                                     webots_do_stream.put(("SET_MOTOR", {'left': v_left, 'right': v_right}))
 
 
@@ -766,7 +766,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             if abs((last_behave_change - datetime.now()).total_seconds()) \
                                     > control.WAIT_BEFORE_SWITCH_MOVEMENT:
                                 # Enforcing specific dt in Random Walk Process
-                                if abs((last_explore_change - datetime.now()).total_seconds()) > 0:  #control.RW_DT:
+                                if abs((last_explore_change - datetime.now()).total_seconds()) > 0:  # control.RW_DT:
 
                                     # Dumm exploration techniques
                                     if not algoimp.WITH_EXPLORE_ROT and not algoimp.WITH_EXPLORE_ROT_CONT:
@@ -778,7 +778,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                             [v_left, v_right] = rotate()
                                         else:
                                             # Unknown exploration regime in configuration
-                                            logger.error(f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
+                                            logger.error(
+                                                f"Unknown exploration type \"{control.EXP_MOVE_TYPE}\"! Abort!")
                                             raise KeyboardInterrupt
 
                                     # Improved exploration rotation towards the last scial cue
@@ -801,9 +802,9 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                                 dpsi_rot = algoimp.EXPLORE_ROT_THETA_CONT
                                             # rotation happens with the last speed except if it's zero
                                             v_rot = algoimp.EXPLORE_ROT_SPEED_CONT if v_last == 0 else v_last
-                                            logger.info(f"dpsi_last: {dpsi_last} \t dpis_rot: {dpsi_rot} \t v_rot: {v_rot}")
+                                            logger.info(
+                                                f"dpsi_last: {dpsi_last} \t dpis_rot: {dpsi_rot} \t v_rot: {v_rot}")
                                             [v_left, v_right] = distribute_overall_speed(v_rot, dpsi_rot)
-
 
                                     logger.debug(f'EXPLORE left: {v_left} \t right: {v_right}')
 
@@ -811,7 +812,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                     if not simulation.ENABLE_SIMULATION:
                                         network.SetVariable("thymio-II", "motor.left.target", [v_left])
                                         network.SetVariable("thymio-II", "motor.right.target", [v_right])
-                                    else:   # pragma: simulation no cover
+                                    else:  # pragma: simulation no cover
                                         webots_do_stream.put(("SET_MOTOR",
                                                               {'left': float(v_left), 'right': float(v_right)}))
 
@@ -820,7 +821,8 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             else:
                                 # if the movement is not yet persistent we continue to move according to BEHAVE
                                 # regime
-                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr, num_blobs=num_blobs)
+                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr,
+                                                                             num_blobs=num_blobs)
 
                                 # sending motor values to robot
                                 if not simulation.ENABLE_SIMULATION:
@@ -888,7 +890,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                                      dbus_interface='ch.epfl.mobots.AsebaNetwork')
 
         t = datetime.now()
-        if simulation.ENABLE_SIMULATION and sensor_stream is not None:   # pragma: simulation no cover
+        if simulation.ENABLE_SIMULATION and sensor_stream is not None:  # pragma: simulation no cover
             logger.info(f'START: len{sensor_stream.qsize()}')
             empty_queue(sensor_stream)
 
@@ -903,7 +905,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                 # reading proximity values
                 if not simulation.ENABLE_SIMULATION:
                     prox_val = np.array([val for val in network.GetVariable("thymio-II", "prox.horizontal")])
-                else:   # pragma: simulation no cover
+                else:  # pragma: simulation no cover
                     if sensor_stream is not None:
                         prox_val = np.array(get_latest_element(sensor_stream))
                     else:
@@ -925,7 +927,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                         emergency_stream.put((False, None))
                     prev_prev_prox = prev_prox
                     prev_prox = prox_val
-                except IndexError:   # pragma: no cover
+                except IndexError:  # pragma: no cover
                     logger.warning('IndexError in sentinel process!!!')
 
                 t = datetime.now()
