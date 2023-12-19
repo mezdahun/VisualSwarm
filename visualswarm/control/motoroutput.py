@@ -216,30 +216,39 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
         else:
             # velocity fell below stationary turning threshold, increasing turning response artificially
             # stationary turn due to large angle and low speed
-            if np.abs(v) < algoimp.STAT_TURN_VEL_THRES and np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
-                print("Stationary turning due to low speed and large angle")
-                print(f"velocity: {v}")
-                print(f"prop. angle change: {dpsi_p}")
-                # # there is visual excitation
-                # if excl is not None and not (excl == 0 and excr == 0):
-                #     # checking if turning to right according to dpsi
-                #     turn_right = dpsi_p > 0
-                #     # moving backwards
-                #     if v < 0:
-                #         # turning towards more retinal excitation if moving backwards
-                #         dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                #         logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                #     # turning away from all social cues towards somewhere where no social cues are visible
-                #     else:
-                #         if (turn_right and excr == 0) or (not turn_right and excl == 0):
-                #             # turning away from all social cues so
-                #             # turning towards more retinal excitation if moving backwards
-                #             # if velocity is larger than threshold
-                #             if v > 10:
-                #                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                #                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
-                v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
+            if np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
+                if np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
+                    print("Stationary turning due to low speed and large angle")
+                    print(f"velocity: {v}")
+                    print(f"prop. angle change: {dpsi_p}")
+
+                    # # there is visual excitation
+                    # if excl is not None and not (excl == 0 and excr == 0):
+                    #     # checking if turning to right according to dpsi
+                    #     turn_right = dpsi_p > 0
+                    #     # moving backwards
+                    #     if v < 0:
+                    #         # turning towards more retinal excitation if moving backwards
+                    #         dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                    #         logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                    #     # turning away from all social cues towards somewhere where no social cues are visible
+                    #     else:
+                    #         if (turn_right and excr == 0) or (not turn_right and excl == 0):
+                    #             # turning away from all social cues so
+                    #             # turning towards more retinal excitation if moving backwards
+                    #             # if velocity is larger than threshold
+                    #             if v > 10:
+                    #                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                    #                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                    v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
+                    v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
+
+                elif num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES:
+                    if excl is not None and not (excl == 0 and excr == 0):
+                        dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                        logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                        v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
+                        v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
 
             else:
                 # Limiting backwards movement speed if requested
