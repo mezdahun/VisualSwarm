@@ -194,7 +194,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 #ating excitation of left vs right of the projection field
                 exc_left = np.mean(projection_field[0:int(len(projection_field) / 2)])
                 exc_right = np.mean(projection_field[int(len(projection_field) / 2):])
-                control_stream.put((v, dpsi, exc_left, exc_right))
+                num_blobs = count_retinal_blobs(projection_field)
+                control_stream.put((v, dpsi, exc_left, exc_right, num_blobs))
                 motor_control_mode_stream.put(movement_mode)
 
             if monitoring.ENABLE_CLOUD_STORAGE:
@@ -209,3 +210,15 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
 
     except KeyboardInterrupt:
         pass
+
+
+def count_retinal_blobs(projection_field):
+    """Counting retinal blobs on a 1D binary projection field according to edge data (switching from 0 to 1, i.e. +1 or
+    from +1 to 0 i.e. -1)."""
+    # count positive edges of the vector
+    pos_edges = np.sum(np.diff(projection_field) > 0)
+    # count negative edges of the vector
+    neg_edges = np.sum(np.diff(projection_field) < 0)
+    # count edges of the vector
+    num_blobs = int(np.ceil(max(pos_edges, neg_edges) / 2))
+    return num_blobs

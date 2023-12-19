@@ -164,7 +164,7 @@ def limit_front_back_movement(v):
     return v
 
 
-def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=20) -> list:
+def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_blobs=None, v_thr=20) -> list:
     """
     distributing desired forward speed to motor velocities according to the change in the heading angle dpsi.
         Args:
@@ -173,7 +173,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
         Returns:
             [v_left, v_right]: motor velocity values of the agent
     """
-
+    print(f"NUM BLOBS: {num_blobs}")
     # # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
 
@@ -651,7 +651,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
         if not with_control:
             # simply consuming the input stream so that we don't fill up memory
             while True:
-                (v, dpsi, el, er) = control_stream.get()
+                (v, dpsi, el, er, nb) = control_stream.get()
                 movement_mode = motor_control_mode_stream.get()
 
                 # To test infinite loops
@@ -684,7 +684,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                 dpsi_last = 0
                 while True:
                     # fetching state variables
-                    (v, dpsi, excl, excr) = control_stream.get()
+                    (v, dpsi, excl, excr, num_blobs) = control_stream.get()
                     movement_mode = motor_control_mode_stream.get()
                     try:
                         latest_emergency = get_latest_element(emergency_stream)
@@ -710,7 +710,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 dpsi_last = dpsi
                                 # Behavior according to Romanczuk and Bastien 2020
                                 # distributing desired forward speed according to dpsi
-                                [v_left, v_right] = distribute_overall_speed(v, dpsi, excl=excl, excr=excr)
+                                [v_left, v_right] = distribute_overall_speed(v, dpsi, excl=excl, excr=excr, num_blobs=num_blobs)
 
                                 # hard limit motor velocities but keep their ratio for desired movement
                                 if np.abs(v_left) > control.MAX_MOTOR_SPEED or \
@@ -732,7 +732,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                                 # last time we changed velocity according to BEHAVIOR REGIME
                                 last_behave_change = datetime.now()
                             else:
-                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr)
+                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr, num_blobs=num_blobs)
                                 if not simulation.ENABLE_SIMULATION:
                                     if behavior.MOVE_IN_CIRCLE:
                                         v_left = 125
@@ -807,7 +807,7 @@ def control_thymio(control_stream, motor_control_mode_stream, emergency_stream, 
                             else:
                                 # if the movement is not yet persistent we continue to move according to BEHAVE
                                 # regime
-                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr)
+                                [v_left, v_right] = distribute_overall_speed(v_last, dpsi_last, excl=excl, excr=excr, num_blobs=num_blobs)
 
                                 # sending motor values to robot
                                 if not simulation.ENABLE_SIMULATION:
