@@ -204,7 +204,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
                     logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
                 else:
                     # reducing turning rate proportionally to velocity limitation
-                    dpsi_p = dpsi_p * np.abs(v_stat_back/v)
+                    pass  #dpsi_p = dpsi_p * np.abs(v_stat_back/v)
 
             v_left = v_stat_back + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             v_right = v_stat_back - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
