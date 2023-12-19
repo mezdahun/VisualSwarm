@@ -240,7 +240,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
                 and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES \
                 and ((turn_right and excl == 0) or (not turn_right and excr == 0)):
                 # turning fast if there is one blob and it is to be followed
-                dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                dpsi_p = ((excr - excl) / (excr + excl)) * v * 0.001
                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
                 v_left = v * (1 + dpsi_p)
                 v_right = v * (1 - dpsi_p)
