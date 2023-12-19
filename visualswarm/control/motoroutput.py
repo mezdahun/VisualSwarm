@@ -184,60 +184,73 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, v_thr=
     # Stationary turning to avoid lazy turning with lower speeds
     # and to avoid loosing other agents from sight due to repulsion forces
     if algoimp.WITH_STAT_TURNING:
-        if v < 0 and algoimp.WITH_LIMITED_BACKWARDS and v < algoimp.MAX_BACKWARDS_SPEED:
-            # stationary turn due to large angle and low speed
+        # moving backwards
+        if v < 0:
+            # Limiting backward velocity if requested
+            if algoimp.WITH_LIMITED_BACKWARDS and v < algoimp.MAX_BACKWARDS_SPEED:
+                # speed is larger than maximum backwards speed and limiting was requested
+                v_stat_back = - algoimp.MAX_BACKWARDS_SPEED
+            else:
+                v_stat_back = v
+
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
-            # dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.001)
+
+            # turning towards more retinal excitation if excitation info is forwarded
             if excl is not None and not (excl == 0 and excr == 0):
-                # turning towards more retinal excitation
                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-            v_left = - algoimp.MAX_BACKWARDS_SPEED + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
-            v_right = - algoimp.MAX_BACKWARDS_SPEED - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
-            # if excl is not None:
-            #     if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
-            #         # attraction we keep moving as before
-            #         pass
-            #     else:
-            #         # reulsion we reverse the turning, soven if something is very close we keep turning towards it
-            #         v_left, v_right = v_right, v_left
 
-        elif np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
-            # stationary turn due to large angle and low speed
-            print(f"velocity: {v}")
-            print(f"prop. angle change: {dpsi_p}")
-            # dpsi_p = np.sign(dpsi_p) * min(np.abs(dpsi_p), 0.025)
-            print(f"prop. angle change: {dpsi_p}")
-            if excl is not None and not (excl == 0 and excr == 0):
-                # checking if turning to right according to dpsi
-                turn_right = dpsi_p > 0
-                if v < 0:
-                    # turning towards more retinal excitation if moving backwards
-                    dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                    logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                # turning away from all social cues towards somewhere where no social cues are visible
-                elif (turn_right and excr == 0) or (not turn_right and excl == 0):
-                    # turning away from all social cues so
-                    # turning towards more retinal excitation if moving backwards
-                    # if velocity is larger than threshold
-                    if v > 10:
-                        dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                        logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-            v_left = v + algoimp.STAT_TURN_SPEED * dpsi_p
-            v_right = v - algoimp.STAT_TURN_SPEED * dpsi_p
+            v_left = v_stat_back + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
+            v_right = v_stat_back - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
+                # if excl is not None:
+                #     if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
+                #         # attraction we keep moving as before
+                #         pass
+                #     else:
+                #         # reulsion we reverse the turning, soven if something is very close we keep turning towards it
+                #         v_left, v_right = v_right, v_left
 
+        # positive velocity, moving forward
         else:
-            # Limiting backwards movement speed if requested
-            if algoimp.WITH_LIMITED_BACKWARDS:
-                v = limit_front_back_movement(v)
+            # velocity fell below stationary turning threshold, increasing turning response artificially
+            # stationary turn due to large angle and low speed
+            if np.abs(v) < algoimp.STAT_TURN_VEL_THRES and np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
+                print("Stationary turning due to low speed and large angle")
+                print(f"velocity: {v}")
+                print(f"prop. angle change: {dpsi_p}")
+                # # there is visual excitation
+                # if excl is not None and not (excl == 0 and excr == 0):
+                #     # checking if turning to right according to dpsi
+                #     turn_right = dpsi_p > 0
+                #     # moving backwards
+                #     if v < 0:
+                #         # turning towards more retinal excitation if moving backwards
+                #         dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                #         logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                #     # turning away from all social cues towards somewhere where no social cues are visible
+                #     else:
+                #         if (turn_right and excr == 0) or (not turn_right and excl == 0):
+                #             # turning away from all social cues so
+                #             # turning towards more retinal excitation if moving backwards
+                #             # if velocity is larger than threshold
+                #             if v > 10:
+                #                 dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                #                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
+                v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
 
-            # Matching simulation scale with reality
-            v = v * behavior.KAP
+            else:
+                # Limiting backwards movement speed if requested
+                if algoimp.WITH_LIMITED_BACKWARDS:
+                    v = limit_front_back_movement(v)
 
-            # Distributing velocity
-            v_left = v * (1 + dpsi_p)
-            v_right = v * (1 - dpsi_p)
+                # Matching simulation scale with reality
+                v = v * behavior.KAP
+
+                # Distributing velocity
+                v_left = v * (1 + dpsi_p)
+                v_right = v * (1 - dpsi_p)
     else:
         # Limiting backwards movement speed if requested
         if algoimp.WITH_LIMITED_BACKWARDS:
