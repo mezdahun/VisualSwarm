@@ -216,8 +216,7 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
         else:
             # velocity fell below stationary turning threshold, increasing turning response artificially
             # stationary turn due to large angle and low speed
-            if np.abs(v) < algoimp.STAT_TURN_VEL_THRES:
-                if np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
+            if np.abs(v) < algoimp.STAT_TURN_VEL_THRES and np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
                     print("Stationary turning due to low speed and large angle")
                     print(f"velocity: {v}")
                     print(f"prop. angle change: {dpsi_p}")
@@ -243,12 +242,12 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
                     v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
                     v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
 
-                elif num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES:
-                    if excl is not None and not (excl == 0 and excr == 0):
-                        dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                        logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                        v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
-                        v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
+            elif np.abs(v) < algoimp.STAT_TURN_VEL_THRES and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES:
+                if excl is not None and not (excl == 0 and excr == 0):
+                    dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                    logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                    v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
+                    v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
 
             else:
                 # Limiting backwards movement speed if requested
