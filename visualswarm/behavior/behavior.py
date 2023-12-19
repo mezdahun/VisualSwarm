@@ -219,6 +219,7 @@ def count_retinal_blobs(projection_field):
     pos_edges = np.sum(np.diff(projection_field) > 0)
     # count negative edges of the vector
     neg_edges = np.sum(np.diff(projection_field) < 0)
+    print(f"found {pos_edges} positive edges and {neg_edges} negative edges")
     # count edges of the vector
-    num_blobs = int(np.ceil(max(pos_edges, neg_edges) / 2))
+    num_blobs = int(np.ceil(max(pos_edges, neg_edges)))
     return num_blobs
