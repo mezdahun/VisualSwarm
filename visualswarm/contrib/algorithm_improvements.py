@@ -49,7 +49,7 @@ STAT_TURN_NUM_BLOB_THRES = int(float(os.getenv('STAT_TURN_NUM_BLOB_THRES', '2'))
 STAT_TURN_SPEED_BACK = int(float(os.getenv('STAT_TURN_SPEED_BACK', '200')))
 # Centralization Rate, i.e. how quick the robot turns towards the center of mass of the visual blobs if less than
 # STAT_TURN_NUM_BLOB_THRES blobs are visible. This is also multiplied by the speed so faster robots turn faster
-CENTRALIZE_SPEED = float(os.getenv('CENTRALIZE_SPEED', '0.003'))
+CENTRALIZE_SPEED = float(os.getenv('CENTRALIZE_SPEED', '0.05'))
 
 
 ##### SELECTIVE BLOB FILTERING #####
