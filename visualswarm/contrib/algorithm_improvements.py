@@ -22,34 +22,34 @@ EXPLORE_ROT_THETA_CONT = float(os.getenv('EXPLORE_ROT_THETA_CONT', '0.75'))
 # Turn ON/OFF limited backwards movement
 WITH_LIMITED_BACKWARDS = bool(int(os.getenv('WITH_LIMITED_BACKWARDS', '0')))
 # Maximum absolut backwards speed in motor units
-MAX_BACKWARDS_SPEED = int(float(os.getenv('MAX_BACKWARDS_SPEED', '50')))
+MAX_BACKWARDS_SPEED = int(float(os.getenv('MAX_BACKWARDS_SPEED', '35')))
 # Turn ON/OFF mAX Forward speed
 WITH_LIMITED_FORWARD = bool(int(os.getenv('WITH_LIMITED_FORWARD', '0')))
 # Maximum absolut forward speed in motor units
-MAX_FORWARD_SPEED = int(float(os.getenv('MAX_FORWARD_SPEED', '160')))
+MAX_FORWARD_SPEED = int(float(os.getenv('MAX_FORWARD_SPEED', '250')))
+
+
+##### SIGMOID MASKS #####
 # Turn on/off sigmid mask function for acceleration response
 WITH_SIGMOID_MASK_ACC = bool(int(os.getenv('WITH_SIGMOID_MASK_ACC', '0')))
 # Sigmoid steepness for acceleration response mask
-SIGMOID_MASK_ACC_STEEP = int(float(os.getenv('SIGMOID_MASK_ACC_STEEP', '5')))
+SIGMOID_MASK_ACC_STEEP = int(float(os.getenv('SIGMOID_MASK_ACC_STEEP', '15')))
+# Turn on/off sigmoid mask function for turning response
+WITH_SIGMOID_MASK_TURN = bool(int(os.getenv('WITH_SIGMOID_MASK_TURN', '0')))
+# Sigmoid steepness for acceleration response mask
+SIGMOID_MASK_TURN_STEEP = int(float(os.getenv('SIGMOID_MASK_TURN_STEEP', '15')))
 
 
 ##### LAZY TURNING #####
 # Turn ON/OFF stationary turning behavior below velocity threshold
-WITH_STAT_TURNING = bool(int(os.getenv('WITH_STAT_TURNING', '0')))
-# Velocity threshold below which stationary turning is triggered in motor units
-STAT_TURN_VEL_THRES = int(float(os.getenv('STAT_TURN_VEL_THRES', '30')))
-# Turning rate threshold below which stationary turning is triggered in radian/ts
-STAT_TURN_PHI_THRES = float(os.getenv('STAT_TURN_PHI_THRES', '0.1'))
+WITH_IMPR_TURNING = bool(int(os.getenv('WITH_IMPR_TURNING', '0')))
 # Turning towards overall more excitation when only less than certain amount of blobs is visible (only 1 e.g.)
 STAT_TURN_NUM_BLOB_THRES = int(float(os.getenv('STAT_TURN_NUM_BLOB_THRES', '2')))
-# Fixed turning speed in motor units (forward)
-STAT_TURN_SPEED = int(float(os.getenv('STAT_TURN_SPEED', '400')))
-# Fixed turning speed in motor units (backward)
+# Fixed multiplier for turning speed in motor units when moving backwards
 STAT_TURN_SPEED_BACK = int(float(os.getenv('STAT_TURN_SPEED_BACK', '200')))
-# Turn on/off sigmoid mask function for turning response
-WITH_SIGMOID_MASK_TURN = bool(int(os.getenv('WITH_SIGMOID_MASK_TURN', '0')))
-# Sigmoid steepness for acceleration response mask
-SIGMOID_MASK_TURN_STEEP = int(float(os.getenv('SIGMOID_MASK_TURN_STEEP', '5')))
+# Centralization Rate, i.e. how quick the robot turns towards the center of mass of the visual blobs if less than
+# STAT_TURN_NUM_BLOB_THRES blobs are visible. This is also multiplied by the speed so faster robots turn faster
+CENTRALIZE_SPEED = float(os.getenv('CENTRALIZE_SPEED', '0.003'))
 
 
 ##### SELECTIVE BLOB FILTERING #####

@@ -174,19 +174,17 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
         Returns:
             [v_left, v_right]: motor velocity values of the agent
     """
-    print(f"NUM BLOBS: {num_blobs}")
-    # # Calculating proportional heading angle change
+    # Calculating proportional heading angle change
     dpsi_p = dpsi / np.pi
-
-    # trying to distinguish attraction vs repulsion
-    # by checking if the agent is turning towards or away from the cue
-    is_right = excr > excl
 
     # Stationary turning to avoid lazy turning with lower speeds
     # and to avoid loosing other agents from sight due to repulsion forces
-    if algoimp.WITH_STAT_TURNING:
-        # moving backwards
+    if algoimp.WITH_IMPR_TURNING:
+        # Moving Backwards
+        # - limited movement speed
+        # - visual information seeking when only one blob is visible
         if v < 0:
+            # Change dV
             # Limiting backward velocity if requested
             if algoimp.WITH_LIMITED_BACKWARDS and v < algoimp.MAX_BACKWARDS_SPEED:
                 # speed is larger than maximum backwards speed and limiting was requested
@@ -194,72 +192,61 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
             else:
                 v_stat_back = v
 
-            print(f"velocity: {v}")
-            print(f"prop. angle change: {dpsi_p}")
-
+            # Chage dPsi
             # turning towards more retinal excitation if excitation info is forwarded and ony one blob is visible
             if excl is not None and not (excl == 0 and excr == 0):
                 if num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES:
-                    dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
+                    dpsi_p = ((excr - excl) / (excr + excl)) * v * algoimp.CENTRALIZE_SPEED
                     logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                else:
-                    # reducing turning rate proportionally to velocity limitation
-                    pass  #dpsi_p = dpsi_p * np.abs(v_stat_back/v)
 
+            # backward speed is limited and modulated with generally higher turning rate, while if only a single
+            # blob is present it will be centralized on the retina with high turning rate
             v_left = v_stat_back + algoimp.STAT_TURN_SPEED_BACK * dpsi_p
             v_right = v_stat_back - algoimp.STAT_TURN_SPEED_BACK * dpsi_p
-            # if excl is not None:
-            #     if (is_right and v_left > v_right) or (not is_right and v_right >= v_left):
-            #         # attraction we keep moving as before
-            #         pass
-            #     else:
-            #         # reulsion we reverse the turning, soven if something is very close we keep turning towards it
-            #         v_left, v_right = v_right, v_left
 
-        # positive velocity, moving forward
+        # Moving forward
+        # - limited movement speed
+        # - visual information seeking when only one blob is visible and turning towards the only visible blob
+        # - moving straight when only one blob is visible and turning away from the only visible blob
         else:
             # velocity fell below stationary turning threshold, increasing turning response artificially
             # stationary turn due to large angle and low speed
-            # if np.abs(v) < algoimp.STAT_TURN_VEL_THRES and np.abs(dpsi_p) > algoimp.STAT_TURN_PHI_THRES:
-            print("Stationary turning due to low speed and large angle")
+            print("Improved turning (FWD):")
             print(f"velocity: {v}")
             print(f"prop. angle change: {dpsi_p}")
 
+            # check the direction of the turning abgle
             turn_right = dpsi_p > 0
+
             # there is visual excitation
+            # turning away from the only visible blob
+            # we just wait and move forward instead of being repelled
             if excl is not None and not (excl == 0 and excr == 0) \
                     and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES \
                     and ((turn_right and excr == 0) or (not turn_right and excl == 0)):
-                # turning away from all social cues and we only have a single blob
-                # we just wait and move forward with low velocity
-                # dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-                # logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-                # v = 10
+
                 dpsi_p = 0
+
                 v_left = v * (1 + dpsi_p)
                 v_right = v * (1 - dpsi_p)
 
+            # there is visual excitation
+            # turning towards a single visible blob
+            # we speed up turning and centralize visual information to maximize visibility
             elif excl is not None and not (excl == 0 and excr == 0) \
                 and num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES \
                 and ((turn_right and excl == 0) or (not turn_right and excr == 0)):
-                # turning fast if there is one blob and it is to be followed
-                dpsi_p = ((excr - excl) / (excr + excl)) * v * 0.003
+
+                # centralizing visual information by turning fast if there is one blob, and it is to be followed
+                dpsi_p = ((excr - excl) / (excr + excl)) * v * algoimp.CENTRALIZE_SPEED
                 logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+
                 v_left = v * (1 + dpsi_p)
                 v_right = v * (1 - dpsi_p)
 
-            # elif (np.abs(v) < algoimp.STAT_TURN_VEL_THRES
-            #       and num_blobs is not None
-            #       and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES
-            #       and excl is not None
-            #       and not (excl == 0 and excr == 0)):
-            #         print("247")
-            #         dpsi_p = ((excr - excl) / (excr + excl)) * 0.1
-            #         logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
-            #         v_left = + algoimp.STAT_TURN_SPEED * dpsi_p
-            #         v_right = - algoimp.STAT_TURN_SPEED * dpsi_p
+            # there is no visual information or there are multiple blobs
+            # we use original algorithm
             else:
-                print("256")
                 # Limiting backwards movement speed if requested
                 if algoimp.WITH_LIMITED_BACKWARDS:
                     v = limit_front_back_movement(v)
@@ -270,6 +257,8 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
                 # Distributing velocity
                 v_left = v * (1 + dpsi_p)
                 v_right = v * (1 - dpsi_p)
+
+    # no algorithm improvement is selected, using originally calculated values
     else:
         # Limiting backwards movement speed if requested
         if algoimp.WITH_LIMITED_BACKWARDS:
