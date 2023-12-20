@@ -194,10 +194,12 @@ def distribute_overall_speed(v: float, dpsi: float, excl=None, excr=None, num_bl
 
             # Chage dPsi
             # turning towards more retinal excitation if excitation info is forwarded and ony one blob is visible
-            # if excl is not None and not (excl == 0 and excr == 0):
-            #     if num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES:
-            dpsi_p = ((excr - excl) / (excr + excl)) * algoimp.CENTRALIZE_SPEED
-            logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+            if excl is not None and not (excl == 0 and excr == 0):
+                if num_blobs is not None and num_blobs < algoimp.STAT_TURN_NUM_BLOB_THRES:
+                    dpsi_p = ((excr - excl) / (excr + excl)) * algoimp.CENTRALIZE_SPEED
+                    logger.debug(f"excr: {excr}, excl: {excl}, dp: {dpsi_p}")
+                else:
+                    dpsi_p = 0
 
             # backward speed is limited and modulated with generally higher turning rate, while if only a single
             # blob is present it will be centralized on the retina with high turning rate
