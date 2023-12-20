@@ -64,7 +64,7 @@ PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
 # CNN processing parameters
 overlap_removal = bool(int(float(os.getenv('OVERLAP_REMOVAL', '0'))))
 overlap_removal_thr = 0.5
-min_box_width = 3
+min_box_width = 5
 max_num_detections = int(float(os.getenv('MAX_NUM_DETECTIONS', '9')))
 min_confidence = float(os.getenv('MIN_CONFIDENCE', '0.32'))
 
