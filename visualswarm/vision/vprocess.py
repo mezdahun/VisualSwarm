@@ -448,7 +448,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
             from tflite_runtime.interpreter import load_delegate
 
     # change confidence threshold for robots
-    min_conf_threshold_class_0 = 0.32
+    min_conf_threshold_class_0 = vision.min_confidence
     max_num_detection_class_0 = vision.max_num_detections
 
     # min_conf_threshold_class_1 = 0.25
