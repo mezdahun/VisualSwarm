@@ -8,6 +8,8 @@ import numpy as np
 from visualswarm.simulation_tools import data_tools, plotting_tools
 
 BASE_PATH = '/media/david/DMezeySCIoI/VSWRMData/Webots'
+# BATCH_NAME = "LargescaleExperiment_10bots_FOV05_matched_bugfix_vfov85"
+# save_path = "/media/david/DMezeySCIoI/VSWRMData/Webots/Webetos_vs_reality/Elargescale_afterbugfix_largervFOV"
 BATCH_NAME = "LargescaleExperiment_10bots_FOV05_matched_bugfix_vfovfixed"
 save_path = "/media/david/DMezeySCIoI/VSWRMData/Webots/Webetos_vs_reality/Elargescale_afterbugfix"
 RUN_BASE_NAME = "LSEXP"
@@ -21,10 +23,10 @@ wall_data_tuple = (summay_wall, data_wall)
 iid_path = os.path.join(EXPERIMENT_FOLDER, "iid.npy")
 pol_path = os.path.join(EXPERIMENT_FOLDER, "pol.npy")
 
-alphas = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3]
+alphas = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2] #, 3]
 betas = [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5]
 
-num_runs = 3
+num_runs = 4
 
 force_recalc = False
 use_matrix_sums = True
