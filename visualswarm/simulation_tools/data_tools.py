@@ -8,6 +8,9 @@ import json
 import numpy as np
 import logging
 import pandas as pd
+from scipy.spatial.distance import pdist, squareform
+from fastcluster import linkage
+from scipy.cluster.hierarchy import dendrogram
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -62,7 +65,354 @@ def is_summarized(data_path, experiment_name):
         logger.info("Experiment not yet summarized")
         return False
 
-def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
+
+def distance_from_walls(coordinate, wall_coordinates):
+    """Measuring the closest distance of the current coordinates to the walls described with
+    a set of coordinates in numpy array wall_coordinates with shape (2, N). First dimension is x/y, second is the
+    coordinate number of the wall.
+    """
+    num_wall_points = wall_coordinates.shape[1]
+    distances = np.zeros(num_wall_points)
+
+    # calculate distances between current coordinate with all wall coordinate points
+    # for wci in range(num_wall_points):
+    #     distances[wci] = distance(coordinate, wall_coordinates[:, wci])
+
+    coordinates = np.zeros_like(wall_coordinates)
+    coordinates[0, :] = coordinate[0]
+    coordinates[1, :] = coordinate[1]
+    distances_vect = distance(coordinates, wall_coordinates)
+
+    # finding wall point to which the agent is closest
+    closestind = np.nanargmin(distances_vect)
+    closestcoord = wall_coordinates[:, closestind]
+    closestdist = distances_vect[closestind]
+
+    return closestdist, closestcoord, closestind
+
+
+def calculate_distances_from_walls(summary, data, wall_summary, wall_data, force_recalculate=False):
+    """Measuring the mean closest distance of a set of coordinates to the walls described with
+    a set of coordinates in numpy array wall_coordinates with shape (2, N). First dimension is x/y, second is the
+    coordinate number of the wall."""
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_walldata.npz")
+    wall_coordinates = wall_data[0, 0, [1, 3], :]
+    coordinates = data[:, :, [1, 3], :]
+
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for agent-wall distances already exists! No recalculation was"
+              "requested, so data will be loaded from the npz file.")
+        file_data = np.load(save_path)
+        distances = file_data['agent_wall_distances']
+        coords = file_data['closest_wall_coordinates']
+    else:
+        num_runs = coordinates.shape[0]
+        num_agents = coordinates.shape[1]
+        num_t = coordinates.shape[-1]
+        distances = np.zeros((num_runs, num_agents, num_t))
+        coords = np.zeros((num_runs, num_agents, 2, num_t))
+
+        print("Calculating wall distances")
+        for runi in range(num_runs):
+            print(f"Run {runi}/{num_runs}:")
+            for agent_id in range(num_agents):
+                print(f"Agent {agent_id}/{num_agents}...")
+                for t in range(num_t):
+                    if t % 100 == 0:
+                        print(f"{t / num_t * 100}%", sep='', end='\r', flush=True)
+                    closestdist, closestcoord, _ = distance_from_walls(coordinates[runi, agent_id, :, t],
+                                                                       wall_coordinates)
+                    distances[runi, agent_id, t] = closestdist
+                    coords[runi, agent_id, :, t] = closestcoord
+
+        # Saving calculated data
+        np.savez(save_path, agent_wall_distances=distances, closest_wall_coordinates=coords)
+
+    return distances, coords, np.mean(distances)
+
+
+def calculate_turning_rates(summary, data, turning_rate_trh=0.2, force_recalculate=False):
+    """Calculating turning rates from orientation values for a single robot
+    Turning rate values larger than a physically possible threshold will be set to 0 in the data
+    as it is coming from tracking/measurement noise."""
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_turningrates.npy")
+
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for truning rates already exists! No recalculation was "
+              "requested, so data will be loaded from the npy file.")
+        tr = np.load(save_path)
+    else:
+        ori = data[:, :, 4, :]
+        # calculating turning rates
+        tr = np.abs(np.diff(ori)) % (np.pi)
+        # removing physically impossible outliers
+        tr[tr > turning_rate_trh] = 0
+
+        print(f"Saving turning rates in npy file under {save_path}")
+        np.save(save_path, tr)
+
+    return tr
+
+
+def filter_high_velocity_points(valid_ts, abs_vel_m, runi, vel_thr=0.6):
+    """Filtering extreme velocity timepoints from data as this results from wrong tracking"""
+    valid_ts_new = [t for t in valid_ts if np.all(abs_vel_m[runi, :, t - 1] <= vel_thr)]
+    return valid_ts_new
+
+
+def filter_high_turningrate_points(valid_ts, turning_rates, runi, tr_thr=0.2):
+    """Filtering extreme velocity timepoints from data as this results from wrong tracking"""
+    valid_ts_new = [t for t in valid_ts if np.all(turning_rates[runi, :, t - 1] <= tr_thr)]
+    return valid_ts_new
+
+
+def return_validts_pol(mean_pol, pol_thr=0.8):
+    """Returning those time points where the mean polarization of the swarm falls above a threshold"""
+    return np.where(mean_pol >= pol_thr)[0]
+
+
+def return_validts_iid(mean_iid, iid_of_interest=500, tolerance=250):
+    """Returning those time points where the mean iid of the swarm falls around an iid_of_interest and within tolerance.
+    iidm is a run specific iid matrix, i.e. has shape [num_robots, num_robots, time] and not
+    [num_runs, num_robots, num_robots, time]"""
+    return np.where(np.logical_and(mean_iid >= iid_of_interest - tolerance,
+                                   mean_iid <= iid_of_interest + tolerance))[0]
+
+
+def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agent_refl_times, wall_refl_times,
+                                      window_after=0,
+                                      window_before=0, force_recalculate=False):
+    """Calculating common metrics for time points where no collision was detected"""
+    num_t = polarization_m.shape[-1]
+
+    save_path = os.path.join(summary['data_path'],
+                             f"{summary['experiment_name']}_validts_wa{window_after}_wb{window_before}_run{runi}.npy")
+
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for valid time points already exists! No recalculation was"
+              "requested, so data will be loaded from the npy file.")
+        valid_ts = np.load(save_path)
+
+    else:
+        # Joining wall and agent reflections
+        all_refl_times = []
+        if agent_refl_times is None:
+            agent_refl_times = []
+        if wall_refl_times is None:
+            wall_refl_times = []
+        agent_refl_times.extend(wall_refl_times)
+        all_refl_times.extend(wall_refl_times)
+        all_refl_times.extend(agent_refl_times)
+
+        # Extending reflection timepoints before and after reflections
+        t_ext = [0]
+        for ti, t in enumerate(all_refl_times):
+            # if t - window_before >= np.max(t_ext):
+            t_ext.extend([min(max(0, te), num_t) for te in range(t - window_before, t + window_after)])
+            # print(t_ext)
+        all_refl_times.extend(t_ext)
+        all_refl_times = list(set(all_refl_times))
+
+        valid_ts = [t for t in range(0, num_t) if t not in all_refl_times]
+        print(f"Len valid_ts after calc: {len(list(set(valid_ts)))}")
+        np.save(save_path, valid_ts)
+
+    # filtering data
+    if agent_refl_times is not None:
+        polarization_m = polarization_m[runi, :, :, valid_ts]
+        iid_m = iid_m[runi, :, :, valid_ts]
+
+    iidm_nan = iid_m.copy()
+    for t in range(iidm_nan.shape[-1]):
+        np.fill_diagonal(iidm_nan[:, :, t], None)
+
+    min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
+    mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
+
+    mean_pol_vals = np.mean(np.mean(polarization_m, axis=1), axis=1)
+
+    mean_pol_vals_long = np.zeros(num_t)
+    mean_pol_vals_long[valid_ts] = mean_pol_vals
+
+    min_iidm_long = np.zeros(num_t)
+    min_iidm_long[valid_ts] = min_iidm
+    mean_iid_long = np.zeros(num_t)
+    mean_iid_long[valid_ts] = mean_iid
+
+    return valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long
+
+
+def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=10,
+                        wall_vic_thr=200, agent_dist_thr=275, force_recalculate=False, turn_thr=0.02):
+    if wall_data_tuple is not None:
+        wall_summary, wall_data = wall_data_tuple
+        wall_coordinates = wall_data[0, 0, [1, 3], :]
+    else:
+        wall_coordinates = None
+
+    num_robots = data.shape[1]
+    # COM velocity
+    print("Calculating COM velocity")
+    com_vel = population_velocity(summary, data, force_recalculate=force_recalculate)
+    m_com_vel = np.zeros_like(com_vel)
+    m_com_vel[runi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = moving_average(
+        com_vel[runi, :], mov_avg_w)
+
+    # absolute velocities
+    abs_vel = np.abs(calculate_velocity(summary, data))
+    # absolute and com velocity with moving average
+    print("Moving average of absolute velocity!")
+    m_abs_vel = np.zeros_like(abs_vel)
+    for robi in range(num_robots):
+        m_abs_vel[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = moving_average(
+            abs_vel[runi, robi, :], mov_avg_w)
+
+    # turning rates
+    print("Calculate turning rates!")
+    turning_rates = calculate_turning_rates(summary, data, force_recalculate=force_recalculate)
+    # moving average of turning rates
+    ma_turning_rates = np.zeros_like(turning_rates)
+    for robi in range(num_robots):
+        ma_turning_rates[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = moving_average(
+            turning_rates[runi, robi, :], mov_avg_w)
+
+    # inter_individual distances
+    print("Calculate IID")
+    iidm = calculate_interindividual_distance(summary, data, force_recalculate=force_recalculate)
+    # min and mean interindividual distances
+    iidm_nan = iidm.copy()
+    for t in range(iidm_nan.shape[-1]):
+        np.fill_diagonal(iidm_nan[runi, :, :, t], None)
+
+    try:
+        min_iidm = np.nanmin(np.nanmin(iidm_nan, axis=1), axis=1)
+        mean_iid = np.nanmean(np.nanmean(iidm_nan, axis=1), axis=1)
+    except:
+        min_iidm = None
+        mean_iid = None
+
+    pm = calculate_ploarization_matrix(summary, data, force_recalculate=force_recalculate)
+    mean_pol_vals = np.mean(np.mean(pm, axis=1), axis=1)
+    mean_pol_vals = mean_pol_vals[runi, :]
+
+    ord = calculate_order_parameter(summary, data, force_recalculate=force_recalculate)
+
+    if wall_coordinates is not None:
+        wall_distances, wall_coords_closest, _ = calculate_distances_from_walls(summary, data,
+                                                                                wall_summary, wall_data,
+                                                                                force_recalculate=force_recalculate)
+        mean_wall_dist = np.mean(wall_distances[runi], axis=0)
+        min_wall_dist = np.min(wall_distances[runi], axis=0)
+
+        wall_refl_dict, ag_refl_dict = mine_reflection_times(data, summary, wall_summary, wall_data,
+                                                                        ma_window=30, wall_dist_thr=wall_vic_thr,
+                                                                        agent_dist_thr=agent_dist_thr,
+                                                                        turn_thr=turn_thr,
+                                                                        force_recalculate=force_recalculate)
+        wall_reflection_times = []
+        for _, v in wall_refl_dict[str(runi)].items():
+            wall_reflection_times.extend(v)
+        wall_reflection_times = list(set(wall_reflection_times))
+
+        agent_reflection_times = []
+        for _, v in ag_refl_dict[str(runi)].items():
+            agent_reflection_times.extend(v)
+        agent_reflection_times = list(set(agent_reflection_times))
+
+    else:
+        mean_wall_dist = min_wall_dist = wall_refl_dict = ag_refl_dict = wall_reflection_times = agent_reflection_times \
+            = wall_distances = wall_coords_closest = None
+
+    return com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
+        mean_wall_dist, min_wall_dist, wall_refl_dict, ag_refl_dict, wall_reflection_times, agent_reflection_times, \
+        wall_distances, wall_coords_closest
+
+def mine_reflection_times(data, summary, wall_summary, wall_data,
+                          ma_window=30, wall_dist_thr=200, agent_dist_thr=280, turn_thr=0.0225,
+                          force_recalculate=False):
+    """Mining the timepoints when obstacle avoidance was activated. This is
+    where a high turning rate is observed together with a small wall-agent,
+    obstacle-agent or agent-agent distance"""
+
+    print(f"Calculating reflection times for {summary['experiment_name']}"
+          f"with window size {ma_window} and thresholds: wall_dist={wall_dist_thr}, "
+          f"agent_dist={agent_dist_thr}, turn_rate={turn_thr}")
+
+    # agent turning rates
+    turning_rates = calculate_turning_rates(summary, data)
+    # moving average of turning rates
+    num_t = data.shape[-1]
+    num_robots = data.shape[1]
+    num_runs = data.shape[0]
+    ma_turning_rates = np.zeros_like(turning_rates)
+
+    # wall distances
+    wall_distances, wall_coords_closest, _ = calculate_distances_from_walls(summary, data, wall_summary, wall_data)
+
+    # i.i. distances
+    iidm = calculate_interindividual_distance(summary, data)
+    save_path_wa = os.path.join(summary['data_path'], f"{summary['experiment_name']}_warefl.json")
+    save_path_aa = os.path.join(summary['data_path'], f"{summary['experiment_name']}_aarefl.json")
+
+    if os.path.isfile(save_path_wa) and os.path.isfile(save_path_aa) and not force_recalculate:
+        print("Files in target path for reflections already exists! No recalculation was"
+              "requested, so data will be loaded from the json files.")
+        with open(save_path_wa, 'r') as fwa:
+            wall_refl_dict = json.load(fwa)
+
+        with open(save_path_aa, 'r') as faa:
+            ag_refl_dict = json.load(faa)
+
+    else:
+        # min and mean interindividual distances
+        iidm_nan = iidm.copy()
+
+        wall_refl_dict = {}
+        ag_refl_dict = {}
+
+        for runi in range(num_runs):
+            for t in range(num_t):
+                np.fill_diagonal(iidm_nan[runi, :, :, t], None)
+            wall_refl_dict[str(runi)] = {}
+            ag_refl_dict[str(runi)] = {}
+
+            for robi in range(num_robots):
+                ma_turning_rates[runi, robi, int(ma_window / 2):-int(ma_window / 2) + 1] = moving_average(
+                    turning_rates[runi, robi, :], ma_window)
+                wall_refl_dict[str(runi)][str(robi)] = []
+                ag_refl_dict[str(runi)][str(robi)] = []
+
+            # calculating wall-agent reflections
+            wall_reflection_times = [t for t in range(num_t - 1) if np.any(
+                np.logical_and(wall_distances[runi, :, t] < wall_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))]
+
+            for t in wall_reflection_times:
+                ids = np.where(
+                    np.logical_and(wall_distances[runi, :, t] < wall_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))
+                for robi in ids[0]:
+                    wall_refl_dict[str(runi)][str(robi)].append(t)
+
+            # calculating agent-agent reflections
+            agent_reflection_times = [t for t in range(num_t - 1) if np.any(
+                np.logical_and(iidm_nan[runi, :, :, t] < agent_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))]
+
+            for t in agent_reflection_times:
+                ids = np.where(
+                    np.logical_and(iidm_nan[runi, :, :, t] < agent_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))
+                for robi in ids[0]:
+                    ag_refl_dict[str(runi)][str(robi)].append(t)
+
+            print(f"Saving wall and agent reflection files...")
+            with open(save_path_wa, 'w', encoding='utf-8') as fwa:
+                json.dump(wall_refl_dict, fwa, ensure_ascii=False, indent=4)
+
+            with open(save_path_aa, 'w', encoding='utf-8') as faa:
+                json.dump(ag_refl_dict, faa, ensure_ascii=False, indent=4)
+
+    return wall_refl_dict, ag_refl_dict
+
+
+def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
     """Reading an exported optitrack tracking data csv file into a VSWRM summary sata file that can be further used
     for data analysis and plotting with VSWRM
 
@@ -81,11 +431,17 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
     df_orig = pd.read_csv(csv_path, skiprows=[i for i in range(6)])
 
     # QUICKNDIRTY dropping timepoints where optitrack lost track of robots
-    df = df_orig.dropna()
-    print("Dropped NA values from dataframe.")
+    if dropna:
+        df = df_orig.dropna()
+        print("Dropped NA values from dataframe.")
+    else:
+        df = df_orig
+
     print("columns: ", df.columns)
 
-    num_robots = int(len(df.columns) / 6) # for each robot 3 rotation and 3 position coordinate
+    data_holder_columns = [col for col in df.columns if
+                           col.startswith('X') or col.startswith('Y') or col.startswith('Z')]
+    num_robots = int(len(data_holder_columns) / 6)  # for each robot 3 rotation and 3 position coordinate
     print(f"Found {num_robots} robots data in csv file.")
     time = df['Time (Seconds)'].values
     print(time)
@@ -100,11 +456,12 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
 
     for robi in range(num_robots):
         startindex = int(robi * 6) + 2
-        orient_x = df.iloc[:, startindex + 0].values.astype('float') #x axis
-        orient_y = df.iloc[:, startindex + 1].values.astype('float') #y axis
-        orient_z = df.iloc[:, startindex + 2].values.astype('float') #z axis
-        orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler('yxz', degrees=False)[0] for i in range(len(orient_y))])
-        orient = - np.pi/2 - (orient + np.pi)
+        orient_x = df.iloc[:, startindex + 0].values.astype('float')  # x axis
+        orient_y = df.iloc[:, startindex + 1].values.astype('float')  # y axis
+        orient_z = df.iloc[:, startindex + 2].values.astype('float')  # z axis
+        orient = np.array([Rotation.from_euler('xyz', [orient_x[i], orient_y[i], orient_z[i]], degrees=True).as_euler(
+            'yxz', degrees=False)[0] for i in range(len(orient_y))])
+        orient = - np.pi / 2 - (orient + np.pi)
         x_pos = df.iloc[:, startindex + 3].values.astype('float')
         y_pos = df.iloc[:, startindex + 4].values.astype('float')
         z_pos = df.iloc[:, startindex + 5].values.astype('float')
@@ -115,7 +472,6 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
         data[0, robi, attributes.index('pos_z'), :] = z_pos
         data[0, robi, attributes.index('or'), :] = orient
 
-
     experiment_summary = {'params': None,
                           'num_runs': 1,
                           'num_robots': num_robots,
@@ -123,16 +479,11 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True):
                           'attributes': attributes,
                           'experiment_name': experiment_name}
 
-
     with open(os.path.join(data_path, f'{experiment_name}_summaryp.json'), 'w') as sump_f:
         json.dump(experiment_summary, sump_f, indent=4)
 
     sumd_f = os.path.join(data_path, f'{experiment_name}_summaryd.npy')
     np.save(sumd_f, data)
-
-
-
-
 
 
 def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
@@ -205,10 +556,10 @@ def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
 
         for j, run_name in enumerate(runs):
             data[j, i, attributes.index('t'), :] = t
-            data[j, i, attributes.index('pos_x'), :] = positions[j][:t_len, 1]
-            data[j, i, attributes.index('pos_y'), :] = positions[j][:t_len, 2]
-            data[j, i, attributes.index('pos_z'), :] = positions[j][:t_len, 3]
-            data[j, i, attributes.index('or'), :] = orientations[j][:t_len, 1]
+            data[j, i, attributes.index('pos_x'), :] = positions[j][:t_len, 1] * 1000  # in mm
+            data[j, i, attributes.index('pos_y'), :] = positions[j][:t_len, 2] * 1000  # in mm
+            data[j, i, attributes.index('pos_z'), :] = positions[j][:t_len, 3] * 1000  # in mm
+            data[j, i, attributes.index('or'), :] = np.pi / 2 - orientations[j][:t_len, 1]
 
     experiment_summary = {'params': param_dict,
                           'num_runs': num_runs,
@@ -227,6 +578,7 @@ def summarize_experiment(data_path, experiment_name, skip_already_summed=True):
 def read_summary_data(data_path, experiment_name):
     with open(os.path.join(data_path, f'{experiment_name}_summaryp.json')) as sump_f:
         summary_dict = json.load(sump_f)
+        summary_dict['data_path'] = data_path
 
     sumd_f = os.path.join(data_path, f'{experiment_name}_summaryd.npy')
     data = np.load(sumd_f)
@@ -260,20 +612,30 @@ def distance(p1, p2):
     return dist
 
 
-def calculate_velocity(summary, data):
-    velocities = np.zeros((summary['num_runs'], summary['num_robots'], data.shape[-1] - 1))
+def calculate_velocity(summary, data, force_recalculate=False):
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_vel.npy")
 
-    t_idx = summary['attributes'].index('t')
-    pos_x = summary['attributes'].index('pos_x')
-    pos_y = summary['attributes'].index('pos_y')
-    pos_z = summary['attributes'].index('pos_z')
-    or_idx = summary['attributes'].index('or')
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for agent velocities already exists! No recalculation was "
+              "requested, so data will be loaded from the npy file.")
+        velocities = np.load(save_path)
+    else:
+        velocities = np.zeros((summary['num_runs'], summary['num_robots'], data.shape[-1] - 1))
 
-    for i in range(summary['num_runs']):
-        for j in range(summary['num_robots']):
-            velocities[i, j, :] = velocity(data[i, j, [pos_x, pos_y, pos_z], :],
-                                           data[i, j, or_idx, :],
-                                           data[i, j, t_idx, :])
+        t_idx = summary['attributes'].index('t')
+        pos_x = summary['attributes'].index('pos_x')
+        pos_y = summary['attributes'].index('pos_y')
+        pos_z = summary['attributes'].index('pos_z')
+        or_idx = summary['attributes'].index('or')
+
+        for i in range(summary['num_runs']):
+            for j in range(summary['num_robots']):
+                velocities[i, j, :] = velocity(data[i, j, [pos_x, pos_y, pos_z], :],
+                                               data[i, j, or_idx, :],
+                                               data[i, j, t_idx, :])
+
+        print(f"Saving velocities in npy file under {save_path}")
+        np.save(save_path, velocities)
 
     return velocities
 
@@ -302,20 +664,48 @@ def calculate_distance(summary, data, from_point):
     return distances
 
 
-def calculate_interindividual_distance(summary, data):
-    iid = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'], data.shape[-1]))
+def calculate_avg_metric_after_wall_refl(metric_m, wall_refl, time_windows):
+    """Calculating teh typical metric shape (as in mean metric) after reflection times with
+    standard deviation. time windows is a list of window before, and after"""
+    snips = None
+    num_t = metric_m.shape[-1]
+    num_snips = 0
+    for t in wall_refl:
+        if t + time_windows[1] < num_t and t - time_windows[0] > 0:
+            snippet = metric_m[t - time_windows[0]:t + time_windows[1]]
+            # snippet = (snippet - np.min(snippet)) / (np.max(snippet) - np.min(snippet))
+            if snips is None:
+                snips = snippet
+            else:
+                snips = np.vstack((snips, snippet))
+    return np.mean(snips, axis=0), np.std(snips, axis=0)
 
-    t_idx = summary['attributes'].index('t')
-    pos_x = summary['attributes'].index('pos_x')
-    pos_y = summary['attributes'].index('pos_y')
-    pos_z = summary['attributes'].index('pos_z')
 
-    for runi in range(summary['num_runs']):
-        for robi in range(summary['num_robots']):
-            for robj in range(summary['num_robots']):
-                pos_array_i = data[runi, robi, [pos_x, pos_y, pos_z], :]
-                pos_array_j = data[runi, robj, [pos_x, pos_y, pos_z], :]
-                iid[runi, robi, robj, :] = distance(pos_array_i, pos_array_j)
+def calculate_interindividual_distance(summary, data, force_recalculate=False):
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_iid.npy")
+
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for IID already exists! No recalculation was "
+              "requested, so data will be loaded from the npy file.")
+        iid = np.load(save_path)
+
+    else:
+        iid = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'], data.shape[-1]))
+
+        t_idx = summary['attributes'].index('t')
+        pos_x = summary['attributes'].index('pos_x')
+        pos_y = summary['attributes'].index('pos_y')
+        pos_z = summary['attributes'].index('pos_z')
+
+        for runi in range(summary['num_runs']):
+            for robi in range(summary['num_robots']):
+                for robj in range(summary['num_robots']):
+                    pos_array_i = data[runi, robi, [pos_x, pos_y, pos_z], :]
+                    pos_array_j = data[runi, robj, [pos_x, pos_y, pos_z], :]
+                    iid[runi, robi, robj, :] = distance(pos_array_i, pos_array_j)
+
+        print(f"Saving IID matrix in npy file under {save_path}")
+        np.save(save_path, iid)
 
     return iid
 
@@ -333,24 +723,166 @@ def calculate_mean_iid(summary, data, window_width=100):
     return miid
 
 
-def calculate_ploarization_matrix(summary, data):
+def calculate_reflection_times(summary, data):
+    pass
+
+
+def seriation(Z, N, cur_index):
+    '''
+        input:
+            - Z is a hierarchical tree (dendrogram)
+            - N is the number of points given to the clustering process
+            - cur_index is the position in the tree for the recursive traversal
+        output:
+            - order implied by the hierarchical tree Z
+
+        seriation computes the order implied by a hierarchical tree (dendrogram)
+    '''
+    if cur_index < N:
+        return [cur_index]
+    else:
+        left = int(Z[cur_index - N, 0])
+        right = int(Z[cur_index - N, 1])
+        return (seriation(Z, N, left) + seriation(Z, N, right))
+
+
+def compute_serial_matrix(dist_mat, method="ward"):
+    '''
+        input:
+            - dist_mat is a distance matrix
+            - method = ["ward","single","average","complete"]
+        output:
+            - seriated_dist is the input dist_mat,
+              but with re-ordered rows and columns
+              according to the seriation, i.e. the
+              order implied by the hierarchical tree
+            - res_order is the order implied by
+              the hierarhical tree
+            - res_linkage is the hierarhical tree (dendrogram)
+
+        compute_serial_matrix transforms a distance matrix into
+        a sorted distance matrix according to the order implied
+        by the hierarchical tree (dendrogram)
+    '''
+    N = len(dist_mat)
+    flat_dist_mat = squareform(dist_mat)
+    res_linkage = linkage(flat_dist_mat, method=method, preserve_input=True)
+    res_order = seriation(res_linkage, N, N + N - 2)
+    seriated_dist = np.zeros((N, N))
+    a, b = np.triu_indices(N, k=1)
+    seriated_dist[a, b] = dist_mat[[res_order[i] for i in a], [res_order[j] for j in b]]
+    seriated_dist[b, a] = seriated_dist[a, b]
+
+    return seriated_dist, res_order, res_linkage
+
+
+def subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=False):
+    """Using hierarhical clustering according to iid and pm scores to get number of subgroups"""
+    if isinstance(valid_ts, list):
+        valid_ts = np.array(valid_ts)
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_run{runi}_clustering.json")
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("Files in target path for clustering already exists! No recalculation was"
+              "requested, so data will be loaded from the json files.")
+        with open(save_path, 'r') as fwa:
+            clustering_dict = json.load(fwa)
+        loaded_validts = clustering_dict['valid_ts']
+        loaded_validts = [int(t) for t in loaded_validts]
+        if loaded_validts != valid_ts.tolist():
+            print(
+                "Loaded json file for clustering but valid timepoints don't match with the one requested. Recalculating!")
+            clustering_dict = subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=True)
+            return clustering_dict
+        else:
+            return clustering_dict
+    else:
+        clustering_dict = {}
+        num_robots = pm.shape[1]
+        clustering_dict['num_subgroups'] = []
+        clustering_dict['valid_ts'] = valid_ts.tolist()
+        for t in valid_ts:
+            niidm = (iidm[runi, :, :, t] - np.min(iidm[runi, :, :, t])) / (
+                    np.max(iidm[runi, :, :, t]) - np.min(iidm[runi, :, :, t]))
+            dist = (1 - pm[runi, :, :, t].astype('float') + niidm) / 2
+            # sermat = compute_serial_matrix(1-pm[0, :, :, t].astype('float'))
+            linkage_matrix = linkage(dist, "single")
+            ret = dendrogram(linkage_matrix, color_threshold=1.2, labels=[i for i in range(num_robots)],
+                             show_leaf_counts=True, no_plot=True)
+            clustering_dict['num_subgroups'].append(len(list(set(ret['color_list']))))
+
+        print(f"Saving clustering data...")
+        print(clustering_dict)
+        with open(save_path, 'w', encoding='utf-8') as fwa:
+            json.dump(clustering_dict, fwa, ensure_ascii=False, indent=4)
+
+        return clustering_dict
+
+
+def calculate_order_parameter(summary, data, force_recalculate=False):
+    """Calculating matrix including order parameter values between 0 and 1 reflecting the
+    average match of the agents w.r.t. heaing angles, as the norm of the summed unit
+    vectors with direction of agent orientations"""
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_ord.npy")
+
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for order parameters already exists! No recalculation was "
+              "requested, so data will be loaded from the npy file.")
+        ord = np.load(save_path)
+
+    else:
+        or_idx = summary['attributes'].index('or')
+        orientations = data[:, :, or_idx, :]
+
+        unitvecs = np.zeros((summary['num_runs'], 2, summary['num_robots'], data.shape[-1]))
+
+        for runi in range(summary['num_runs']):
+            for robi in range(summary['num_robots']):
+                ori = orientations[runi, robi, :]
+                unitvecs[runi, 0, robi, :] = np.array([np.cos(ang) for ang in ori])
+                unitvecs[runi, 1, robi, :] = np.array([np.sin(ang) for ang in ori])
+
+        unitsum = np.sum(unitvecs, axis=2)
+        ord = np.zeros((summary['num_runs'], data.shape[-1]))
+        for runi in range(summary['num_runs']):
+            ord[runi, :] = np.array(
+                [np.linalg.norm([unitsum[runi, 0, t], unitsum[runi, 1, t]]) / summary['num_robots'] for t in
+                 range(data.shape[-1])])
+
+        print(f"Saving order parameter matrix in npy file under {save_path}")
+        np.save(save_path, ord)
+
+    return ord
+
+
+def calculate_ploarization_matrix(summary, data, force_recalculate=False):
     """Calculating matrix including polariuzation values between 0 and 1 reflecting the
     average match of the agents w.r.t. heaing angles"""
-    time = data[0, 0, 0, :]  # 1 step shorter because of diff
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_pol.npy")
 
-    or_idx = summary['attributes'].index('or')
-    orientations = data[:, :, or_idx, :]
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for polarization already exists! No recalculation was "
+              "requested, so data will be loaded from the npy file.")
+        pol = np.load(save_path)
 
-    pol = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'], data.shape[-1]))
+    else:
+        time = data[0, 0, 0, :]  # 1 step shorter because of diff
 
-    for i in range(summary['num_robots']):
-        pol[:, i, i, :] = np.nan
+        or_idx = summary['attributes'].index('or')
+        orientations = data[:, :, or_idx, :]
 
-    for i in range(summary['num_runs']):
-        for ri in range(summary['num_robots']):
-            for rj in range(summary['num_robots']):
-                diff = np.abs(orientations[i, ri, :] - orientations[i, rj, :])
-                pol[i, ri, rj, :] = ((2 / np.pi) * np.abs(diff - np.pi)) - 1
+        pol = np.zeros((summary['num_runs'], summary['num_robots'], summary['num_robots'], data.shape[-1]))
+
+        for i in range(summary['num_robots']):
+            pol[:, i, i, :] = np.nan
+
+        for i in range(summary['num_runs']):
+            for ri in range(summary['num_robots']):
+                for rj in range(summary['num_robots']):
+                    diff = np.abs(orientations[i, ri, :] - orientations[i, rj, :])
+                    pol[i, ri, rj, :] = ((2 / np.pi) * np.abs(diff - np.pi)) - 1
+
+        print(f"Saving polarization matrix in npy file under {save_path}")
+        np.save(save_path, pol)
 
     return pol
 
@@ -384,22 +916,34 @@ def calculate_min_iid(summary, data):
     return min_iid
 
 
-def population_velocity(summary, data):
+def population_velocity(summary, data, force_recalculate=False):
     """Calculating the velocity and direction of velocity of the center of mass of agents
 
     returns an (n_runs x (t-1)) shape matrix"""
-    pos_x = summary['attributes'].index('pos_x')
-    pos_y = summary['attributes'].index('pos_y')
-    pos_z = summary['attributes'].index('pos_z')
-    center_of_mass = np.mean(data[:, :, [pos_x, pos_y, pos_z], :], axis=1)
 
-    t = data[0, 0, 0, :]
-    dt = t[1] - t[0]
+    save_path = os.path.join(summary['data_path'], f"{summary['experiment_name']}_COMvel.npy")
 
-    COMvelocity = np.zeros((summary['num_runs'], len(t) - 1))
-    for i in range(len(t) - 1):
-        for run_i in range(summary['num_runs']):
-            COMvelocity[run_i, i] = distance(center_of_mass[run_i, :, i], center_of_mass[run_i, :, i + 1]) / dt
+    if os.path.isfile(save_path) and not force_recalculate:
+        print("File in target path for COM velocity already exists! No recalculation was"
+              "requested, so data will be loaded from the npy file.")
+        COMvelocity = np.load(save_path)
+
+    else:
+        pos_x = summary['attributes'].index('pos_x')
+        pos_y = summary['attributes'].index('pos_y')
+        pos_z = summary['attributes'].index('pos_z')
+        center_of_mass = np.mean(data[:, :, [pos_x, pos_y, pos_z], :], axis=1)
+
+        t = data[0, 0, 0, :]
+        dt = t[1] - t[0]
+
+        COMvelocity = np.zeros((summary['num_runs'], len(t) - 1))
+        for i in range(len(t) - 1):
+            for run_i in range(summary['num_runs']):
+                COMvelocity[run_i, i] = distance(center_of_mass[run_i, :, i], center_of_mass[run_i, :, i + 1]) / dt
+
+        print(f"Saving COMvelcoity in npy file under {save_path}")
+        np.save(save_path, COMvelocity)
 
     return COMvelocity
 
