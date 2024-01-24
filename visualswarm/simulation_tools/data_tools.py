@@ -304,11 +304,14 @@ def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=1
         mean_wall_dist = np.mean(wall_distances[runi], axis=0)
         min_wall_dist = np.min(wall_distances[runi], axis=0)
 
-        wall_refl_dict, ag_refl_dict = mine_reflection_times(data, summary, wall_summary, wall_data,
-                                                                        ma_window=30, wall_dist_thr=wall_vic_thr,
-                                                                        agent_dist_thr=agent_dist_thr,
-                                                                        turn_thr=turn_thr,
-                                                                        force_recalculate=force_recalculate)
+        # _, ag_refl_dict = mine_reflection_times(data, summary, wall_summary, wall_data,
+        #                                                      ma_window=mov_avg_w, wall_dist_thr=wall_vic_thr,
+        #                                                      agent_dist_thr=agent_dist_thr,
+        #                                                      turn_thr=turn_thr,
+        #                                                      force_recalculate=force_recalculate)
+
+        wall_refl_dict, ag_refl_dict = mine_reflection_times_drotY(data, summary, wall_summary, wall_data)
+
         wall_reflection_times = []
         for _, v in wall_refl_dict[str(runi)].items():
             wall_reflection_times.extend(v)
@@ -326,6 +329,235 @@ def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=1
     return com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
         mean_wall_dist, min_wall_dist, wall_refl_dict, ag_refl_dict, wall_reflection_times, agent_reflection_times, \
         wall_distances, wall_coords_closest
+
+def butter_lowpass_filter(data, cutoff, fs, order):
+    """Butterworth lowpass filter"""
+    from scipy.signal import butter, filtfilt
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    # Get the filter coefficients
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    y = filtfilt(b, a, data)
+    return y
+
+
+def resampler_2_points(p1, p2, resample_distance, include_endpoint=False):
+    """https://stackoverflow.com/questions/64441803/resample-trajectory-to-have-equal-euclidean-distance-in-each-sample"""
+    # get the distacne between the points
+    distance_p1p2 = np.sqrt(np.sum((p2 - p1) ** 2))
+
+    # check for invalid cases
+    if resample_distance > distance_p1p2:
+        print("Resample distance larger than distance between points")
+        return None
+
+    elif distance_p1p2 == 0:
+        print("Distance between the two points is 0")
+        return None
+
+    # if all is okay
+    else:
+        # get the stepsize of x and y coordinates
+        stepsize_x, stepsize_y = (p2 - p1) * (resample_distance / distance_p1p2)
+
+        # handle the case when a 'stepsize' along and axis equals 0
+        if stepsize_x == 0:
+            y = np.arange(p1[1], p2[1], stepsize_y)
+            x = np.zeros(len(y)) + p1[0]
+
+        elif stepsize_y == 0:
+            x = np.arange(p1[0], p2[0], stepsize_x)
+            y = np.zeros(len(x)) + p1[1]
+
+        # all other cases
+        else:
+
+            x = np.arange(p1[0], p2[0], stepsize_x)
+            y = np.arange(p1[1], p2[1], stepsize_y)
+
+            # optionally append endpoint to final list
+        if include_endpoint:
+            x = np.append(x, p2[0])
+            y = np.append(y, p2[1])
+
+        # retrun the x and y coordinates in two arrays
+        return x, y
+
+def resample_wall_coordinates(wall_summary, wall_data, dxy=5, with_plot=False):
+    """Resmplaing the wall coordinates to have equal distance between points"""
+    # removing any nan values from the wall data
+    wall_data = wall_data[:, :, :, ~np.isnan(wall_data[0, 0, 1, :])]
+    resampled_wall_coords_x = []
+    resampled_wall_coords_y = []
+    num_t = wall_data.shape[-1]
+    dists = []
+    for t in range(num_t-1):
+        # taking 2 consecutive points and if they are farther away than dxy, resample
+        p1 = np.array([wall_data[0, 0, 1, t], wall_data[0, 0, 3, t]])
+        p2 = np.array([wall_data[0, 0, 1, t+1], wall_data[0, 0, 3, t+1]])
+        dist = np.sqrt(np.sum((np.array(p2) - np.array(p1))**2))
+        dists.append(dist)
+
+        if dist > dxy:
+            # if points are too far away we resmple the data
+            x, y = resampler_2_points(p1, p2, dxy)
+            resampled_wall_coords_x.extend(x)
+            resampled_wall_coords_y.extend(y)
+
+        else:
+            resampled_wall_coords_x.append(p1[0])
+            resampled_wall_coords_y.append(p1[1])
+
+    # creating new data array for the interpolated wall coordinates
+    new_shape = wall_data.shape[:-1] + (len(resampled_wall_coords_x), )
+    resampled_wall_data = np.zeros(new_shape)
+    resampled_wall_data[0, 0, 1, :] = resampled_wall_coords_x
+    resampled_wall_data[0, 0, 3, :] = resampled_wall_coords_y
+
+    if with_plot:
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.scatter(resampled_wall_data[0, 0, 1, :], resampled_wall_data[0, 0, 3, :], s=1, label='resampled')
+        plt.scatter(wall_data[0, 0, 1, :], wall_data[0, 0, 3, :], s=1, c="black", label='original')
+        plt.legend()
+        plt.xlabel('x [mm]')
+        plt.ylabel('y [mm]')
+        plt.show()
+
+    return resampled_wall_data
+
+
+def mine_reflection_times_drotY(data, summary, wall_summary, wall_data,
+                                rotation_threshold=0.19, wall_dist_thr=175, agent_dist_thr=175,
+                                with_plotting=False, force_recalculate=False):
+    """Mining the timepoints when obstacle avoidance was activated. This is
+    where a high turning rate is observed together with a small wall-agent,
+    obstacle-agent or agent-agent distance. Using the original drotY value coming from OptiTrack"""
+    from matplotlib import pyplot as plt
+    # collecting basic information about run
+    num_t = data.shape[-1]
+    num_robots = data.shape[1]
+    num_runs = data.shape[0]
+
+    save_path_wa = os.path.join(summary['data_path'], f"{summary['experiment_name']}_warefl.json")
+    save_path_aa = os.path.join(summary['data_path'], f"{summary['experiment_name']}_aarefl.json")
+
+    if os.path.isfile(save_path_wa) and os.path.isfile(save_path_aa) and not force_recalculate:
+        print("Files in target path for reflections already exists! No recalculation was"
+              "requested, so data will be loaded from the json files.")
+        with open(save_path_wa, 'r') as fwa:
+            wall_refl_dict = json.load(fwa)
+
+        with open(save_path_aa, 'r') as faa:
+            ag_refl_dict = json.load(faa)
+
+        return wall_refl_dict, ag_refl_dict
+
+    # calculating wall distances
+    wall_distances, wall_coords_closest, _ = calculate_distances_from_walls(summary, data, wall_summary, wall_data)
+
+    # calculating iid distances
+    # calculating agent-agent reflections
+    iidm = calculate_interindividual_distance(summary, data)
+    iidm_nan = iidm.copy()
+    for runi in range(num_runs):
+        for t in range(num_t):
+            np.fill_diagonal(iidm_nan[runi, :, :, t], None)
+
+    wall_refl_dict = {}
+    ag_refl_dict = {}
+
+    # framerate
+    fs = 30  # Hz
+    # sample period
+    T = num_t / fs  # s
+    cutoff = 0.25  # desired cutoff frequency of the filter, Hz , slightly higher than actual 1.2 Hz
+    nyq = 0.5 * fs  # Nyquist Frequency
+    order = 5       # sin wave can be approx represented as quadratic
+    n = num_t
+
+    # looping through agents, getting their drotY values and thresholding them
+    for runi in range(num_runs):
+        drotY = data[runi, :, 5, :].copy()
+        for ai in range(num_robots):
+            # Butterworth low-pass filtering drotY to remove jitters in turning rate
+            filtered = butter_lowpass_filter(drotY[ai, :], cutoff, fs, order)
+
+            # # plotting effect of LP filter
+            # if with_plotting:
+            #     plt.figure()
+            #     time = np.linspace(0, T, n, endpoint=False)
+            #     plt.plot(time, drotY[ai, :], label='original')
+            #     plt.plot(time, filtered, label=f'LP filtered {cutoff}Hz')
+            #     plt.legend()
+            #     plt.xlabel('Time [s]')
+            #     plt.ylabel('drotY [deg/s]')
+            #     plt.show()
+
+            drotY[ai, :] = filtered
+
+        # calculating absolute value of derivated drotY to get spikes where the emergency protocol was on
+        coll_vec = np.abs(np.diff(drotY, axis=-1))
+
+        # creating nested dictionary with runi and robi as (string) keys
+        wall_refl_dict[str(runi)] = dict((str(robi), []) for robi in range(num_robots))
+        ag_refl_dict[str(runi)] = dict((str(robi), []) for robi in range(num_robots))
+
+        # looping through agents, getting their drotY values and thresholding them to get time points
+        # of emergency protocol
+        for ai in range(num_robots):
+            # getting thresholded times
+            coll_times = np.where(coll_vec[ai, :] > rotation_threshold)[0]
+
+            # calculating wall-agent reflections
+            wall_reflection_times = [t for t in coll_times if wall_distances[runi, ai, t] < wall_dist_thr]
+
+            for t in wall_reflection_times:
+                ids = np.where(
+                    np.logical_and(wall_distances[runi, :, t] < wall_dist_thr, coll_vec[:, t] > rotation_threshold))
+                for robi in ids[0]:
+                    wall_refl_dict[str(runi)][str(robi)].append(int(t))
+
+            agent_reflection_times = [t for t in coll_times if np.any(iidm_nan[runi, ai, :, t] < agent_dist_thr)]
+
+            for t in agent_reflection_times:
+                ids = np.where(
+                    np.logical_and(iidm_nan[runi, :, :, t] < agent_dist_thr, coll_vec[ai, t] > rotation_threshold))
+                for robi in ids[0]:
+                    ag_refl_dict[str(runi)][str(robi)].append(int(t))
+
+            # plotting
+            if with_plotting:
+                from matplotlib import pyplot as plt
+                time = np.linspace(0, T, n, endpoint=False)
+                plt.figure(f"a{ai}")
+                # plotting normalized rotational values for single robot
+                plt.plot(time, (drotY[ai, :] / np.max(drotY[ai, :]))/2 + 1.5, label="normalized drotY")
+                # plotting absolute value of derivative
+                time = np.linspace(0, T, n - 1, endpoint=False)
+                plt.plot(time, coll_vec[ai, :], label="raw derivative")
+                # plotting collision times
+                plt.plot(np.array(wall_reflection_times)/fs, np.ones(len(wall_reflection_times)), "ro", label="wall")
+                plt.plot(np.array(agent_reflection_times)/fs, np.ones(len(agent_reflection_times)), "bo", label="agent")
+                # plotting threshold
+                plt.hlines(rotation_threshold, 0, T, color="red", linestyle="--", label="peak threshold")
+                plt.legend()
+                plt.xlabel("time [s]")
+                plt.ylabel("drotY")
+
+        if with_plotting:
+            plt.show()
+
+        print(f"Saving wall and agent reflection files...")
+        with open(save_path_wa, 'w', encoding='utf-8') as fwa:
+            json.dump(wall_refl_dict, fwa, ensure_ascii=False, indent=4)
+
+        with open(save_path_aa, 'w', encoding='utf-8') as faa:
+            json.dump(ag_refl_dict, faa, ensure_ascii=False, indent=4)
+
+        return wall_refl_dict, ag_refl_dict
+
+
 
 def mine_reflection_times(data, summary, wall_summary, wall_data,
                           ma_window=30, wall_dist_thr=200, agent_dist_thr=280, turn_thr=0.0225,
@@ -448,7 +680,7 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
     # time = np.array([a[1] for a in df.index.values[5::]]).astype('float') / 1000
     t_len = len(time)
 
-    attributes = ['t', 'pos_x', 'pos_y', 'pos_z', 'or']
+    attributes = ['t', 'pos_x', 'pos_y', 'pos_z', 'or', 'drotY']
     num_attributes = len(attributes)
 
     data = np.zeros((1, num_robots, num_attributes, t_len))
@@ -466,11 +698,14 @@ def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
         y_pos = df.iloc[:, startindex + 4].values.astype('float')
         z_pos = df.iloc[:, startindex + 5].values.astype('float')
 
+        drotY = df.iloc[:, startindex + 1].values.astype('float')  # y axis
+
         data[0, robi, attributes.index('t'), :] = time
         data[0, robi, attributes.index('pos_x'), :] = x_pos
         data[0, robi, attributes.index('pos_y'), :] = y_pos
         data[0, robi, attributes.index('pos_z'), :] = z_pos
         data[0, robi, attributes.index('or'), :] = orient
+        data[0, robi, attributes.index('drotY'), :] = drotY
 
     experiment_summary = {'params': None,
                           'num_runs': 1,
