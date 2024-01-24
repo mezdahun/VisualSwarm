@@ -156,14 +156,15 @@ def calculate_turning_rates(summary, data, turning_rate_trh=0.2, force_recalcula
 
 def filter_high_velocity_points(valid_ts, abs_vel_m, runi, vel_thr=0.6):
     """Filtering extreme velocity timepoints from data as this results from wrong tracking"""
-    valid_ts_new = [t for t in valid_ts if np.all(abs_vel_m[runi, :, t-1]<=vel_thr)]
+    valid_ts_new = [t for t in valid_ts if np.all(abs_vel_m[runi, :, t - 1] <= vel_thr)]
     return valid_ts_new
 
 
 def filter_high_turningrate_points(valid_ts, turning_rates, runi, tr_thr=0.2):
     """Filtering extreme velocity timepoints from data as this results from wrong tracking"""
-    valid_ts_new = [t for t in valid_ts if np.all(turning_rates[runi, :, t-1]<=tr_thr)]
+    valid_ts_new = [t for t in valid_ts if np.all(turning_rates[runi, :, t - 1] <= tr_thr)]
     return valid_ts_new
+
 
 def return_validts_pol(mean_pol, pol_thr=0.8):
     """Returning those time points where the mean polarization of the swarm falls above a threshold"""
@@ -178,8 +179,8 @@ def return_validts_iid(mean_iid, iid_of_interest=500, tolerance=250):
                                    mean_iid <= iid_of_interest + tolerance))[0]
 
 
-
-def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agent_refl_times, wall_refl_times, window_after=0,
+def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agent_refl_times, wall_refl_times,
+                                      window_after=0,
                                       window_before=0, force_recalculate=False):
     """Calculating common metrics for time points where no collision was detected"""
     num_t = polarization_m.shape[-1]
@@ -207,7 +208,7 @@ def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agen
         t_ext = [0]
         for ti, t in enumerate(all_refl_times):
             # if t - window_before >= np.max(t_ext):
-            t_ext.extend([min(max(0, te), num_t) for te in range(t-window_before, t+window_after)])
+            t_ext.extend([min(max(0, te), num_t) for te in range(t - window_before, t + window_after)])
             # print(t_ext)
         all_refl_times.extend(t_ext)
         all_refl_times = list(set(all_refl_times))
@@ -239,6 +240,7 @@ def return_metrics_where_no_collision(summary, polarization_m, iid_m, runi, agen
     mean_iid_long[valid_ts] = mean_iid
 
     return valid_ts, min_iidm_long, mean_iid_long, mean_pol_vals_long
+
 
 def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=10,
                         wall_vic_thr=200, agent_dist_thr=275, force_recalculate=False, turn_thr=0.02):
@@ -274,7 +276,6 @@ def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=1
         ma_turning_rates[runi, robi, int(mov_avg_w / 2):-int(mov_avg_w / 2) + 1] = moving_average(
             turning_rates[runi, robi, :], mov_avg_w)
 
-
     # inter_individual distances
     print("Calculate IID")
     iidm = calculate_interindividual_distance(summary, data, force_recalculate=force_recalculate)
@@ -298,8 +299,8 @@ def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=1
 
     if wall_coordinates is not None:
         wall_distances, wall_coords_closest, _ = calculate_distances_from_walls(summary, data,
-                                                                                           wall_summary, wall_data,
-                                                                                           force_recalculate=force_recalculate)
+                                                                                wall_summary, wall_data,
+                                                                                force_recalculate=force_recalculate)
         mean_wall_dist = np.mean(wall_distances[runi], axis=0)
         min_wall_dist = np.min(wall_distances[runi], axis=0)
 
@@ -320,7 +321,7 @@ def return_summary_data(summary, data, wall_data_tuple=None, runi=0, mov_avg_w=1
 
     else:
         mean_wall_dist = min_wall_dist = wall_refl_dict = ag_refl_dict = wall_reflection_times = agent_reflection_times \
-            = wall_distances = wall_coords_closest =None
+            = wall_distances = wall_coords_closest = None
 
     return com_vel, m_com_vel, abs_vel, m_abs_vel, turning_rates, ma_turning_rates, iidm, min_iidm, mean_iid, pm, ord, mean_pol_vals, \
         mean_wall_dist, min_wall_dist, wall_refl_dict, ag_refl_dict, wall_reflection_times, agent_reflection_times, \
@@ -333,6 +334,9 @@ def mine_reflection_times(data, summary, wall_summary, wall_data,
     where a high turning rate is observed together with a small wall-agent,
     obstacle-agent or agent-agent distance"""
 
+    print(f"Calculating reflection times for {summary['experiment_name']}"
+          f"with window size {ma_window} and thresholds: wall_dist={wall_dist_thr}, "
+          f"agent_dist={agent_dist_thr}, turn_rate={turn_thr}")
 
     # agent turning rates
     turning_rates = calculate_turning_rates(summary, data)
@@ -373,7 +377,8 @@ def mine_reflection_times(data, summary, wall_summary, wall_data,
             ag_refl_dict[str(runi)] = {}
 
             for robi in range(num_robots):
-                ma_turning_rates[runi, robi, int(ma_window/2):-int(ma_window/2)+1] = moving_average(turning_rates[runi, robi, :], ma_window)
+                ma_turning_rates[runi, robi, int(ma_window / 2):-int(ma_window / 2) + 1] = moving_average(
+                    turning_rates[runi, robi, :], ma_window)
                 wall_refl_dict[str(runi)][str(robi)] = []
                 ag_refl_dict[str(runi)][str(robi)] = []
 
@@ -382,7 +387,8 @@ def mine_reflection_times(data, summary, wall_summary, wall_data,
                 np.logical_and(wall_distances[runi, :, t] < wall_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))]
 
             for t in wall_reflection_times:
-                ids = np.where(np.logical_and(wall_distances[runi, :, t] < wall_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))
+                ids = np.where(
+                    np.logical_and(wall_distances[runi, :, t] < wall_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))
                 for robi in ids[0]:
                     wall_refl_dict[str(runi)][str(robi)].append(t)
 
@@ -391,7 +397,8 @@ def mine_reflection_times(data, summary, wall_summary, wall_data,
                 np.logical_and(iidm_nan[runi, :, :, t] < agent_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))]
 
             for t in agent_reflection_times:
-                ids = np.where(np.logical_and(iidm_nan[runi, :, :, t] < agent_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))
+                ids = np.where(
+                    np.logical_and(iidm_nan[runi, :, :, t] < agent_dist_thr, ma_turning_rates[runi, :, t] > turn_thr))
                 for robi in ids[0]:
                     ag_refl_dict[str(runi)][str(robi)].append(t)
 
@@ -403,6 +410,7 @@ def mine_reflection_times(data, summary, wall_summary, wall_data,
                 json.dump(ag_refl_dict, faa, ensure_ascii=False, indent=4)
 
     return wall_refl_dict, ag_refl_dict
+
 
 def optitrackcsv_to_VSWRM(csv_path, skip_already_summed=True, dropna=True):
     """Reading an exported optitrack tracking data csv file into a VSWRM summary sata file that can be further used
@@ -655,6 +663,7 @@ def calculate_distance(summary, data, from_point):
 
     return distances
 
+
 def calculate_avg_metric_after_wall_refl(metric_m, wall_refl, time_windows):
     """Calculating teh typical metric shape (as in mean metric) after reflection times with
     standard deviation. time windows is a list of window before, and after"""
@@ -662,15 +671,14 @@ def calculate_avg_metric_after_wall_refl(metric_m, wall_refl, time_windows):
     num_t = metric_m.shape[-1]
     num_snips = 0
     for t in wall_refl:
-        if t+time_windows[1] < num_t and t-time_windows[0] > 0:
-            snippet = metric_m[t-time_windows[0]:t+time_windows[1]]
+        if t + time_windows[1] < num_t and t - time_windows[0] > 0:
+            snippet = metric_m[t - time_windows[0]:t + time_windows[1]]
             # snippet = (snippet - np.min(snippet)) / (np.max(snippet) - np.min(snippet))
             if snips is None:
                 snips = snippet
             else:
                 snips = np.vstack((snips, snippet))
     return np.mean(snips, axis=0), np.std(snips, axis=0)
-
 
 
 def calculate_interindividual_distance(summary, data, force_recalculate=False):
@@ -767,6 +775,7 @@ def compute_serial_matrix(dist_mat, method="ward"):
 
     return seriated_dist, res_order, res_linkage
 
+
 def subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=False):
     """Using hierarhical clustering according to iid and pm scores to get number of subgroups"""
     if isinstance(valid_ts, list):
@@ -780,7 +789,8 @@ def subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=F
         loaded_validts = clustering_dict['valid_ts']
         loaded_validts = [int(t) for t in loaded_validts]
         if loaded_validts != valid_ts.tolist():
-            print("Loaded json file for clustering but valid timepoints don't match with the one requested. Recalculating!")
+            print(
+                "Loaded json file for clustering but valid timepoints don't match with the one requested. Recalculating!")
             clustering_dict = subgroup_clustering(summary, pm, iidm, valid_ts, runi=0, force_recalculate=True)
             return clustering_dict
         else:
@@ -834,12 +844,15 @@ def calculate_order_parameter(summary, data, force_recalculate=False):
         unitsum = np.sum(unitvecs, axis=2)
         ord = np.zeros((summary['num_runs'], data.shape[-1]))
         for runi in range(summary['num_runs']):
-            ord[runi, :] = np.array([np.linalg.norm([unitsum[runi, 0, t], unitsum[runi, 1, t]])/summary['num_robots'] for t in range(data.shape[-1])])
+            ord[runi, :] = np.array(
+                [np.linalg.norm([unitsum[runi, 0, t], unitsum[runi, 1, t]]) / summary['num_robots'] for t in
+                 range(data.shape[-1])])
 
         print(f"Saving order parameter matrix in npy file under {save_path}")
         np.save(save_path, ord)
 
     return ord
+
 
 def calculate_ploarization_matrix(summary, data, force_recalculate=False):
     """Calculating matrix including polariuzation values between 0 and 1 reflecting the
