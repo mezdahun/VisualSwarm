@@ -5,7 +5,7 @@ from visualswarm.simulation_tools import data_tools, plotting_tools
 import os
 
 data_path = "/home/david/Desktop/database/Experiment1/Experiment1/B0Fixed"
-EXPERIMENT_NAMES = ["EXP1_A0_09_B0_125_r1_w1"]
+EXPERIMENT_NAMES = ["EXP1_A0_05_B0_125_r1_w1"]
 WALL_EXPERIMENT_NAME = "w1"
 
 for EXPERIMENT_NAME in EXPERIMENT_NAMES:
