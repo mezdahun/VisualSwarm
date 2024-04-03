@@ -104,7 +104,7 @@ def get_swarmviz_data(input_path):
 
 
 data_path = "D:\\VSWRM Robot Data"
-experiment_case = "A0Fixed"
+experiment_case = "B0Fixed"
 
 data_path = os.path.join(data_path, experiment_case)
 if experiment_case == "A0Fixed":
@@ -112,27 +112,31 @@ if experiment_case == "A0Fixed":
     betas = [0, 0.1, 0.25, 0.75, 1.25, 1.75, 2.5, 4]
     alphas = [0.9]
     repetitions = [1, 2]
+elif experiment_case == "B0Fixed":
+    betas = [1.25]
+    alphas = [0, 0.1, 0.25, 0.5, 0.9, 1.25, 2]
+    repetitions = [1, 2]
 
-    # generating folder names and paths for the experiments
-    param_combis = [(alpha, beta, repetition) for alpha in alphas for beta in betas for repetition in repetitions]
-    experiment_base_names = [f"EXP1_A0_{float_to_str_without_points(alpha)}_B0_{float_to_str_without_points(beta)}_r{repetition}" for alpha in alphas for beta in betas for repetition in repetitions]
-    final_experiment_files = []
-    walls = []
+# generating folder names and paths for the experiments
+param_combis = [(alpha, beta, repetition) for alpha in alphas for beta in betas for repetition in repetitions]
+experiment_base_names = [f"EXP1_A0_{float_to_str_without_points(alpha)}_B0_{float_to_str_without_points(beta)}_r{repetition}" for alpha in alphas for beta in betas for repetition in repetitions]
+final_experiment_files = []
+walls = []
 
-    # get all subdirectories of data_path
-    print([f.path for f in os.scandir(data_path) if f.is_dir()])
-    subdirs = [f.path for f in os.scandir(data_path) if f.is_dir()]
+# get all subdirectories of data_path
+print([f.path for f in os.scandir(data_path) if f.is_dir()])
+subdirs = [f.path for f in os.scandir(data_path) if f.is_dir()]
 
-    # matching subdirectories with measurement base names
-    for experiment_base_name in experiment_base_names:
-        for subdir in subdirs:
-            if subdir.find(experiment_base_name)>-1:
-                final_experiment_files.append(subdir)
-                walls.append(subdir.split('_w')[1].split('.')[0])
+# matching subdirectories with measurement base names
+for experiment_base_name in experiment_base_names:
+    for subdir in subdirs:
+        if subdir.find(experiment_base_name)>-1:
+            final_experiment_files.append(subdir)
+            walls.append(subdir.split('_w')[1].split('.')[0])
 
 
-mpols = np.zeros((len(alphas), len(betas), len(repetitions)))
-mpols_std = np.zeros((len(alphas), len(betas), len(repetitions)))
+pols = np.zeros((len(alphas), len(betas), len(repetitions)))
+pols_std = np.zeros((len(alphas), len(betas), len(repetitions)))
 
 for alpha in alphas:
     for beta in betas:
@@ -141,21 +145,37 @@ for alpha in alphas:
             print(f"Processing {experiment_base_names[index]} with walls {walls[index]}")
             input_path = os.path.join(final_experiment_files[index], "swarmvizexport")
             mean_pol, mean_pol_std = get_swarmviz_data(input_path)
-            mpols[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = mean_pol
-            mpols_std[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = mean_pol_std
+            pols[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = mean_pol
+            pols_std[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = mean_pol_std
 
 # average over repetitions
-mpols = np.mean(mpols, axis=-1)
-mpols_std = np.mean(mpols_std, axis=-1)
+mpols = np.mean(pols, axis=-1)
+mpols_std = np.mean(pols_std, axis=-1)
 
-# plotting mean polarizations with shaded background showing std
-for i, alpha in enumerate(alphas):
-    plt.plot([i for i in range(len(betas))], mpols[i], label=f"alpha: {alpha}")
-    plt.fill_between([i for i in range(len(betas))], mpols[i] - mpols_std[i], mpols[i] + mpols_std[i], alpha=0.2)
-    # equidistant ticks for beta
-    plt.xticks([i for i in range(len(betas))], betas)
-    # logaritmic scale for beta
-    plt.ylim(0.45, 1)
+if experiment_case=="A0Fixed":
+    # plotting mean polarizations with shaded background showing std
+    for i, alpha in enumerate(alphas):
+        for ri in range(len(repetitions)):
+            # dotted gray lines for each repetition
+            plt.plot([i for i in range(len(betas))], pols[i, :, ri], color='gray', linestyle='dotted', label=f"repetition: {ri}")
+        plt.plot([i for i in range(len(betas))], mpols[i], label=f"alpha: {alpha}")
+        plt.fill_between([i for i in range(len(betas))], mpols[i] - mpols_std[i], mpols[i] + mpols_std[i], alpha=0.2)
+        # equidistant ticks for beta
+        plt.xticks([i for i in range(len(betas))], betas)
+        # logaritmic scale for beta
+        plt.ylim(0.45, 1)
+elif experiment_case=="B0Fixed":
+    # plotting mean polarizations with shaded background showing std
+    for i, beta in enumerate(betas):
+        for ri in range(len(repetitions)):
+            # dotted gray lines for each repetition
+            plt.plot([i for i in range(len(alphas))], pols[:, i, ri], color='gray', linestyle='dotted', label=f"repetition: {ri}")
+        plt.plot([i for i in range(len(alphas))], mpols[:, i], label=f"beta: {beta}")
+        plt.fill_between([i for i in range(len(alphas))], mpols[:, i] - mpols_std[:, i], mpols[:, i] + mpols_std[:, i], alpha=0.2)
+        # equidistant ticks for alpha
+        plt.xticks([i for i in range(len(alphas))], alphas)
+        # logaritmic scale for beta
+        plt.ylim(0.45, 1)
 
 plt.xlabel("beta")
 plt.ylabel("mean polarization")
