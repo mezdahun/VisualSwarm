@@ -1,12 +1,16 @@
 """
 @author: mezdahun
-@description: Camera module related parameters
+@description: Camera module related parameters such as resolution, flip and camera mode using to acquire
+raw image stream
 """
+import os
 # Basic parameters
-RESOLUTION = (480, 360)
-FRAMERATE = 16
+RESOLUTION = (int(os.getenv('RES_WIDTH', '320')), int(os.getenv('RES_HEIGHT', '200')))
+print(RESOLUTION)
+FRAMERATE = 20
 CAPTURE_FORMAT = "bgr"
 USE_VIDEO_PORT = True
+FLIP_CAMERA = bool(int(os.getenv('FLIP_CAMERA', '1')))
 
 # Stabilizing Color Space
 FIX_ISO = False

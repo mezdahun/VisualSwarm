@@ -12,7 +12,7 @@ setup(
     url='https://github.com/mezdahun/VisualSwarm',
     maintainer='David Mezey @ HU, TU-SciOI, BCCN',
     packages=find_packages(exclude=['tests']),
-    package_data={'visualswarm': ['data/*']},
+    package_data={'visualswarm': ['*.txt', '*.tflite']},
     python_requires=">=3.7",
     install_requires=[
         'opencv-python==4.4.0.46',
@@ -29,7 +29,8 @@ setup(
         'google-cloud-logging==2.5.0',
         'google-api-python-client==2.11.0',
         'google-auth-httplib2==0.1.0',
-        'google-auth-oauthlib==0.4.4'
+        'google-auth-oauthlib==0.4.4',
+        'Pillow'
     ],
     extras_require={
         'test': [
@@ -48,7 +49,9 @@ setup(
             'vswrm-start-vision=visualswarm.app:start_application',
             'vswrm-start=visualswarm.app:start_application_with_control',
             'vswrm-drive-auth=visualswarm.monitoring.drive_uploader:ensure_tokens',
-            'vswrm-drive-upload-videos=visualswarm.monitoring.drive_uploader:upload_vision_videos'
+            'vswrm-drive-upload-videos=visualswarm.monitoring.drive_uploader:upload_vision_videos',
+            'vswrm-drive-upload-training=visualswarm.monitoring.drive_uploader:zipupload_CNN_training_data',
+            'vswrm-start-webcam=visualswarm.monitoring.web_vision:start_webcam_only'
         ]
     },
     classifiers=[

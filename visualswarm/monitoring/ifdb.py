@@ -1,6 +1,6 @@
 """
 @author: mezdahun
-@description: Helper functions for InfluxDB
+@description: Helper functions for InfluxDB saver and monitoring
 """
 from influxdb import InfluxDBClient
 

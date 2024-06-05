@@ -13,19 +13,11 @@ if not simulation.ENABLE_SIMULATION:
 else:
     import numpy as np   # pragma: simulation no cover
 
+import cv2
 import time
 from datetime import datetime
 
 from visualswarm.contrib import camera, logparams, monitoring
-
-# if monitoring.ENABLE_CLOUD_LOGGING:
-#     import google.cloud.logging
-#     import os
-#     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = monitoring.GOOGLE_APPLICATION_CREDENTIALS
-#     # Instantiates a client
-#     client = google.cloud.logging.Client()
-#     client.get_default_handler()
-#     client.setup_logging()
 
 # using main logger
 if not simulation.ENABLE_SIMULATION:
@@ -81,16 +73,25 @@ def raw_vision(raw_vision_stream):
             raw_capture = PiRGBArray(picam, size=camera.RESOLUTION)
 
             # Wait a certain number of seconds to allow the camera time to warmup
-            time.sleep(0.1)
+            logger.info('Waiting for camera warmup!')
+            time.sleep(8)
+            logger.info('--proceed--')
             frame_id = 0
             for frame in picam.capture_continuous(raw_capture,
                                                   format=camera.CAPTURE_FORMAT,
                                                   use_video_port=camera.USE_VIDEO_PORT):
                 # Grab the raw NumPy array representing the image
-                image = frame.array
+                image = cv2.flip(frame.array, -1)
 
                 # Adding time of capture for delay measurement
                 capture_timestamp = datetime.utcnow()
+
+                # clear vision stream if polluted to avoid delay
+                try:
+                    raw_vision_stream.get_nowait()
+                    logger.warning('Queue in raw vision processing.')
+                except:
+                    pass
 
                 # pushing the captured image to the vision stream
                 raw_vision_stream.put((image, frame_id, capture_timestamp))
