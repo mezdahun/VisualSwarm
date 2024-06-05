@@ -22,30 +22,42 @@ If you have any questions or remarks about the project, don't hesitate to contac
  * reproducibility is enforced via unittests and a minimum of 90% code coverage
  * for more information on prerequisites and used packages see `setup.py`
 
-### Run tests locally
-To run the test suit and therefore test if the current code status is of high quality, run the following from your terminal. 
+[comment]: <> (Tests are disabled)
 
-Before running be sure that you 
- * cloned the repo in a specific folder 
- * you are on the desired branch
- * you are in the folder where `tox.ini` is
+[comment]: <> (### Run tests locally)
+
+[comment]: <> (To run the test suit and therefore test if the current code status is of high quality, run the following from your terminal. )
+
+[comment]: <> (Before running be sure that you )
+
+[comment]: <> ( * cloned the repo in a specific folder )
+
+[comment]: <> ( * you are on the desired branch)
+
+[comment]: <> ( * you are in the folder where `tox.ini` is)
  
-```bash
-sudo tox
-```
+[comment]: <> (```bash)
 
-tox will prepare a dedicated test environment virtually and will run the predefined tests (as requested in `tox.ini`) in it.
+[comment]: <> (sudo tox)
 
-At the and you should see a green success message. If you see errors, it can come from multiple sources such as:
- * code quality is not sufficient (formatting or import errors, general deviations from PEP)
- * failed unittests
- * code coverage is not sufficient
+[comment]: <> (```)
 
-In any case, do the fixes according to the tox report and command line messages. **Do not push anything until you do not get a passing test suite. 
-If it is unevitable use the `#temp` flag in the beginning of your commit message.**
+[comment]: <> (tox will prepare a dedicated test environment virtually and will run the predefined tests &#40;as requested in `tox.ini`&#41; in it.)
+
+[comment]: <> (At the and you should see a green success message. If you see errors, it can come from multiple sources such as:)
+
+[comment]: <> ( * code quality is not sufficient &#40;formatting or import errors, general deviations from PEP&#41;)
+
+[comment]: <> ( * failed unittests)
+
+[comment]: <> ( * code coverage is not sufficient)
+
+[comment]: <> (In any case, do the fixes according to the tox report and command line messages. **Do not push anything until you do not get a passing test suite. )
+
+[comment]: <> (If it is unevitable use the `#temp` flag in the beginning of your commit message.**)
 
 ## Application
-To run the application or the test suite it is assumed that the SW is prepared as described on [this wiki page](https://github.com/mezdahun/VisualSwarm/wiki/Software-Setup)
+To run the application it is assumed that the SW is prepared as described on [this wiki page](https://github.com/mezdahun/VisualSwarm/wiki/Software-Setup)
 
 ### Run locally on Pi4
 To avoid conflicts with your global environment first create a virtualenv from the root project folder as
@@ -81,6 +93,13 @@ To start the full stack with motor control use the entrypoint
 ```bash
 vswrm-start
 ```
+
+### Run from central node on robot swarm
+To run the application on the central node of the robot swarm, you need to have the central node connected to the robot 
+swarm via a network connection. The central node should have the version installed defined in setup_puppetmaster.py.
+After this, you will have access to the `vswrm-masterpuppet` entrypoint that will sequentially start the software on
+all connected robots with IP provided in `visualswarm/contrib/puppetmaster.py`. To pass parameters specified in 
+different contrib files see the file `app_puppetmaster.py`.
 
 ## Git and GitHub guidelines
 ### Branches/Naming
