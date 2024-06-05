@@ -1,3 +1,4 @@
+'''Experimental improvements on the main algorithm not used for publication'''
 import os
 
 

@@ -1,6 +1,6 @@
 """
 @author: mezdahun
-@description: Motor Control related parameters
+@description: Motor Control related parameters (thymio connection)
 """
 import os
 

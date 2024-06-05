@@ -6,10 +6,10 @@ example command on robot: ENABLE_CLOUD_LOGGING=0 ENABLE_CLOUD_STORAGE=0 SAVE_VIS
 FLIP_CAMERA=0 ROBOT_FOV=3.8 LOG_LEVEL=DEBUG SAVE_CNN_TRAINING_DATA=0 ROBOT_NAME=Robot2 vswrm-start-vision
 """
 
-# Select only a few robots, uncomment
+# To select only a few robots, uncomment
 # selected_robots = [3, 8]
 
-# select all robots uncomment this line
+# select all
 selected_robots = [i+1 for i in range(10)]
 
 ALL_HOSTS = {'Robot1': '192.168.0.194',

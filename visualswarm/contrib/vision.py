@@ -1,6 +1,6 @@
 """
 @author: mezdahun
-@description: Parameters related to visualization
+@description: Parameters related to real-time visualization of visual stream
 """
 from cv2 import cvtColor, COLOR_BGR2HSV
 import numpy as np

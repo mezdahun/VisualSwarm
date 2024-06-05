@@ -1,6 +1,7 @@
 """
 @author: mezdahun
-@description: Camera module related parameters
+@description: Camera module related parameters such as resolution, flip and camera mode using to acquire
+raw image stream
 """
 import os
 # Basic parameters
