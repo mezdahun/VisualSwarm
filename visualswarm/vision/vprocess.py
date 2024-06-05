@@ -22,6 +22,7 @@ from queue import Empty
 
 if vision.RECOGNITION_TYPE == "CNN":
     import importlib.util
+
     pkg = importlib.util.find_spec('tflite_runtime')
     if pkg:
         from tflite_runtime.interpreter import Interpreter
@@ -34,11 +35,12 @@ from pprint import pformat
 if not simulation.ENABLE_SIMULATION:
     import logging
     import os
+
     ROBOT_NAME = os.getenv('ROBOT_NAME', 'Robot')
     logger = logging.getLogger(f'VSWRM|{ROBOT_NAME}')
     logger.setLevel(monitoring.LOG_LEVEL)
 else:
-    logger = logging.getLogger('visualswarm.app_simulation')   # pragma: simulation no cover
+    logger = logging.getLogger('visualswarm.app_simulation')  # pragma: simulation no cover
 from time import sleep
 
 
@@ -59,6 +61,7 @@ def get_latest_element(queue):  # pragma: simulation no cover
             return val
     return val
 
+
 def output_tensor(interpreter, i):
     """Returns dequantized output tensor if quantized before."""
     output_details = interpreter.get_output_details()[i]
@@ -70,25 +73,12 @@ def output_tensor(interpreter, i):
         return output_data - zero_point
     return scale * (output_data - zero_point)
 
+
 def nothing(x):
     pass
 
-def get_latest_element(queue):
-    """
-    emptying a FIFO Queue object from multiprocessing package as there is no explicit way to do this.
-        Args:
-            queue2empty (multiprocessing.Queue): queue object to be emptied
-        Returns:
-            status: True if successful
-    """
-    val = None
-    while not queue.empty():
-        try:
-            val = queue.get_nowait()
-        except Empty:
-            return val
-    return val
 
+# processing according to color segmentation (obsolete, not used)
 def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
                       target_config_stream=None):
     """
@@ -131,7 +121,8 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
 
                 # Gaussian blur
                 blurred = cv2.GaussianBlur(mask, (
-                    visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH), 0)
+                    visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH, visualswarm.contrib.vision.GAUSSIAN_KERNEL_WIDTH),
+                                           0)
                 blurred = cv2.medianBlur(blurred, visualswarm.contrib.vision.MEDIAN_BLUR_WIDTH)
 
                 # Find contours
@@ -166,8 +157,9 @@ def high_level_vision(raw_vision_stream, high_level_vision_stream, visualization
         pass
 
 
+# processing according to CNN-based object detector
 def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
-                      target_config_stream=None):
+                          target_config_stream=None):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
     processes can consume this stream
@@ -190,21 +182,21 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
     import time
     from datetime import datetime
 
-    from visualswarm.contrib import camera, logparams
+    from visualswarm.contrib import camera, vision, logparams
 
     # using main logger
     logger = logging.getLogger('visualswarm.app')
     bcolors = logparams.BColors
 
     logger.info('Loading tensorflow model...')
-    MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'FINAL_ssdnet2_edgetpu_fullinteger.tflite'
-    LABELMAP_NAME = 'labelmap.txt'
-    USE_TPU = True
-    INTQUANT = True
-    # it takes a little longer on the first run and then runs at normal speed.
-    import random
-    import glob
+    # path to the model on rPi
+    MODEL_NAME = vision.MODEL_NAME
+    # model name
+    GRAPH_NAME = vision.GRAPH_NAME
+    LABELMAP_NAME = vision.LABELMAP_NAME
+    # using tensor processing unit
+    USE_TPU = vision.USE_TPU
+    INTQUANT = vision.INTQUANT
 
     if USE_TPU:
         pkg = importlib.util.find_spec('tflite_runtime')
@@ -213,7 +205,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
         else:
             from tflite_runtime.interpreter import load_delegate
 
-    min_conf_threshold = 0.25
+    min_conf_threshold = vision.min_confidence
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
@@ -341,7 +333,8 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                         if (scores[i] > min_conf_threshold) and (scores[i] <= 1.0):
                             # if scores[i] == np.max(scores):
                             # Get bounding box coordinates and draw box
-                            # Interpreter can return coordinates that are outside of image dimensions, need to force them to be within image using max() and min()
+                            # Interpreter can return coordinates that are outside of image dimensions,
+                            # need to force them to be within image using max() and min()
                             ymin = int(max(1, (boxes[i, 0] * imH)))
                             xmin = int(max(1, (boxes[i, 1] * imW)))
                             ymax = int(min(imH, (boxes[i, 2] * imH)))
@@ -350,7 +343,7 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
                             blurred[ymin:ymax, xmin:xmax] = 255
                             cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (10, 255, 0), 2)
                             img = cv2.putText(img, f'score={scores[i]:.2f}', (xmin, ymin), cv2.FONT_HERSHEY_SIMPLEX,
-                                                0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                                              0.5, (255, 0, 0), 2, cv2.LINE_AA)
 
                     t3 = datetime.utcnow()
                     logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
@@ -363,7 +356,8 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
 
                     # Collecting training data for CNN fine tune if requested
                     if monitoring.SAVE_CNN_TRAINING_DATA:
-                        if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
+                        if (
+                                capture_timestamp - CNN_TD_last_collect).total_seconds() > 1 / monitoring.CNN_TRAINING_DATA_FREQ:
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
                             cv2.imwrite(frame_path, frame_rgb)
@@ -393,8 +387,9 @@ def high_level_vision_CNN(raw_vision_stream, high_level_vision_stream, visualiza
         pass
 
 
+# processing according to CNN-based object detector with calibrated fisheye lenses
 def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, visualization_stream=None,
-                      target_config_stream=None):
+                                target_config_stream=None):
     """
     Process to process raw vision into high level vision and push it to a dedicated stream so that other behavioral
     processes can consume this stream
@@ -417,7 +412,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     import time
     from datetime import datetime
 
-    from visualswarm.contrib import camera, logparams
+    from visualswarm.contrib import camera, logparams, vision
 
     # using main logger
     logger = logging.getLogger('visualswarm.app')
@@ -430,15 +425,15 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     map1 = maps['map1']
     map2 = maps['map2']
     print("Loaded calibration maps!")
-    print(map1)
-    print(map2)
 
-    MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
-    GRAPH_NAME = 'FINAL_ssdnet2_edgetpu_fullinteger.tflite'
-    LABELMAP_NAME = 'labelmap.txt'
-    USE_TPU = True
-    INTQUANT = True
-    # it takes a little longer on the first run and then runs at normal speed.
+    # path to the model on rPi
+    MODEL_NAME = vision.MODEL_NAME
+    # model name
+    GRAPH_NAME = vision.GRAPH_NAME
+    LABELMAP_NAME = vision.LABELMAP_NAME
+    # using tensor processing unit
+    USE_TPU = vision.USE_TPU
+    INTQUANT = vision.INTQUANT
 
     if USE_TPU:
         pkg = importlib.util.find_spec('tflite_runtime')
@@ -450,9 +445,6 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     # change confidence threshold for robots
     min_conf_threshold_class_0 = vision.min_confidence
     max_num_detection_class_0 = vision.max_num_detections
-
-    # min_conf_threshold_class_1 = 0.25
-    # max_num_detection_class_1 = 10
 
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
@@ -541,7 +533,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # unwarping image according to calibration maps
                     # we save the unwarped image
-                    frame_rgb_raw = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+                    frame_rgb_raw = cv2.remap(img, map1, map2, interpolation=cv2.INTER_LINEAR,
+                                              borderMode=cv2.BORDER_CONSTANT)
                     frame_rgb = frame_rgb_raw.copy()
                     # but for current movement calculation we use still the legacy warped image
                     frame_resized = cv2.resize(frame_rgb, (width, height))
@@ -593,10 +586,12 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         sorted_score_indices = np.argsort(scores)[::-1]
 
                         # Limiting to maximum detections
-                        sorted_score_indices = sorted_score_indices[0:int(min(max_num_detection_class_0, len(sorted_score_indices)))]
+                        sorted_score_indices = sorted_score_indices[
+                                               0:int(min(max_num_detection_class_0, len(sorted_score_indices)))]
 
                         # Filtering data for largest scores
-                        boxes, classes, scores = boxes[sorted_score_indices, :], classes[sorted_score_indices], scores[sorted_score_indices]
+                        boxes, classes, scores = boxes[sorted_score_indices, :], classes[sorted_score_indices], scores[
+                            sorted_score_indices]
                         # print(f"Original length: {len(scores)}")
 
                         valid_scores = np.flatnonzero(scores > min_conf_threshold_class_0)
@@ -629,13 +624,14 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                         # removing overlapping boxes, keeping only the one with higher score
                         if vision.overlap_removal:
                             boxes, classes, scores, widths = remove_overlapping_boxes(boxes, classes, scores,
-                                                                              overlap_thr=vision.overlap_removal_thr,
-                                                                              widths = widths)
+                                                                                      overlap_thr=vision.overlap_removal_thr,
+                                                                                      widths=widths)
                             # print(f"After overlap removal: {len(scores)}")
                             # print(widths)
                             # print(boxes)
 
                         if vision.focus_on_N_largest:
+                            # If only focusing on N largest (future improvement)
 
                             sorted_width_indices = np.argsort(widths)[::-1]
                             sorted_width_indices = sorted_width_indices[
@@ -648,8 +644,9 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                             sorted_width_indices = corr_sorted_width_indices
 
                             # Filtering data for N largest widths
-                            boxes, classes, scores, widths = boxes[sorted_width_indices, :], classes[sorted_width_indices], \
-                            scores[sorted_width_indices], widths[sorted_width_indices]
+                            boxes, classes, scores, widths = boxes[sorted_width_indices, :], classes[
+                                sorted_width_indices], \
+                                                             scores[sorted_width_indices], widths[sorted_width_indices]
 
                             # print(f"After width sorting: {len(scores)}")
                             # print(widths)
@@ -669,11 +666,12 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # extending mask on sides so that we can extend it
                     # shape[0] 200
                     # shape[1] 320
-                    blurred = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0]]) # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
+                    blurred = np.zeros([img.shape[0], img.shape[1] + 2 * img.shape[
+                        0]])  # np.zeros([img.shape[1] + 2*img.shape[0], img.shape[0]])
                     if vision.divided_projection_field:
                         # creating an individual projection field per each blob
                         logger.debug("Divided retina per blob is requested")
-                        blurred_divided = np.zeros([img.shape[0], img.shape[1] + 2*img.shape[0], max(1, len(scores))])
+                        blurred_divided = np.zeros([img.shape[0], img.shape[1] + 2 * img.shape[0], max(1, len(scores))])
 
                     if algoimp.WITH_SELECTIVE_BLOB_FILTERING:
                         ## Filtering visual blobs according to their size selectively according to
@@ -711,7 +709,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                     xmax_extend += (b_height - b_width)
 
                                 widths.append(xmax_extend - xmin_extend)
-                                centers.append((xmin_extend + xmax_extend)/2)
+                                centers.append((xmin_extend + xmax_extend) / 2)
                                 xs.append((xmin_extend, xmax_extend))
                                 xorigs.append((xmin_orig, xmax_orig))
                                 ys.append((ymin, ymax))
@@ -781,7 +779,7 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                 # if the height is large, the object is closer
                                 if xmin_orig <= 2:
                                     xmin_extend -= (b_height - b_width)
-                                elif xmax_orig >= imW-2:
+                                elif xmax_orig >= imW - 2:
                                     xmax_extend += (b_height - b_width)
 
                                 if xmax_extend - xmin_extend > vision.min_box_width:
@@ -796,24 +794,10 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                                                 blurred_divided[ymin:ymax, xmin_extend:xmax_extend, i] = 255
                                             # num_detections_class_0 += 1
                                             cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                                            frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}', (xmin_orig, ymin),
+                                            frame_rgb = cv2.putText(frame_rgb, f'A{int(scores[i] * 100)}',
+                                                                    (xmin_orig, ymin),
                                                                     cv2.FONT_HERSHEY_SIMPLEX,
                                                                     0.5, (255, 0, 0), 1, cv2.LINE_AA)
-                            # elif np.rint(classes[i]) == 1:
-                            #     if num_detections_class_1 < max_num_detection_class_1:
-                            #         box_color = (255, 10, 0)
-                            #         blurred[ymin:ymax, xmin_extend:xmax_extend] = 255
-                            #         num_detections_class_1 += 1
-                            #         cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                            #         frame_rgb = cv2.putText(frame_rgb, f'B{int(scores[i] * 100)}', (xmin_orig, ymin),
-                            #                                 cv2.FONT_HERSHEY_SIMPLEX,
-                            #                                 0.5, (255, 0, 0), 1, cv2.LINE_AA)
-                            # else:
-                            #     box_color = (0, 10, 255)
-                            #     cv2.rectangle(frame_rgb, (xmin_orig, ymin), (xmax_orig, ymax), box_color, 2)
-                            #     frame_rgb = cv2.putText(frame_rgb, f'{int(scores[i] * 100)}', (xmin_orig, ymin),
-                            #                             cv2.FONT_HERSHEY_SIMPLEX,
-                            #                             0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
                     t3 = datetime.utcnow()
                     logger.debug(f"Postprocess time: {(t3 - t1).total_seconds()}")
@@ -829,7 +813,8 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
 
                     # Collecting training data for CNN fine tune if requested
                     if monitoring.SAVE_CNN_TRAINING_DATA:
-                        if (capture_timestamp - CNN_TD_last_collect).total_seconds() > 1/monitoring.CNN_TRAINING_DATA_FREQ:
+                        if (
+                                capture_timestamp - CNN_TD_last_collect).total_seconds() > 1 / monitoring.CNN_TRAINING_DATA_FREQ:
                             frame_name = f'{EXP_ID}_{ROBOT_NAME}_CNNTD_frame{frame_id}.png'
                             frame_path = os.path.join(training_data_folder, frame_name)
                             cv2.imwrite(frame_path, frame_rgb_raw)
@@ -838,10 +823,12 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
                     # Forwarding result for visualization if requested
                     if visualization_stream is not None:
                         if not vision.divided_projection_field:
-                            visualization_stream.put((frame_rgb, cv2.resize(blurred, (img.shape[1], img.shape[0])), frame_id))
+                            visualization_stream.put(
+                                (frame_rgb, cv2.resize(blurred, (img.shape[1], img.shape[0])), frame_id))
                         else:
                             visualization_stream.put(
-                                (frame_rgb, cv2.resize(np.max(blurred_divided, axis=-1), (img.shape[1], img.shape[0])), frame_id))
+                                (frame_rgb, cv2.resize(np.max(blurred_divided, axis=-1), (img.shape[1], img.shape[0])),
+                                 frame_id))
 
                     # To test infinite loops
                     if env.EXIT_CONDITION:
@@ -864,7 +851,10 @@ def high_level_vision_CNN_calib(raw_vision_stream, high_level_vision_stream, vis
     except KeyboardInterrupt:
         pass
 
+
 def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55, widths=None):
+    """Remove overlapping boxes with a threshold of overlap_thr. If widths is not None, it is used to extend the
+    boxes """
     resW, resH = camera.RESOLUTION
     imW, imH = int(resW), int(resH)
     is_to_remove = []
@@ -873,8 +863,10 @@ def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55, widths=No
             for j in range(len(scores)):
                 if j not in is_to_remove:
                     if i != j:
-                        points_i = [p for p in range(int(max(0, (boxes[i, 1] * imW))), int(min(imW, (boxes[i, 3] * imW))))]
-                        points_j = [p for p in range(int(max(0, (boxes[j, 1] * imW))), int(min(imW, (boxes[j, 3] * imW))))]
+                        points_i = [p for p in
+                                    range(int(max(0, (boxes[i, 1] * imW))), int(min(imW, (boxes[i, 3] * imW))))]
+                        points_j = [p for p in
+                                    range(int(max(0, (boxes[j, 1] * imW))), int(min(imW, (boxes[j, 3] * imW))))]
                         if len(set(points_j).intersection(set(points_i))) > 0:
                             overlap = len(set(points_j).intersection(set(points_i))) / len(points_j)
                             if overlap > overlap_thr:
@@ -897,6 +889,7 @@ def remove_overlapping_boxes(boxes, classes, scores, overlap_thr=0.55, widths=No
     if widths is not None:
         widths = widths[is_to_keep]
     return boxes[is_to_keep, :], classes[is_to_keep], scores[is_to_keep], widths
+
 
 def visualizer(visualization_stream, target_config_stream=None):
     """
@@ -993,6 +986,8 @@ def visualizer(visualization_stream, target_config_stream=None):
         if monitoring.SAVE_VISION_VIDEO:
             writer.release()
 
+
+# obsolete if using calibrated image
 def center_fisheye_circle(VPF, robot_name):
     """Centering fisheye projection circle on image according to lens specific offsets"""
     if robot_name == 'Robot' or robot_name is None:
@@ -1002,7 +997,7 @@ def center_fisheye_circle(VPF, robot_name):
         if lens_config is None:
             return VPF
         else:
-            if lens_config['offset_left']==0 and lens_config['offset_right']==0:
+            if lens_config['offset_left'] == 0 and lens_config['offset_right'] == 0:
                 return VPF
 
             if len(VPF.shape) == 3:
@@ -1017,6 +1012,8 @@ def center_fisheye_circle(VPF, robot_name):
                 rounded = np.array([np.round(det) for det in resampled])
                 return rounded
 
+
+# obsolete if using calibrated image
 def correct_fisheye_approx(VPF, robot_name):
     """Correcting fisheye lens's barrel distortion horizontally with a composite reverse-distortion function
     and upscaling according to vision.Lens_config"""
@@ -1042,7 +1039,7 @@ def correct_fisheye_approx(VPF, robot_name):
                     done_resc_i = index_end
 
                 # downscale remapped VPF to original size
-                downs_VPF =  signal.resample(resc_VPF, orig_width)
+                downs_VPF = signal.resample(resc_VPF, orig_width)
                 downs_VPF = np.array([np.round(det) for det in downs_VPF])
 
                 return downs_VPF
@@ -1059,13 +1056,14 @@ def correct_fisheye_approx(VPF, robot_name):
                 for i in range(orig_shape[0]):
                     index_end = done_respe_i + lens_config['h_reverse_mapping'][i]
                     for j in range(int(lens_config['h_reverse_mapping'][i])):
-                        new_img[:, int(done_respe_i+j)] = VPF[:, i]
+                        new_img[:, int(done_respe_i + j)] = VPF[:, i]
                     done_respe_i = index_end
 
                 # logger.info(np.mean(new_img==cv2.resize(VPF, new_shape)))
                 # downscaling back to original shape
                 downs_VPF = cv2.resize(new_img, orig_shape)
                 return downs_VPF
+
 
 def VPF_extraction(high_level_vision_stream, VPF_stream):
     """
@@ -1092,14 +1090,15 @@ def VPF_extraction(high_level_vision_stream, VPF_stream):
             # logger.info(high_level_vision_stream.qsize())
             if not vision.divided_projection_field:
                 cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
-                                     visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
+                                visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN]
             else:
                 cropped_image = mask[visualswarm.contrib.vision.H_MARGIN:-visualswarm.contrib.vision.H_MARGIN,
-                                     visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN,
-                                     :]
+                                visualswarm.contrib.vision.W_MARGIN:-visualswarm.contrib.vision.W_MARGIN,
+                                :]
             projection_field_class_1 = np.max(cropped_image, axis=0)
             projection_field_class_0 = np.min(cropped_image, axis=0)
 
+            # multiobject detection and tracking commented out
             # if proj_f_stack is None:
             #     N_filter = 5
             #     filter_below = 4

@@ -61,6 +61,15 @@ W_MARGIN = 1  # 10
 PHI_START = - (FOV / 2)  # * pi  # -0.5394 * pi
 PHI_END = (FOV / 2)  # pi  # 0.5394 * pi
 
+# CNN path
+MODEL_NAME = '/home/pi/VisualSwarm/CNNtools/data/tflite_model/edgetpu'
+# model name
+GRAPH_NAME = 'FINAL_ssdnet2_edgetpu_fullinteger.tflite'
+LABELMAP_NAME = 'labelmap.txt'
+# using tensor processing unit
+USE_TPU = True
+INTQUANT = True
+
 # CNN processing parameters
 overlap_removal = bool(int(float(os.getenv('OVERLAP_REMOVAL', '0'))))
 overlap_removal_thr = 0.5
