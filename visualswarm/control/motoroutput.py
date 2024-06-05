@@ -1,3 +1,6 @@
+"""This file contains higher level control methods such as moving ahead, turning left/right, etc.
+It also contains the main steering method to control the robot's movement and other, supporting methods, such
+as changing the color of RGBs."""
 from visualswarm.contrib import simulation
 
 if not simulation.ENABLE_SIMULATION:
@@ -29,6 +32,7 @@ bcolors = logparams.BColors
 
 
 def rgb_to_hex(R, G, B):  # pragma: simulation no cover
+    """Converting RGB to HEX color code"""
     R = int((R / 32) * 200)
     G = int((G / 32) * 200)
     B = int((B / 32) * 200)
@@ -910,7 +914,7 @@ def emergency_behavior(emergency_stream, sensor_stream=None):
                         raise Exception('No sensor stream has been passed from Webots to sentinel process!')
 
                 try:
-                    # TODO: think over filtering of IR signals
+                    # Filtering flickering IR signals coming from OptiTrack system
                     if np.any(prox_val[0:5] > control.EMERGENCY_PROX_THRESHOLD) \
                             and np.any(prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD) \
                             and np.any(prev_prev_prox[0:5] > control.EMERGENCY_PROX_THRESHOLD):

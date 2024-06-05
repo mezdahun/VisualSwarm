@@ -32,11 +32,9 @@ def asebamedulla_init():
         Args: None
         Vars: visualswarm.control.THYMIO_DEVICE_PORT: serial port on which the robot is available for the Pi
         Returns: None
+        Note: Be sure to pick the original USB cable shipped with Thymio for proper connection!
     """
     logger.info(f'{bcolors.OKBLUE}CONNECT{bcolors.ENDC} via asebamedulla on {control.THYMIO_DEVICE_PORT}')
-    # TODO: fix this to be changable from config between wireless and wired connection
-    # important to improve code: http://wiki.thymio.org/en:asebaswitchremap
-    # the cable matters!!!
     # os.system(f"(asebamedulla ser:device={control.THYMIO_DEVICE_PORT} &)")  # nosec
     os.system("(asebamedulla ser:name=Thymio-II &)")  # nosec
     time.sleep(5)
