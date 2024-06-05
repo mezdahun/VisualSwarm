@@ -1,4 +1,4 @@
-"""Methods to stream vision of robot via mjpg web server"""
+"""Additional top view webcam extension for the visualswarm monitoring system."""
 import io
 import logging
 import socketserver

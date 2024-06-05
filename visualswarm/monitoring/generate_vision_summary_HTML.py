@@ -1,3 +1,4 @@
+"""Generating HTML vision summary file with embedded robot camrea streams according to robot local IPs"""
 import webbrowser
 from visualswarm.contrib.puppetmaster import ALL_HOSTS, WEBCAM_HOSTS
 

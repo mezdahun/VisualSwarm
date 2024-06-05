@@ -1,3 +1,5 @@
+"""Generating HTML vision summary file with embedded robot camrea streams according to robot local IPs (in MoCap
+system) """
 import webbrowser
 from visualswarm.contrib.puppetmaster import ALL_HOSTS, WEBCAM_HOSTS
 
