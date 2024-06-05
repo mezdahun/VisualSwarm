@@ -43,7 +43,7 @@ def dPhi_V_of(Phi: npt.ArrayLike, V: npt.ArrayLike) -> npt.ArrayLike:
     dPhi_V = dPhi_V_raw  # / (Phi[-1] - Phi[-2])
     return dPhi_V
 
-
+# Optic flow related functions for future
 # def dt_V_of(dt, joined_V):
 #     """Calculating the temporal derivative of VPF to all Phi visual angles"""
 #     dt_V = np.diff(joined_V, axis=0, prepend=0) / dt
@@ -117,17 +117,21 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
     G_psi_spike = np.square(dPhi_V)
 
     if not algoimp.WITH_SIGMOID_MASK_TURN:
+        # ORIGINAL Algorithm
         dpsi = BET0 * integrate.trapz(np.sin(Phi) * G_psi, Phi) + \
                BET0 * BET1 * np.sum(np.sin(Phi) * G_psi_spike)
     else:
+        # Sigmoid Masked Algorithm
         dpsi = BET0 * integrate.trapz(sin_sigmoid(Phi, s=algoimp.SIGMOID_MASK_TURN_STEEP*np.pi) * G_psi, Phi) + \
                BET0 * BET1 * np.sum(sin_sigmoid(Phi, s=algoimp.SIGMOID_MASK_TURN_STEEP*np.pi) * G_psi_spike)
 
     if not algoimp.WITH_SIGMOID_MASK_ACC:
+        # ORIGINAL Algorithm
         dvel = GAM * (V0 - vel_now) + \
                ALP0 * integrate.trapz(np.cos(Phi) * G_vel, Phi) + \
                ALP0 * ALP1 * np.sum(np.cos(Phi) * G_vel_spike)
     else:
+        # Sigmoid Masked Algorithm
         dvel = GAM * (V0 - vel_now) + \
                ALP0 * integrate.trapz(cos_sigmoid(Phi, algoimp.SIGMOID_MASK_ACC_STEEP*np.pi) * G_vel, Phi) + \
                ALP0 * ALP1 * np.sum(cos_sigmoid(Phi, algoimp.SIGMOID_MASK_ACC_STEEP*np.pi) * G_vel_spike)
@@ -136,10 +140,12 @@ def compute_state_variables(vel_now: float, Phi: npt.ArrayLike, V_now: npt.Array
 
 
 def sigmoid(x, s):
+    """Sigmoid function with steepness s."""
     return 2 / (1 + np.exp(-s*x)) - 1
 
 
 def cos_sigmoid(x, s):
+    """Composite sigmoid function resembling cos with steepness s."""
     # left part
     left = 2 / (1 + np.exp(-s * (x + (np.pi / 2)))) - 1
     right = -2 / (1 + np.exp(-s * (x - (np.pi / 2)))) + 1
@@ -153,6 +159,7 @@ def cos_sigmoid(x, s):
 
 
 def sin_sigmoid(x, s):
+    """Composite sigmoid function resembling sin with steepness s."""
     # left part
     middle = 2 / (1 + np.exp(-s * (x))) - 1
     left = -2 / (1 + np.exp(-s * (x + (np.pi)))) + 1

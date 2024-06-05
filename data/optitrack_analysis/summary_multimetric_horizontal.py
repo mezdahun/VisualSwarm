@@ -10,6 +10,7 @@ import h5py
 import glob
 from visualswarm.simulation_tools import data_tools, plotting_tools
 
+
 def float_to_str_without_points(float_number):
     """Converts a float number to string without points."""
     return str(float_number).replace('.', '')
@@ -17,7 +18,7 @@ def float_to_str_without_points(float_number):
 
 def transform_table_to_groups(merge_operations, merge_heights, threshold):
     # Initialize a dictionary to map each robot or subgroup to its current subgroup
-    #print(merge_operations)
+    # print(merge_operations)
     current_group = {}
     # Initialize a counter for new subgroup IDs
     new_group_id = 1
@@ -29,33 +30,33 @@ def transform_table_to_groups(merge_operations, merge_heights, threshold):
 
             # If both a and b are robots (negative values), create a new subgroup
             if a < 0 and b < 0:
-                #print(f"Creating new subgroup with robots {a} and {b}")
+                # print(f"Creating new subgroup with robots {a} and {b}")
                 current_group[a] = new_group_id
                 current_group[b] = new_group_id
-                #print(f"New subgroup created: {new_group_id}")
-                #print(f"Current group: {current_group}")
+                # print(f"New subgroup created: {new_group_id}")
+                # print(f"Current group: {current_group}")
                 new_group_id += 1
 
             # If a is a robot and b is a subgroup, add a to subgroup b
             elif a < 0 and b > 0:
-                #print(f"Adding robot {a} to subgroup {b}")
+                # print(f"Adding robot {a} to subgroup {b}")
                 current_group[a] = b
                 # then iterate through all elements belonging to b and update their group id
                 for robot, group_id in current_group.items():
                     if group_id == b:
                         current_group[robot] = new_group_id
                 new_group_id += 1
-                #print(f"Current group: {current_group}")
+                # print(f"Current group: {current_group}")
 
             # If a and b are both subgroups, merge them
             elif a > 0 and b > 0:
-                #print(f"Merging subgroups {a} and {b}")
+                # print(f"Merging subgroups {a} and {b}")
                 # Find all elements belonging to a or be and update their group id
                 for robot, group_id in current_group.items():
                     if group_id == a or group_id == b:
                         current_group[robot] = new_group_id
                 new_group_id += 1
-                #print(f"Current group: {current_group}")
+                # print(f"Current group: {current_group}")
 
     # Generate the final list of group IDs for robots, assuming robots are numbered from -1 downwards
     # and adjusting subgroup IDs to start from 0
@@ -82,6 +83,7 @@ def count_t_in_dict_value_lists(dict, t):
     """Count how many times t is in the values of a dictionary."""
     print(t)
     return sum(t in v for v in dict.values())
+
 
 def get_swarmviz_data(input_path, metric=None, filtered_timesteps=None):
     """Reading files exported from the SwarmViz tool for a single measurement and returning dataframes for robots and metrics."""
@@ -138,7 +140,7 @@ def get_swarmviz_data(input_path, metric=None, filtered_timesteps=None):
             clustering = np.zeros((T, num_robots))
             for t in range(T):
                 try:
-                    print(f"{t/T*100:.2f}%", end='\r', flush=True)
+                    print(f"{t / T * 100:.2f}%", end='\r', flush=True)
                     merges = f['clustering']['clustering_merges'][t, :, :]
                     heights = f['clustering']['clustering_heights'][t, :]
                     threshold = f['clustering']['chosen_clustering_threshold'][()]
@@ -231,7 +233,8 @@ def get_swarmviz_data(input_path, metric=None, filtered_timesteps=None):
 
 data_path = "D:\\VSWRM Robot Data"
 experiment_cases = ["A0Fixed", "B0Fixed"]
-metrics = ["Polarization", "Mean IID", "LargestCluster", "NumRCollisions"]  #"Polarization", "Mean IID", "Max Min IID", "Rotational Order", "Area"]
+metrics = ["Polarization", "Mean IID", "LargestCluster",
+           "NumRCollisions"]  # "Polarization", "Mean IID", "Max Min IID", "Rotational Order", "Area"]
 denominators = [1, 1000, 1, 0.01]
 units = ["", "m", "", "%"]
 titles = {
@@ -244,7 +247,6 @@ titles = {
 fontsize_xylabel = 19
 fontsize_title = 22
 fontsize_ticks = 17
-
 
 num_exp_cases = len(experiment_cases)
 num_metrics = len(metrics)
@@ -266,7 +268,9 @@ for ei, experiment_case in enumerate(experiment_cases):
 
     # generating folder names and paths for the experiments
     param_combis = [(alpha, beta, repetition) for alpha in alphas for beta in betas for repetition in repetitions]
-    experiment_base_names = [f"EXP1_A0_{float_to_str_without_points(alpha)}_B0_{float_to_str_without_points(beta)}_r{repetition}" for alpha in alphas for beta in betas for repetition in repetitions]
+    experiment_base_names = [
+        f"EXP1_A0_{float_to_str_without_points(alpha)}_B0_{float_to_str_without_points(beta)}_r{repetition}" for alpha
+        in alphas for beta in betas for repetition in repetitions]
     final_experiment_files = []
     walls = []
 
@@ -277,10 +281,9 @@ for ei, experiment_case in enumerate(experiment_cases):
     # matching subdirectories with measurement base names
     for experiment_base_name in experiment_base_names:
         for subdir in subdirs:
-            if subdir.find(experiment_base_name)>-1:
+            if subdir.find(experiment_base_name) > -1:
                 final_experiment_files.append(subdir)
                 walls.append(subdir.split('_w')[1].split('.')[0])
-
 
     for mi, metric in enumerate(metrics):
         pols = np.zeros((len(alphas), len(betas), len(repetitions)))
@@ -317,7 +320,8 @@ for ei, experiment_case in enumerate(experiment_cases):
                     wall_data_tuple = (summary_wall, data_wall)
 
                     summary, data = data_tools.read_summary_data(input_parent, input)
-                    wall_refl_dict, ag_refl_dict = data_tools.mine_reflection_times_drotY(data, summary, summary_wall, data_wall)
+                    wall_refl_dict, ag_refl_dict = data_tools.mine_reflection_times_drotY(data, summary, summary_wall,
+                                                                                          data_wall)
                     wall_refl_dict = wall_refl_dict['0']
                     ag_refl_dict = ag_refl_dict['0']
                     # wall_refl_dict, ag_refl_dict are dictionaries where the keys are robot ids and the values are lists of reflection times
@@ -332,7 +336,8 @@ for ei, experiment_case in enumerate(experiment_cases):
 
                     if metric != "NumRCollisions":
                         # get data from swarmviz exports
-                        pol, mean_pol, mean_pol_std = get_swarmviz_data(input_path, metric=metric, filtered_timesteps=wall_times)
+                        pol, mean_pol, mean_pol_std = get_swarmviz_data(input_path, metric=metric,
+                                                                        filtered_timesteps=wall_times)
                         pols[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = mean_pol
                         pols_std[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = mean_pol_std
                     else:
@@ -354,21 +359,20 @@ for ei, experiment_case in enumerate(experiment_cases):
                 #     pols[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = np.mean(np.mean(concat_pols))
                 #     pols_std[alphas.index(alpha), betas.index(beta), repetitions.index(repetition)] = np.mean(np.std(concat_pols))
 
-
         # average over repetitions
-        mpols = np.mean(pols, axis=-1)/denominators[mi]
-        mpols_std = np.mean(pols_std, axis=-1)/denominators[mi]
+        mpols = np.mean(pols, axis=-1) / denominators[mi]
+        mpols_std = np.mean(pols_std, axis=-1) / denominators[mi]
 
-        if num_metrics==1:
+        if num_metrics == 1:
             plt.axes(ax[ei])
         else:
             plt.axes(ax[ei, mi])
 
-        if experiment_case=="A0Fixed":
+        if experiment_case == "A0Fixed":
             # choosing color and it's pastel version for mean and std
             color = 'xkcd:light blue'
             color_std = 'xkcd:light blue'
-            if ei==0:
+            if ei == 0:
                 if units[mi] != "":
                     plt.ylabel(titles[metrics[mi]] + " [" + units[mi] + "]", fontsize=fontsize_xylabel)
                 else:
@@ -379,9 +383,11 @@ for ei, experiment_case in enumerate(experiment_cases):
             for i, alpha in enumerate(alphas):
                 for ri in range(len(repetitions)):
                     # dotted gray lines for each repetition
-                    plt.plot([i for i in range(len(betas))], pols[i, :, ri]/denominators[mi], color='gray', linestyle='dotted')
+                    plt.plot([i for i in range(len(betas))], pols[i, :, ri] / denominators[mi], color='gray',
+                             linestyle='dotted')
                 plt.plot([i for i in range(len(betas))], mpols[i], color=color)
-                plt.fill_between([i for i in range(len(betas))], mpols[i] - mpols_std[i], mpols[i] + mpols_std[i], alpha=0.2, color=color_std)
+                plt.fill_between([i for i in range(len(betas))], mpols[i] - mpols_std[i], mpols[i] + mpols_std[i],
+                                 alpha=0.2, color=color_std)
                 # equidistant ticks for beta
                 plt.xticks([i for i in range(len(betas))], betas, fontsize=fontsize_ticks, rotation=-45)
                 # set y axis fontsize
@@ -391,9 +397,7 @@ for ei, experiment_case in enumerate(experiment_cases):
             # if mi==0:
             #     plt.ylabel("$\\alpha_0=0.9$ Fixed")
 
-
-
-        elif experiment_case=="B0Fixed":
+        elif experiment_case == "B0Fixed":
             # choosing color and it's pastel version for mean and std
             color = 'xkcd:light orange'
             color_std = 'xkcd:light orange'
@@ -403,15 +407,17 @@ for ei, experiment_case in enumerate(experiment_cases):
             for i, beta in enumerate(betas):
                 for ri in range(len(repetitions)):
                     # dotted gray lines for each repetition
-                    plt.plot([i for i in range(len(alphas))], pols[:, i, ri]/denominators[mi], color='gray', linestyle='dotted')
+                    plt.plot([i for i in range(len(alphas))], pols[:, i, ri] / denominators[mi], color='gray',
+                             linestyle='dotted')
                 plt.plot([i for i in range(len(alphas))], mpols[:, i], color=color)
-                plt.fill_between([i for i in range(len(alphas))], mpols[:, i] - mpols_std[:, i], mpols[:, i] + mpols_std[:, i], alpha=0.2, color=color_std)
+                plt.fill_between([i for i in range(len(alphas))], mpols[:, i] - mpols_std[:, i],
+                                 mpols[:, i] + mpols_std[:, i], alpha=0.2, color=color_std)
                 # equidistant ticks for alpha, with rotation 45 to the right
                 plt.xticks([i for i in range(len(alphas))], alphas, fontsize=fontsize_ticks, rotation=-45)
                 # logaritmic scale for beta
                 # plt.ylim(0.45, 1)
-            if units[mi]!="":
-                plt.ylabel(titles[metrics[mi]]+" ["+units[mi]+"]", fontsize=fontsize_xylabel)
+            if units[mi] != "":
+                plt.ylabel(titles[metrics[mi]] + " [" + units[mi] + "]", fontsize=fontsize_xylabel)
             else:
                 plt.ylabel(titles[metrics[mi]], fontsize=fontsize_xylabel)
             plt.xlabel("$\\alpha_0$", fontsize=fontsize_xylabel)
@@ -424,12 +430,3 @@ for ei, experiment_case in enumerate(experiment_cases):
 # adjusting left, right, wspace and hspace
 plt.subplots_adjust(left=0.067, right=0.926, bottom=0.11, top=0.88, wspace=0.288, hspace=0.348)
 plt.show()
-
-
-
-
-    
-
-
-
-

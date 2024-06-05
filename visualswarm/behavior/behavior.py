@@ -139,7 +139,7 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
             v = float(v)
             dpsi = float(dpsi)
 
-            ## TODO: this is temporary smooth reandom walk
+            ## Smooth random walk if requested by user (temporary)
             if np.mean(projection_field) == 0 and control.SMOOTH_RW:
                 if rw_dt > 2:
                     new_dpsi = np.random.uniform(-add_psi, add_psi, 1)
@@ -165,8 +165,8 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 dpsi = float(0)
 
             # now_sign = np.sign(dv)
-
             # prev_sign = now_sign
+
             t_prev = t_now
 
             if monitoring.SAVE_CONTROL_PARAMS and not simulation.ENABLE_SIMULATION:
@@ -191,13 +191,17 @@ def VPF_to_behavior(VPF_stream, control_stream, motor_control_mode_stream, with_
                 ifclient.write_points(body, time_precision='ms')
 
             if with_control:
-                #ating excitation of left vs right of the projection field
+                # Only used if improvement is requested
+                # creating excitation of left vs right of the projection field
                 exc_left = np.mean(projection_field[0:int(len(projection_field) / 2)])
                 exc_right = np.mean(projection_field[int(len(projection_field) / 2):])
+                # counting how many blobs are detected
                 num_blobs = count_retinal_blobs(projection_field)
+                # forwarding values for robot control
                 control_stream.put((v, dpsi, exc_left, exc_right, num_blobs))
                 motor_control_mode_stream.put(movement_mode)
 
+            # saving monitoring values
             if monitoring.ENABLE_CLOUD_STORAGE:
                 with open(statevars_fpath, 'ab') as sv_f:
                     statevars = np.concatenate((np.array([t_now]),
